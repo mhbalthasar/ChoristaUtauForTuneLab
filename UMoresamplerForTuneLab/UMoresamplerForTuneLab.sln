@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34902.65
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UMoresamplerForTuneLab", "UMoresamplerForTuneLab.csproj", "{9F462D86-8617-42AD-BCFB-22F6918031E4}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtaubaseForTuneLab", "..\UtaubaseForTuneLab\UtaubaseForTuneLab.csproj", "{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtauSharpApi", "..\UtauSharpApi\UtauSharpApi.csproj", "{14234800-D625-4F6C-A294-88E893A5D927}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TuneLab.Extensions.Voices", "..\..\..\TuneLab.Extensions.Voices\TuneLab.Extensions.Voices.csproj", "{53186A34-0C53-49F3-B916-DE6FBBDBEFF9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TuneLab.Base", "..\..\..\TuneLab.Base\TuneLab.Base.csproj", "{4AB8A94F-9D8A-46A7-922C-52E6EF3ECD71}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleDebugAssert", "..\ConsoleDebugAssert\ConsoleDebugAssert.csproj", "{23BFD37F-7195-4A2F-A653-53514DBECFA7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.Text.Encoding.CodePages", "..\System.Text.Encoding.CodePages\System.Text.Encoding.CodePages.csproj", "{E5852543-DBBB-4C5F-AF3F-621B1AEFE89A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F462D86-8617-42AD-BCFB-22F6918031E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F462D86-8617-42AD-BCFB-22F6918031E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F462D86-8617-42AD-BCFB-22F6918031E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F462D86-8617-42AD-BCFB-22F6918031E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14234800-D625-4F6C-A294-88E893A5D927}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{14234800-D625-4F6C-A294-88E893A5D927}.Debug|Any CPU.Build.0 = Debug|x64
+		{14234800-D625-4F6C-A294-88E893A5D927}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14234800-D625-4F6C-A294-88E893A5D927}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53186A34-0C53-49F3-B916-DE6FBBDBEFF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53186A34-0C53-49F3-B916-DE6FBBDBEFF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53186A34-0C53-49F3-B916-DE6FBBDBEFF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53186A34-0C53-49F3-B916-DE6FBBDBEFF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AB8A94F-9D8A-46A7-922C-52E6EF3ECD71}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AB8A94F-9D8A-46A7-922C-52E6EF3ECD71}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AB8A94F-9D8A-46A7-922C-52E6EF3ECD71}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AB8A94F-9D8A-46A7-922C-52E6EF3ECD71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5852543-DBBB-4C5F-AF3F-621B1AEFE89A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5852543-DBBB-4C5F-AF3F-621B1AEFE89A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5852543-DBBB-4C5F-AF3F-621B1AEFE89A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5852543-DBBB-4C5F-AF3F-621B1AEFE89A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6E79ACF5-4090-4B56-8045-BA7B6572C07D}
+	EndGlobalSection
+EndGlobal

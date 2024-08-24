@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34902.65
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtaubaseForTuneLab", "UtaubaseForTuneLab.csproj", "{1810C2D0-C230-4273-BD8C-499CBE52CC66}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtauSharpApi", "..\UtauSharpApi\UtauSharpApi.csproj", "{16E8101A-0EBF-4099-813E-8D3A85AC6BB6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1810C2D0-C230-4273-BD8C-499CBE52CC66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1810C2D0-C230-4273-BD8C-499CBE52CC66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1810C2D0-C230-4273-BD8C-499CBE52CC66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1810C2D0-C230-4273-BD8C-499CBE52CC66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16E8101A-0EBF-4099-813E-8D3A85AC6BB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16E8101A-0EBF-4099-813E-8D3A85AC6BB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16E8101A-0EBF-4099-813E-8D3A85AC6BB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16E8101A-0EBF-4099-813E-8D3A85AC6BB6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8D473EC8-02CB-453B-86D6-8BDC38FC12DB}
+	EndGlobalSection
+EndGlobal
