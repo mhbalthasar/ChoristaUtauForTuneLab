@@ -133,7 +133,7 @@ namespace UtauSharpApi.UVoiceBank
                     {
                         string prefixStr = pfx[1];
                         string suffixStr = pfx[2];
-                        vb.PrefixMap[nn] = new PrefixItem() { prefix = prefixStr, suffix = suffixStr };
+                        vb.SetPrefixItem(nn,prefixStr, suffixStr);
                     }
                 }
             }
@@ -173,7 +173,7 @@ namespace UtauSharpApi.UVoiceBank
             }
 
             vb.DefaultLyric = "a";
-            if (vb.FindSymbol("あ") != null) vb.DefaultLyric = "あ";
+            if (vb.FindSymbol("あ") != null || vb.FindSymbol("あ",60) != null) vb.DefaultLyric = "あ";
 
             vb.Serialize(cache);
             vb.vbBasePath = VoiceBankPath;

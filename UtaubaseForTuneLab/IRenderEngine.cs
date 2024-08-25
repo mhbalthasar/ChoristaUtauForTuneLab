@@ -10,6 +10,7 @@ namespace UtaubaseForTuneLab
     {
         public string ResamplerPath { get; }
         public string WavtoolPath { get; }
+        public bool WindowsOnly { get; }
         public string EngineUniqueString { get; }
     }
 }

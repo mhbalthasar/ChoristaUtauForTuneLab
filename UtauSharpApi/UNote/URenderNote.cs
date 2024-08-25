@@ -76,9 +76,9 @@ namespace UtauSharpApi.UNote
         }
         private double PitchStartMSec()
         {
-            double fixedStp = STPoint + FixSTP.FixSTPoint;
+            double fixedStp = IsRest ? 0 : STPoint + FixSTP.FixSTPoint;
             double fixedPreuttr = IsRest ? 0 : RenderOto.Preutter + FixSTP.FixPreuttr;
-            return StartMSec - fixedPreuttr;
+            return StartMSec - fixedPreuttr - fixedStp;
         }
         private double PitchDurationMSec()
         {
@@ -88,6 +88,7 @@ namespace UtauSharpApi.UNote
         private string PitchLines = "";
         public void SetPitchBends(Func<double[], double[]> PitchGetter)
         {
+            if (IsRest) return;
             List<double> millsec_times = new List<double>();
             double t = PitchStartMSec();
             double end = t + PitchDurationMSec();
@@ -95,7 +96,7 @@ namespace UtauSharpApi.UNote
             var pitcharray = PitchGetter(millsec_times.ToArray());
             //PitToStr
             List<string> encodedPit = new List<string>();
-            const string Base64EncodeMap = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const string Base64EncodeMap = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
             string lep = "";
             int cep = 0;
             foreach (var pit in pitcharray)
@@ -156,12 +157,12 @@ namespace UtauSharpApi.UNote
             ret.Add(PitchLines);
             return ret;
         }
-        public List<string> GetResamplerArgs()
+        public List<string> GetResamplerArgs(bool ToolIsWindowsPlatform = true)
         {
             if (IsRest) return new List<string>();
             List<string> ret = new List<string>();
-            ret.Add(RenderOto.GetWavfilePath(VoiceBankPath));
-            ret.Add(TempFilePath);
+            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(RenderOto.GetWavfilePath(VoiceBankPath)) : RenderOto.GetWavfilePath(VoiceBankPath));
+            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(TempFilePath) : TempFilePath);
             ret.AddRange(GetSampleArgs());
             return ret;
         }
@@ -173,7 +174,7 @@ namespace UtauSharpApi.UNote
         {
             get
             {
-                if (PrevNote == null) return 5;
+                if (PrevNote == null || PrevNote.RenderOto==null) return 5;
                 if (IsRest) return 5;
                 return Math.Max(5, PrevNote.RenderOto.Overlap + PrevNote.FixSTP.FixOverlap);
             }
@@ -182,7 +183,7 @@ namespace UtauSharpApi.UNote
         {
             get
             {
-                if (NextNote == null) return 35;
+                if (NextNote == null || NextNote.RenderOto==null) return 35;
                 if (IsRest) return 35;
                 return Math.Max(35, NextNote.RenderOto.Overlap + NextNote.FixSTP.FixOverlap);
             }
@@ -214,11 +215,11 @@ namespace UtauSharpApi.UNote
             ret[7] = RenderOto.Overlap + FixSTP.FixOverlap;
             return ret;
         }
-        public List<string> GetWavToolArgs(string targetWavPath = "temp.wav")
+        public List<string> GetWavToolArgs(string targetWavPath = "temp.wav", bool ToolIsWindowsPlatform = true)
         {
             List<string> ret = new List<string>();
-            ret.Add(targetWavPath);
-            ret.Add(TempFilePath);
+            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(targetWavPath) : targetWavPath);
+            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(TempFilePath) : TempFilePath);
             ret.Add((STPoint + FixSTP.FixSTPoint).ToString("F3"));
             ret.Add(WavAppendLengthStr());
             ret.AddRange(Envlope().Select(d => d.ToString("F3")));
@@ -253,7 +254,7 @@ namespace UtauSharpApi.UNote
         {
             double RealLength = DurationMSec + FixedDurationDiff();
             List<string> ret = new List<string>();
-            ret.Add(string.Format("\"{0}\"", RenderOto.GetWavfilePath(VoiceBankPath)));//%1
+            ret.Add(string.Format("\"{0}\"", CrossPlatformUtils.KeepWindows(RenderOto.GetWavfilePath(VoiceBankPath))));//%1
             ret.Add(NoteString());//%2
             ret.Add(WavAppendLengthStr());//%3
             ret.Add((RenderOto.Preutter + FixSTP.FixPreuttr).ToString("F3"));//%4?没用？
@@ -269,7 +270,7 @@ namespace UtauSharpApi.UNote
             if (IsRest)
             {
                 List<string> args = new List<string>();
-                args.Add(string.Format("\"{0}\"", Path.Combine(VoiceBankPath, "R.wav")));
+                args.Add(string.Format("\"{0}\"", CrossPlatformUtils.KeepWindows(Path.Combine(VoiceBankPath, "R.wav"))));
                 args.Add("0");
                 args.Add(WavAppendLengthStr());
                 args.Add("0");

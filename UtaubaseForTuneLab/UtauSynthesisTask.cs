@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AudioLibrary.NAudio.Wave.SampleProviders;
+using AudioLibrary.NAudio.Wave;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,6 +14,8 @@ using UtauSharpApi.UNote;
 using UtauSharpApi.UPhonemizer;
 using UtauSharpApi.UTask;
 using UtauSharpApi.UVoiceBank;
+using TuneLab.Base.Structures;
+using System.Formats.Tar;
 
 namespace UtaubaseForTuneLab
 {
@@ -38,14 +42,14 @@ namespace UtaubaseForTuneLab
 
         public void Start()
         {
-            
+            WineHelper wine = new WineHelper();
             Task.Run(() =>
             {
                 UTaskProject uTask = UtauProject.GenerateFrom(synthesisData,voiceBank).ProcessPhonemizer(phonemizer);
                 List<URenderNote> rPart = uTask.Part.GenerateRendPart(renderEngine.EngineUniqueString);
 
                 //set pitchs
-                var pitchtable = UtauProject.PitchPrerender(synthesisData);
+                var pitchtable = UtauProject.PitchPrerender2(synthesisData);
                 foreach (URenderNote rNote in rPart)
                 {
                     rNote.SetPitchBends((ms_times) =>
@@ -53,74 +57,68 @@ namespace UtaubaseForTuneLab
                         double[] ret=new double[ms_times.Length];
                         for(int i=0;i< ms_times.Length;i++)
                         {
-                            ret[i] = (double)pitchtable[(int)ms_times[i]];
+                            int timeKey = (int)ms_times[i];
+                            if(pitchtable.ContainsKey(timeKey))ret[i] = (double)pitchtable[timeKey];
+                            else  ret[i] = 0;//BUG 
                         }
                         return ret;
                     });
                 }
 
+                //PrepareHash
+                string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine);
 
-
-                //resampler
-                foreach (URenderNote rNote in rPart)
+                if (!File.Exists(OutputFile))
                 {
-                    string resampler_exe = renderEngine.ResamplerPath;
-                    List<string> args=rNote.GetResamplerArgs();
-                    if (args.Count == 0) continue;
-                    if (File.Exists(rNote.TempFilePath)) continue;
-                    Process p = new Process();
-                    p.StartInfo.FileName = resampler_exe;
-                    p.StartInfo.RedirectStandardError = true;
-                    p.StartInfo.RedirectStandardOutput = true;
-                    foreach (string arg in args) { p.StartInfo.ArgumentList.Add(arg); };
-                    p.Start();
-                    p.WaitForExit();
-                    string errors=p.StandardError.ReadToEnd();
-                    string outputs=p.StandardOutput.ReadToEnd();
-
-                    string k = "";
-                }
-
-                //wavtool
-                string OutputFile = "C:\\Users\\balthasar\\AppData\\Local\\Temp\\UtauSharp\\temp.wav";
-                string WorkDir = "";
-                {//输出temp.bat
-                    string ParentDir=Path.GetDirectoryName(OutputFile);
-                    string HelpName=Path.GetFileNameWithoutExtension(OutputFile);
-                    WorkDir=Path.Combine(ParentDir, string.Format("{0}_conf",HelpName));
-                    if(!Directory.Exists(WorkDir)) { Directory.CreateDirectory(WorkDir); }
-                    string TempFile = Path.Combine(WorkDir, "temp.bat");
-                    using (FileStream fs = new FileStream(TempFile,FileMode.Create,FileAccess.ReadWrite))
+                    //resampler
+                    foreach (URenderNote rNote in rPart)
                     {
-                        using (TextWriter tw = new StreamWriter(fs))
-                        {
-                            tw.WriteLine(uTask.Part.GetBatchBat());
-                            foreach (URenderNote rNote in rPart)
-                            {
-                                tw.WriteLine(rNote.GetBatchBat());
-                            }
-                        }
+                        string resampler_exe = renderEngine.ResamplerPath;
+                        List<string> args = rNote.GetResamplerArgs();
+                        if (args.Count == 0) continue;
+                        if (File.Exists(rNote.TempFilePath)) continue;
+                        Process p = wine.CreateWineProcess(resampler_exe, args);
+                        p.Start();
+                        p.WaitForExit();
                     }
-                }
-                //YouMustSetup Temp.bat For Sync
-                foreach (URenderNote rNote in rPart)
-                {
-                    string wavtool_exe = renderEngine.WavtoolPath;
-                    List<string> args = rNote.GetWavToolArgs(OutputFile);
-                    Process p = new Process();
-                    p.StartInfo.FileName = wavtool_exe;
-                    p.StartInfo.WorkingDirectory = WorkDir;//Moresampler的wavtool运行需要在WorkingDirectory中具备Temp.bat
-                    p.StartInfo.RedirectStandardError = true;
-                    p.StartInfo.RedirectStandardOutput = true;
-                    foreach (string arg in args) { p.StartInfo.ArgumentList.Add(arg); };
-                    p.Start();
-                    p.WaitForExit();
-                    string errors = p.StandardError.ReadToEnd();
-                    string outputs = p.StandardOutput.ReadToEnd();
 
-                    string k = "";
+                    //wavtool
+                    string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile,uTask,rPart);
+                    foreach (URenderNote rNote in rPart)
+                    {
+                        string wavtool_exe = renderEngine.WavtoolPath;
+                        List<string> args = rNote.GetWavToolArgs(OutputFile);
+                        Process p = wine.CreateWineProcess(wavtool_exe, args, WorkDir);
+                        p.Start();
+                        p.WaitForExit();
+                    }
+
+                }
+
+                TaskHelper.FinishWavTool(OutputFile);
+
+                if(File.Exists(OutputFile))
+                {
+                    TaskHelper.WaitForFileRelease(OutputFile);
+                    try
+                    {
+                        var reader = new WaveFileReader(OutputFile);
+                        reader.Close();
+                    }
+                    catch {File.Delete(OutputFile);Error?.Invoke("Rendered File Cannot Readable"); return; }
+                    CompleteTask(OutputFile);
                 }
             });
+        }
+
+        private void CompleteTask(string OutputWav)
+        {
+            var audioInfo=TaskHelper.ReadWaveAudioData(OutputWav,synthesisData.StartTime());
+
+            var pitLines= TaskHelper.WaveAudioDataPitchDetect(audioInfo);
+            var ret = new SynthesisResult(audioInfo.audio_StartMillsec/1000.0, 44100, audioInfo.audio_Data, pitLines);
+
+            Complete?.Invoke(ret);
         }
 
         public void Stop()

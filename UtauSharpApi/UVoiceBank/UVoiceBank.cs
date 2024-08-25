@@ -15,6 +15,8 @@ namespace UtauSharpApi.UVoiceBank
         public string prefix { get; set; } = "";
         [ProtoMember(2)]
         public string suffix { get; set; } = "";
+        [ProtoMember(3)]
+        public int PitchNumber { get; set; } = 0;
     }
 
     [ProtoContract]
@@ -23,17 +25,18 @@ namespace UtauSharpApi.UVoiceBank
         [ProtoMember(1)]
         public string CacheHash { get; set; } = "";
 
-        [ProtoMember(3)]
+        [ProtoMember(2)]
         public string Name { get; set; } = "";
 
-        [ProtoMember(4)]
+        [ProtoMember(3)]
         public string DefaultLyric { get; set; } = "";
+
+        [ProtoMember(4)]
+        public List<PrefixItem> PrefixMap { get; set; } = new List<PrefixItem>();
 
         [ProtoMember(5)]
         public List<Oto> Otos { get; set; } = new List<Oto>();
 
-        [ProtoMember(6)]
-        public PrefixItem[] PrefixMap { get; set; } = new PrefixItem[128];
 
         public Oto? FindSymbol(string symbol, PrefixItem? prefix=null)
         {
@@ -42,17 +45,32 @@ namespace UtauSharpApi.UVoiceBank
         }
         public Oto? FindSymbol(string symbol, int NoteNumber)
         {
-            PrefixItem? prefix = null;
-            if (NoteNumber <= 127) prefix = PrefixMap[NoteNumber];
-            if (prefix == null) prefix=new PrefixItem();
+            PrefixItem prefix = GetPrefixItem(NoteNumber);
             return Otos.Find(p => p.Alias == prefix.prefix + symbol + prefix.suffix);
+        }
+
+        public PrefixItem GetPrefixItem(int NoteNumber)
+        {
+            return PrefixMap.Where(p => p.PitchNumber == NoteNumber).FirstOrDefault(new PrefixItem());
+        }
+
+        public void SetPrefixItem(int NoteNumber,string prefix,string suffix)
+        {
+            PrefixItem? item=PrefixMap.Where(p => p.PitchNumber == NoteNumber).FirstOrDefault();
+            if (item == null)
+            {
+                PrefixMap.Add(new PrefixItem() { PitchNumber = NoteNumber,suffix=suffix,prefix=prefix }) ;
+            }else
+            {
+                foreach (var p in PrefixMap.Where(p => p.PitchNumber == NoteNumber)) PrefixMap.Remove(p);
+                PrefixMap.Add(new PrefixItem() { PitchNumber = NoteNumber, suffix = suffix, prefix = prefix });
+            }
         }
 
         public void Serialize(string TargetFile)
         {
             using (var file = File.Create(TargetFile))
             {
-                for(int i = 0; i < PrefixMap.Length; i++) if (PrefixMap[i] == null) PrefixMap[i]=new PrefixItem();
                 ProtoBuf.Serializer.Serialize(file, this);
             }
         }

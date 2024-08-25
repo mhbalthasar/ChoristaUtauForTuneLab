@@ -12,7 +12,10 @@ namespace UtaubaseForTuneLab
         {
             @"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb"
         };
-        
+
+
+        public const string PitchTransitionTimeID = "PitchTransitionTime";
+        public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
 
         public IReadOnlyOrderedMap<string, VoiceSourceInfo> VoiceInfos { get; set; }=new OrderedMap<string, VoiceSourceInfo>();
         private Dictionary<string, VoiceBank> VoiceBanks = new Dictionary<string, VoiceBank>();
@@ -30,11 +33,12 @@ namespace UtaubaseForTuneLab
                 VoiceBanks[id],
                 PhonemizerSelector.BuildPhonemizer("default"),
                 new OrderedMap<string, AutomationConfig>(),
-                new OrderedMap<string, IPropertyConfig>(),
+                new OrderedMap<string, IPropertyConfig>() {
+                    { PitchTransitionTimeID, PitchTransitionTimeConfig}
+                },
                 new OrderedMap<string, IPropertyConfig>()
-                ); 
+                );
         }
-
         public void Destroy()
         {
             return;
