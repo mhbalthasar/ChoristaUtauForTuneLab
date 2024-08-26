@@ -31,5 +31,9 @@ namespace UtauSharpApi.UPhonemizer
             }
             return new List<UPhonemeNote>();
         }
+        public bool ProcessAble(VoiceBank voiceBank)
+        {
+            return true;
+        }
     }
 }

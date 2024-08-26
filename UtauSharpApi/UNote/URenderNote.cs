@@ -90,7 +90,7 @@ namespace UtauSharpApi.UNote
         {
             if (IsRest) return;
             List<double> millsec_times = new List<double>();
-            double t = PitchStartMSec();
+            double t = PitchStartMSec();// - 25;
             double end = t + PitchDurationMSec();
             while (t < end) { millsec_times.Add(t); t += 5.0; }
             var pitcharray = PitchGetter(millsec_times.ToArray());
@@ -174,9 +174,9 @@ namespace UtauSharpApi.UNote
         {
             get
             {
-                if (PrevNote == null || PrevNote.RenderOto==null) return 5;
+               // if (PrevNote == null || PrevNote.RenderOto==null) return 5;
                 if (IsRest) return 5;
-                return Math.Max(5, PrevNote.RenderOto.Overlap + PrevNote.FixSTP.FixOverlap);
+                return Math.Max(5, RenderOto.Overlap+FixSTP.FixOverlap);// PrevNote.RenderOto.Overlap + PrevNote.FixSTP.FixOverlap);
             }
         }
         private double FadeOutMSec

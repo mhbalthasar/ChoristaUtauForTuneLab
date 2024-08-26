@@ -11,7 +11,6 @@ namespace UtauSharpApi.UTask
 {
     public class UMidiPart
     {
-        public double Tempo { get; set; } = 120.0;
         public List<UMidiNote> Notes { get; set; } = new List<UMidiNote>();
         public IPhonemizer Phonemizer { get; set; } = new DefaultPhonemizer();
         public VoiceBank? VoiceBank { get; private set; } = null;
@@ -20,11 +19,6 @@ namespace UtauSharpApi.UTask
         {
             VoiceBank = vb;
             Phonemizer=PhonemizerSelector.GuessPhonemizer(vb);
-        }
-
-        public long GetTickFromMs(double millSeconds)
-        {
-            return (long)(millSeconds / (60000.0 / Tempo) * 480.0);
         }
 
         public UMidiNote createNote()
@@ -93,7 +87,7 @@ namespace UtauSharpApi.UTask
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("@rem project=TunelabRender");
             sb.AppendLine("@set loadmodule=");
-            sb.AppendLine("@set tempo="+Tempo.ToString());
+            sb.AppendLine("@set tempo=125");//MAX TEMPO:500,1tick=0.2ms
             sb.AppendLine("@set samples=44100");
             sb.AppendLine("@set oto="+VoiceBank.vbBasePath);
             sb.AppendLine("@set flag=\"\"");

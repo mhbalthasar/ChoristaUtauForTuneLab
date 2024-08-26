@@ -39,7 +39,6 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             UTaskProject ret = new UTaskProject();
             var mPart = ret.Part;
             mPart.SetVoiceBank(vbanks);
-            mPart.Tempo = 125.0;//125bpm alias 1tick=1ms
 
             var baseStart = data.StartTime();
             var baseEnd = data.EndTime();
@@ -67,104 +66,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             }
             return ret;
         }
-        public static SortedDictionary<int, double> PitchPrerender(ISynthesisData data)
-        {
-            SortedDictionary<int, double> ret = new SortedDictionary<int, double>();
-
-            double spt = 0;
-
-            double preseq = HeadPreSequenceMillsectionTime;
-            double startTime = data.StartTime() * 1000.0;
-            double endTime = data.EndTime() * 1000.0;
-            if (preseq > startTime)
-            {
-                if (startTime < preseq)
-                {
-                    spt = preseq - startTime;
-                    preseq -= spt;
-                }
-                double pt = data.Pitch.GetValue(new List<double> { 0 })[0];
-                double pn = data.Notes.First().Pitch;
-                if (!double.IsNaN(pt)) pn = pt;
-                for (int i = 0; i < spt; i++) ret.Add(i, pn);
-            }
-
-            double startAbsTime = startTime - preseq;
-            double durationAbs = endTime - startAbsTime + 1;
-            double[] times = new double[(int)durationAbs];
-            for (int i = 0; i < (int)durationAbs; i++) { times[i] = (startAbsTime + i)/1000.0; }
-
-            double[] pitchs = new double[(int)durationAbs];
-
-            ISynthesisNote[] sNotes = data.Notes.Where(p => (
-              p.StartTime < endTime && p.EndTime >= startAbsTime
-            )).ToArray();
-
-            foreach (var note in sNotes)
-            {
-                for (int i = 0; i < note.Duration() * 1000; i++)
-                {
-                    double pi = note.StartTime * 1000.0 + i;
-                    if (pi >= startAbsTime && pi <= (int)endTime)
-                    {
-                        int idx = (int)(pi - startAbsTime);
-                        pitchs[idx] = note.Pitch;
-                    }
-                }
-            }
-
-
-            double smoothTime = 120;//ms
-            for (int i = 1; i < sNotes.Length; i++)
-            {
-                double harfSt = smoothTime / 2;
-                var prevNote = sNotes[i - 1];
-                var curNote = sNotes[i];
-                double pst = Math.Min(prevNote.Duration() * 1000.0 / 2, harfSt);
-                double cst = Math.Min(curNote.Duration() * 1000.0 / 2, harfSt);
-                double p1x = prevNote.EndTime * 1000.0 - pst - startAbsTime;
-                double p2x = curNote.StartTime * 1000.0 + cst - startAbsTime;
-                double p1y = prevNote.Pitch;
-                double p2y = curNote.Pitch;
-                double gap = p2y - p1y;
-                int gax = (int)(p2x - p1x);
-                int midx = (int)((p2x + p1x) / 2);
-                for (int t = (int)p1x; t < (int)p2x; t++)
-                {
-                    if (t < midx)
-                    {
-                        pitchs[t] = p1y + MathUtility.CubicInterpolation((t - p1x) / gax) * gap;
-                    }
-                    else
-                    {
-                        pitchs[t] = p2y - (1 - MathUtility.CubicInterpolation((t - p1x) / gax)) * gap;
-                    }
-                }
-            }
-
-            double[] abspit = data.Pitch.GetValue(times);
-            for (int i = 0; i < abspit.Length; i++)
-            {
-                if (!double.IsNaN(abspit[i])) pitchs[i] = abspit[i];
-                else if (double.IsNaN(pitchs[i]) || pitchs[i] == 0)
-                {
-                    double nearp = double.NaN;
-                    for (int j = i + 1; j < pitchs.Length; j++) { if (!double.IsNaN(pitchs[j]) && pitchs[j] > 0) { nearp = pitchs[j]; break; } }
-                    if (!double.IsNaN(nearp)) for (int j = i; j < pitchs.Length; j++) { if (double.IsNaN(pitchs[j]) || pitchs[j] == 0) pitchs[j] = nearp; else break; }
-                }
-            }
-
-            for (int t = 0; t < pitchs.Length; t++)
-            {
-                int Key = (int)(t + spt);
-                if (ret.ContainsKey(Key)) ret[Key] = pitchs[t];
-                else ret.Add(Key, pitchs[t]);
-            }
-            return ret;
-        }
-
-
-        public static SortedDictionary<int, double> PitchPrerender2(ISynthesisData mData)
+        public static SortedDictionary<double, double> PitchPrerender(ISynthesisData mData)
         {
             double audioStartTime = mData.StartTime()*1000.0 - UtauProject.HeadPreSequenceMillsectionTime;
             double startTime = Math.Max(0, audioStartTime);//实际获取Pit的开始点
@@ -173,7 +75,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             int duration = (int)(endTime - startTime)+1;//Pit总时长
 
             double[] times = new double[duration];
-            for (int i = 0; i < duration; i++) { times[i] = (startTime + i) / 1000.0; }//获取秒单位的Times组
+            for (int i = 0; i < duration; i++) { times[i] = Math.Round(startTime + i) / 1000.0; }//获取秒单位的Times组
             var absPitchs = mData.Pitch.GetValue(times);//获取绘制的绝对音高
 
             var values = new double[duration];//设置空白
@@ -184,51 +86,42 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             {
                 var note = mNotes[(int)i];
                 var nextNote = mNotes[(int)(i + 1)];
-                double midTime = Math.Min(note.EndTime * 1000.0, nextNote.StartTime * 1000.0);
-                int midTick = (int)(midTime);//125BPM时1ms=1Tick，因此直接转换
+                double midTime = Math.Min(note.EndTime * 1000.0, nextNote.StartTime * 1000.0) - startTime;
+                int midTick = (int)Math.Round(midTime);//125BPM时1ms=1Tick，因此直接转换
                 var pitchGap = nextNote.Pitch - note.Pitch;
                 double transitionStartTime = midTime - transitionTime / 2;
                 double transitionEndTime = midTime + transitionTime / 2;
-                int transitionStartTick = ((int)transitionStartTime).Limit(0, duration);
-                int transitionEndTick = ((int)transitionEndTime).Limit(0, duration);
+                int transitionStartTick = ((int)Math.Round(transitionStartTime)).Limit(0, duration);
+                int transitionEndTick = ((int)Math.Round(transitionEndTime)).Limit(0, duration);
                 double transitionTicks = transitionEndTick - transitionStartTick;
                 for (int t = transitionStartTick; t < transitionEndTick; t++)
                 {
                     if (t < midTick)
                     {
-                        values[t] += MathUtility.CubicInterpolation((t - transitionStartTick) / transitionTicks) * pitchGap;
+                        values[t] = note.Pitch + MathUtility.CubicInterpolation((t - transitionStartTick) / transitionTicks) * pitchGap;
                     }
                     else
                     {
-                        values[t] -= (1 - MathUtility.CubicInterpolation((t - transitionStartTick) / transitionTicks)) * pitchGap;
+                        values[t] = nextNote.Pitch - (1 - MathUtility.CubicInterpolation((t - transitionStartTick) / transitionTicks)) * pitchGap;
                     }
                 }
             }
-            float[] basePitch = new float[mNotes.Count+ 1];
-            int[] basePitchIndex = new int[mNotes.Count + 1];
-            for (ulong i = 0; i < (ulong)mNotes.Count; i++)
-            {
-                var note = mNotes[(int)i];
-                basePitch[i] = note.Pitch;
-                basePitchIndex[i] = (int)(note.EndTime*1000.0);
-                if (i + 1 != (ulong)mNotes.Count()) 
-                    basePitchIndex[i] = Math.Min(basePitchIndex[i], (int)(mNotes[(int)i + 1].StartTime*1000.0));
-            }
             if (mNotes.Count > 0)
             {
-                basePitch[mNotes.Count] = basePitch[mNotes.Count - 1];
-                basePitchIndex[mNotes.Count] = duration;
-                int currentIndex = 0;
+                int noteIndex = 0;
                 for (int i = 0; i < duration; i++)
                 {
-                    while (i >= basePitchIndex[currentIndex])
+                    while(i > (int)(mNotes[noteIndex].EndTime*1000 - startTime))
                     {
-                        currentIndex++;
+                        noteIndex++;
                     }
                     double absPitch = absPitchs[i];
                     if (double.IsNaN(absPitch))
                     {
-                        values[i] += basePitch[currentIndex];
+                        if (values[i]==0)
+                        {
+                            values[i] = mNotes[noteIndex].Pitch;
+                        }
                     }else
                     {
                         values[i] = absPitch;
@@ -236,7 +129,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 
                 }
             }
-            SortedDictionary<int, double> ret = new SortedDictionary<int, double>();
+            SortedDictionary<double, double> ret = new SortedDictionary<double, double>();
             for (int i = 0; i < emptyTime; i++) ret.Add(i, values[0]);
             for(int i = 0; i < duration; i++)
             {
@@ -382,17 +275,19 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 
         public static List<List<Point>> WaveAudioDataPitchDetect(TaskAudioData audioInfo)
         {
-            double CtlSpacingMs = 25;// 50;
-            int CtlSpacingSamples = (int)((CtlSpacingMs / 1000.0) * audioInfo.audio_SampleRate);
+            double CtlStepMs = 50;// 50;
+            int CtlStepSamples = (int)((CtlStepMs / 1000.0) * audioInfo.audio_SampleRate);
+            int CtlProcessMs = 50;
+            int CtlProcessSamples= (int)((CtlProcessMs / 1000.0) * audioInfo.audio_SampleRate);
             int ptrSampleIndex = 0;
             double ptrCurrentTimeMs = 0;
             List<List<Point>> wavPitLines = new List<List<Point>>();
             List<Point> wavPitLine = new List<Point>();
-            while (ptrSampleIndex + CtlSpacingSamples <= audioInfo.audio_Data.Length)
+            while (ptrSampleIndex + CtlProcessSamples < audioInfo.audio_Data.Length)
             {
-                double pointPn = YINSharp.PnFromYin(audioInfo.audio_Data, (int)audioInfo.audio_SampleRate, ptrSampleIndex, ptrSampleIndex + CtlSpacingSamples);
-                ptrSampleIndex += CtlSpacingSamples;
-                ptrCurrentTimeMs += CtlSpacingMs;
+                double pointPn = YINSharp.PnFromYin(audioInfo.audio_Data, (int)audioInfo.audio_SampleRate, ptrSampleIndex, ptrSampleIndex + CtlProcessSamples,80,3000);
+                ptrSampleIndex += CtlStepSamples;
+                ptrCurrentTimeMs += CtlStepMs;
                 if (double.IsNaN(pointPn) || double.IsInfinity(pointPn))
                 {
                     if (wavPitLine.Count > 0)
@@ -402,7 +297,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     }
                     continue;
                 }
-                wavPitLine.Add(new Point() { X = (audioInfo.audio_StartMillsec + ptrCurrentTimeMs - CtlSpacingMs) / 1000.0, Y = pointPn });
+                wavPitLine.Add(new Point() { X = (audioInfo.audio_StartMillsec + ptrCurrentTimeMs - CtlStepMs) / 1000.0, Y = pointPn });
             }
             if (wavPitLine.Count > 0)
             {

@@ -31,7 +31,7 @@ namespace UtaubaseForTuneLab
             return new UtauVoiceSource(
                 RenderEngine,
                 VoiceBanks[id],
-                PhonemizerSelector.BuildPhonemizer("default"),
+                PhonemizerSelector.GuessPhonemizer(VoiceBanks[id]),
                 new OrderedMap<string, AutomationConfig>(),
                 new OrderedMap<string, IPropertyConfig>() {
                     { PitchTransitionTimeID, PitchTransitionTimeConfig}
