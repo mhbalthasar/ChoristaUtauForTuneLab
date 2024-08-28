@@ -15,6 +15,11 @@ using UtauSharpApi.UTask;
 using UtauSharpApi.UVoiceBank;
 using TuneLab.Base.Structures;
 using ProtoBuf.WellKnownTypes;
+using NWaves.FeatureExtractors.Multi;
+using NWaves.Features;
+using TuneLab.Base.Utils;
+using NWaves.FeatureExtractors;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace UtaubaseForTuneLab.UProjectGenerator
 {
@@ -39,6 +44,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             UTaskProject ret = new UTaskProject();
             var mPart = ret.Part;
             mPart.SetVoiceBank(vbanks);
+            mPart.ObjectTag = data;
 
             var baseStart = data.StartTime();
             var baseEnd = data.EndTime();
@@ -61,6 +67,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     uNote.Phonemes = new List<string>();
                     uNote.StartMSec = (note.StartTime - baseStart) * 1000.0 + emptyTime;
                     uNote.DurationMSec = note.Duration() * 1000.0;
+                    uNote.ObjectTag = note;
                     mPart.Notes.Add(uNote);
                 }
             }
@@ -138,9 +145,46 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             return ret;
         }
 
+        public static Dictionary<ISynthesisNote, SynthesizedPhoneme[]>? GetPhonemeInfoList(List<URenderNote> rPart)
+        {
+            try
+            {
+                var emptyTime = HeadPreSequenceMillsectionTime;//2s Empty;
+                ISynthesisData? mData = null;
+                mData = ((ISynthesisData)((UPhonemeNote)(rPart.Where(rP => rP.ObjectTag != null).First().ObjectTag)).Parent.Parent.ObjectTag);
+                var baseStart = mData.StartTime() * 1000.0;
 
-    }   
-    internal static class TaskHelper {
+                Dictionary<ISynthesisNote, SynthesizedPhoneme[]> ret = new Dictionary<ISynthesisNote, SynthesizedPhoneme[]>();
+                Dictionary<ISynthesisNote, int> retCount = new Dictionary<ISynthesisNote, int>();
+                foreach (var rNote in rPart)
+                {
+                    if (rNote.IsRest) continue;
+                    double startMs = baseStart + rNote.StartMSec - emptyTime;
+                    double endMs = rNote.DurationMSec + startMs;
+                    ISynthesisNote? kNote = (ISynthesisNote?)((UPhonemeNote)rNote.ObjectTag).Parent.ObjectTag;
+                    var kCount = ((UPhonemeNote)rNote.ObjectTag).Parent.PhonemeNotes.Count;
+
+                    if (!ret.ContainsKey(kNote))
+                    {
+                        ret.Add(kNote, new SynthesizedPhoneme[kCount]);
+                        retCount.Add(kNote, 0);
+                    }
+
+                    ret[kNote][retCount[kNote]] = new SynthesizedPhoneme()
+                    {
+                        StartTime = startMs / 1000.0,
+                        EndTime = endMs / 1000.0,
+                        Symbol = ((UPhonemeNote)rNote.ObjectTag).Symbol
+                    };
+                }
+                return ret;
+            }
+            catch { return null; }
+        }
+
+    }
+    internal static class TaskHelper
+    {
 
         public static string GetPartRenderedFilePath(List<URenderNote> rPart, IRenderEngine renderEngine)
         {
@@ -189,9 +233,9 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             }
             return WorkDir;
         }
-    
+
         public static void FinishWavTool(string OutputFile)
-        {   
+        {
             string ParentDir = Path.GetDirectoryName(OutputFile);
             string HelpName = Path.GetFileNameWithoutExtension(OutputFile);
             string WorkDir = Path.Combine(ParentDir, string.Format("{0}_conf", HelpName));
@@ -208,8 +252,8 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 
             if (!File.Exists(OutputFile))
             {
-                string whdFile = Path.Combine(ParentDir, HelpName + ".whd");
-                string datFile = Path.Combine(ParentDir, HelpName + ".dat");
+                string whdFile = OutputFile+ ".whd";
+                string datFile = OutputFile + ".dat";
                 if (File.Exists(whdFile) && File.Exists(datFile))
                 {
                     using (FileStream fs1 = new FileStream(whdFile, FileMode.Open, FileAccess.Read))
@@ -225,7 +269,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             }
         }
 
-        public static TaskAudioData ReadWaveAudioData(string WavFile,double partStartTime)
+        public static TaskAudioData ReadWaveAudioData(string WavFile, double partStartTime)
         {
 
             double startTime = partStartTime * 1000.0 - UtauProject.HeadPreSequenceMillsectionTime;
@@ -278,14 +322,14 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             double CtlStepMs = 50;// 50;
             int CtlStepSamples = (int)((CtlStepMs / 1000.0) * audioInfo.audio_SampleRate);
             int CtlProcessMs = 50;
-            int CtlProcessSamples= (int)((CtlProcessMs / 1000.0) * audioInfo.audio_SampleRate);
+            int CtlProcessSamples = (int)((CtlProcessMs / 1000.0) * audioInfo.audio_SampleRate);
             int ptrSampleIndex = 0;
             double ptrCurrentTimeMs = 0;
             List<List<Point>> wavPitLines = new List<List<Point>>();
             List<Point> wavPitLine = new List<Point>();
             while (ptrSampleIndex + CtlProcessSamples < audioInfo.audio_Data.Length)
             {
-                double pointPn = YINSharp.PnFromYin(audioInfo.audio_Data, (int)audioInfo.audio_SampleRate, ptrSampleIndex, ptrSampleIndex + CtlProcessSamples,80,3000);
+                double pointPn = YINSharp.PnFromYin(audioInfo.audio_Data, (int)audioInfo.audio_SampleRate, ptrSampleIndex, ptrSampleIndex + CtlProcessSamples, 80, 3000);
                 ptrSampleIndex += CtlStepSamples;
                 ptrCurrentTimeMs += CtlStepMs;
                 if (double.IsNaN(pointPn) || double.IsInfinity(pointPn))
@@ -302,6 +346,55 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             if (wavPitLine.Count > 0)
             {
                 wavPitLines.Add(wavPitLine);
+            }
+            return wavPitLines;
+        }
+
+        public static List<List<Point>> WaveAudioDataPitchDetect2(TaskAudioData audioInfo)
+        {
+            List<List<Point>> ret = new List<List<Point>>();
+
+            //NWaves.FeatureExtractors.PitchExtractor
+            var pExtractor = new TimeDomainFeaturesExtractor(new NWaves.FeatureExtractors.Options.MultiFeatureOptions() { 
+                SamplingRate = (int)audioInfo.audio_SampleRate
+               // FrameSize=1024
+            });
+            pExtractor.AddFeature("pitch", (s, start, end) => {
+                //return Pitch.FromAutoCorrelation(
+                return Pitch.FromYin(
+                    s, start, end, 80, 8000);
+            });
+            var freqPitches = pExtractor.ComputeFrom(audioInfo.audio_Data);
+            var pitCtlTimes = pExtractor.TimeMarkers(freqPitches.Count, audioInfo.audio_StartMillsec / 1000.0);
+
+            double getNoteNumber(double frequency){
+
+                double ratio = frequency / 440.0;
+                double log2Ratio = Math.Log(ratio, 2);
+                return 69 + 12 * log2Ratio;
+            }
+
+
+            List<List<Point>> wavPitLines = new List<List<Point>>();
+            List<Point> wavPitLine = new List<Point>();
+            for(int pi=0; pi<freqPitches.Count;pi++)
+            {
+                double tSec = pitCtlTimes[pi];
+                double pn = getNoteNumber(freqPitches[pi][4]);
+
+                if(double.IsNaN(pn) || double.IsInfinity(pn))
+                {
+                    if(wavPitLine.Count>0)
+                    {
+                        wavPitLines.Add(wavPitLine);
+                        wavPitLine = new List<Point>();
+                    }
+                }else wavPitLine.Add(new Point() { X = tSec, Y = pn });
+            }
+            if (wavPitLine.Count > 0)
+            {
+                wavPitLines.Add(wavPitLine);
+                wavPitLine = new List<Point>();
             }
             return wavPitLines;
         }

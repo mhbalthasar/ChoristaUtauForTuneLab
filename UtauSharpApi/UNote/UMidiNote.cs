@@ -18,6 +18,7 @@ namespace UtauSharpApi.UNote
         public int NoteNumber { get; set; } = 60;
         public string Flags { get; set; } = "";
         public int Velocity { get; set; } = 100;
+        public object? ObjectTag { get; set; } = null;//BringInformations
 
         public List<string> Phonemes { get {
                 return PhonemeNotes.Select(i => i.ToString()).ToList();

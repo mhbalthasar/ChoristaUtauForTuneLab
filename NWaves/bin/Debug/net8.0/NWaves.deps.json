@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "NWaves/0.9.6": {
+        "runtime": {
+          "NWaves.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "NWaves/0.9.6": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

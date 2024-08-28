@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.9.6</Version>
+    <Company>Tim Sharii</Company>
+    <Authors>Tim Sharii</Authors>
+    <Description>.NET DSP library with a lot of audio processing functions</Description>
+    <Copyright>ar1st0crat</Copyright>
+    <PackageProjectUrl>https://github.com/ar1st0crat/NWaves</PackageProjectUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/ar1st0crat/NWaves</RepositoryUrl>
+    <PackageTags>audio, dsp, filtering, tsm, sound-effects, feature-extraction, psychoacoustics, wav, mfcc, lpc, plp, pncc, resampling, pitch, wavelets, mir, fda, noise, adaptive-filtering</PackageTags>
+    <FileVersion>0.9.6</FileVersion>
+    <AssemblyVersion>0.9.6</AssemblyVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>Github</RepositoryType>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETSTANDARD;NETSTANDARD2_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net5.0'">
+    <DefineConstants>NET50</DefineConstants>
+  </PropertyGroup>
+
+	<PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0'">
+		<DefineConstants>NET50</DefineConstants>
+	</PropertyGroup>
+	
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

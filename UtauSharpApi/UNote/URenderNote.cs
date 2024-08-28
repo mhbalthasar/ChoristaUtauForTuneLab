@@ -48,9 +48,25 @@ namespace UtauSharpApi.UNote
         }
     }
 
+    public enum URenderNoteArgs
+    {
+        Preutter,
+        Overlap,
+        Startpoint,
+        Duration,
+        Correction
+    }
+    public enum URenderNotePos
+    {
+        PrevNote,
+        CurrentNote,
+        NextNote
+    }
     public class URenderNote
     {
-        public URenderNote() { FixSTP = new USTPFix(this); }
+        public URenderNote() { 
+            FixSTP = new USTPFix(this); 
+        }
         public URenderNote? PrevNote { get; set; } = null;
         public URenderNote? NextNote { get; set; } = null;
         public Oto? RenderOto { get; set; } = null;
@@ -66,6 +82,7 @@ namespace UtauSharpApi.UNote
         public double STPoint { get; set; } = 0;
         public List<int> PitchBends { get; set; } = new List<int>();
         public double GainVolDiff { get; set; } = 0;
+        public object? ObjectTag { get; set; } = null;//BringInformations
 
 
         //for resampler
@@ -76,13 +93,11 @@ namespace UtauSharpApi.UNote
         }
         private double PitchStartMSec()
         {
-            double fixedStp = IsRest ? 0 : STPoint + FixSTP.FixSTPoint;
-            double fixedPreuttr = IsRest ? 0 : RenderOto.Preutter + FixSTP.FixPreuttr;
-            return StartMSec - fixedPreuttr - fixedStp;
+            return StartMSec - GetFixedArgs(URenderNoteArgs.Preutter) - GetFixedArgs(URenderNoteArgs.Startpoint);
         }
         private double PitchDurationMSec()
         {
-            double RealLength = DurationMSec + FixedDurationDiff();
+            double RealLength = DurationMSec + GetFixedArgs(URenderNoteArgs.Correction);
             return RealLength;
         }
         private string PitchLines = "";
@@ -141,14 +156,13 @@ namespace UtauSharpApi.UNote
         }
         private List<string> GetSampleArgs()
         {
-            double RealLength = DurationMSec + FixedDurationDiff();
             List<string> ret = new List<string>();
             ret.Add(NoteString());
             ret.Add(Velocity.ToString());
             ret.Add(Flags);
             //oto
             ret.Add(RenderOto.Offset.ToString("F3"));
-            ret.Add(RealLength.ToString("F3"));
+            ret.Add(GetFixedArgs(URenderNoteArgs.Duration).ToString("F3"));
             ret.Add(RenderOto.Consonant.ToString("F3"));
             ret.Add(RenderOto.Cutoff.ToString("F3"));
             ret.Add("100");
@@ -170,49 +184,65 @@ namespace UtauSharpApi.UNote
 
         //for wavtool
         #region
-        private double FadeInMSec
-        {
-            get
-            {
-               // if (PrevNote == null || PrevNote.RenderOto==null) return 5;
-                if (IsRest) return 5;
-                return Math.Max(5, RenderOto.Overlap+FixSTP.FixOverlap);// PrevNote.RenderOto.Overlap + PrevNote.FixSTP.FixOverlap);
-            }
-        }
-        private double FadeOutMSec
-        {
-            get
-            {
-                if (NextNote == null || NextNote.RenderOto==null) return 35;
-                if (IsRest) return 35;
-                return Math.Max(35, NextNote.RenderOto.Overlap + NextNote.FixSTP.FixOverlap);
-            }
-        }
         //WavToolArg4
+        public double GetFixedArgs(URenderNoteArgs argType, URenderNotePos noteType=URenderNotePos.CurrentNote)
+        {
+            URenderNote? note = null;
+            switch(noteType)
+            {
+                case URenderNotePos.CurrentNote:
+                    note = this;break;
+                case URenderNotePos.PrevNote:
+                    note = PrevNote;break;
+                case URenderNotePos.NextNote:
+                    note = NextNote;break;
+            }
+            switch(argType)
+            {
+                case URenderNoteArgs.Preutter:
+                    return (note == null || note.IsRest || note.RenderOto == null) ? 0 : (note.RenderOto.Preutter + note.FixSTP.FixPreuttr);
+                case URenderNoteArgs.Overlap:
+                    return (note == null || note.IsRest || note.RenderOto == null) ? 0 : (note.RenderOto.Overlap + note.FixSTP.FixOverlap);
+                case URenderNoteArgs.Startpoint:
+                    return (note == null) ? 0 : (note.STPoint + note.FixSTP.FixSTPoint);
+                case URenderNoteArgs.Correction:
+                    {
+                        //末端偏移
+                        double tailFix = GetFixedArgs(URenderNoteArgs.Overlap, URenderNotePos.NextNote) - GetFixedArgs(URenderNoteArgs.Preutter, URenderNotePos.NextNote);
+                        //double nextDur = Next GetFixedArgs(URenderNoteArgs.Duration, URenderNotePos.NextNote);
+                        if (NextNote != null && tailFix > NextNote.DurationMSec) tailFix = NextNote.DurationMSec;
+                        return GetFixedArgs(URenderNoteArgs.Preutter) + tailFix;
+                    }
+                case URenderNoteArgs.Duration:
+                    return DurationMSec + GetFixedArgs(URenderNoteArgs.Startpoint) +GetFixedArgs(URenderNoteArgs.Correction);
+            }
+            return 0;
+        }
         private string WavAppendLengthStr()
         {
-            double fix = FixedDurationDiff();
-            string ret = string.Format("{0}@125", Math.Round(DurationMSec));//125bpm，1tick=1ms
+            double dur = GetFixedArgs(URenderNoteArgs.Duration);
+            double fix = dur - Math.Round(dur);
+            string ret = string.Format("{0}@125", Math.Round(dur)) ;//125bpm，1tick=1ms
             ret = ret + (fix >= 0 ? "+" : "") + fix.ToString("F3");
             return ret;
         }
         //WavToolArg5
         private double[] Envlope()
         {
-
             //0     5       55.1   0  100  100  0 17.415
             //p1    p2      p3     v1  v2  v3  v4   ovr
             //0   prevOvl  nextOvl 0  100  100 0  thisOvl
             if (IsRest) return [0, 0];
-            var ret = new double[8];
+            var ret = new double[9];// 8];
             ret[0] = 0;//p1
-            ret[1] = FadeInMSec;//p2
-            ret[2] = FadeOutMSec;//p3
+            ret[1] = Math.Max(5,GetFixedArgs(URenderNoteArgs.Overlap));//p2
+            ret[2] = Math.Max(35, GetFixedArgs(URenderNoteArgs.Overlap,URenderNotePos.NextNote));//p3
             ret[3] = 0;//v1
             ret[4] = GainVolDiff * 100 + 100.0;//v2
             ret[5] = GainVolDiff * 100 + 100.0;//v3
             ret[6] = 0;//v4
-            ret[7] = RenderOto.Overlap + FixSTP.FixOverlap;
+            ret[7] = GetFixedArgs(URenderNoteArgs.Overlap);
+            ret[8] = 0;//p4
             return ret;
         }
         public List<string> GetWavToolArgs(string targetWavPath = "temp.wav", bool ToolIsWindowsPlatform = true)
@@ -220,7 +250,7 @@ namespace UtauSharpApi.UNote
             List<string> ret = new List<string>();
             ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(targetWavPath) : targetWavPath);
             ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(TempFilePath) : TempFilePath);
-            ret.Add((STPoint + FixSTP.FixSTPoint).ToString("F3"));
+            ret.Add(GetFixedArgs(URenderNoteArgs.Startpoint).ToString("F3"));
             ret.Add(WavAppendLengthStr());
             ret.AddRange(Envlope().Select(d => d.ToString("F3")));
             return ret;
@@ -252,12 +282,12 @@ namespace UtauSharpApi.UNote
         }
         private List<string> BatchBat_GetHelperArgs()
         {
-            double RealLength = DurationMSec + FixedDurationDiff();
+            double RealLength = GetFixedArgs(URenderNoteArgs.Duration);
             List<string> ret = new List<string>();
             ret.Add(string.Format("\"{0}\"", CrossPlatformUtils.KeepWindows(RenderOto.GetWavfilePath(VoiceBankPath))));//%1
             ret.Add(NoteString());//%2
             ret.Add(WavAppendLengthStr());//%3
-            ret.Add((RenderOto.Preutter + FixSTP.FixPreuttr).ToString("F3"));//%4?没用？
+            ret.Add(GetFixedArgs(URenderNoteArgs.Preutter).ToString("F3"));//%4?没用？
             ret.Add(RenderOto.Offset.ToString("F3"));//%5
             ret.Add(RealLength.ToString("F3"));//%6
             ret.Add(RenderOto.Consonant.ToString("F3"));//%7
@@ -283,7 +313,7 @@ namespace UtauSharpApi.UNote
             sb.AppendLine("@set vel=" + BatchBat_GetVel());
             sb.AppendLine("@set temp=" + BatchBat_GetTemp());
             sb.AppendLine("@set flag=\"" + Flags + "\"");
-            //sb.AppendLine("@set stp="+(STPoint+FixSTP.FixSTPoint).ToString("F3"));
+            sb.AppendLine("@set stp="+ GetFixedArgs(URenderNoteArgs.Startpoint).ToString("F3"));
             sb.AppendLine("@echo Processing");
             sb.AppendLine("@call %helper% " + string.Join(" ", BatchBat_GetHelperArgs()));
             return sb.ToString();
@@ -292,18 +322,6 @@ namespace UtauSharpApi.UNote
 
         //Temp File NameGenerate && GlobalFixed
         #region
-        private double FixedDurationDiff()
-        {
-            //末端偏移
-            double tailFix = NextNote == null || NextNote.IsRest ? 0 :
-                    NextNote.RenderOto.Overlap + NextNote.FixSTP.FixOverlap - (NextNote.RenderOto.Preutter + NextNote.FixSTP.FixPreuttr)
-                ;
-            tailFix = NextNote == null ? tailFix : Math.Min(tailFix, NextNote.DurationMSec);
-            //先行发音
-            double fix = (IsRest ? 0 : RenderOto.Preutter) + FixSTP.FixPreuttr + tailFix;
-
-            return fix;
-        }
 
         private static string GetMixedHash(List<string> hashes, string appendSalt = "")
         {

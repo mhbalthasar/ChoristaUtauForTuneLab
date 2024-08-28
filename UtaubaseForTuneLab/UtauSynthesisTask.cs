@@ -48,6 +48,7 @@ namespace UtaubaseForTuneLab
                 UTaskProject uTask = UtauProject.GenerateFrom(synthesisData,voiceBank).ProcessPhonemizer(phonemizer);
                 List<URenderNote> rPart = uTask.Part.GenerateRendPart(renderEngine.EngineUniqueString);
 
+                Dictionary<ISynthesisNote, SynthesizedPhoneme[]> phonemeInfoList = UtauProject.GetPhonemeInfoList(rPart);
                 //set pitchs
                 var pitchtable = UtauProject.PitchPrerender(synthesisData);
                 foreach (URenderNote rNote in rPart)
@@ -63,7 +64,8 @@ namespace UtaubaseForTuneLab
                             if (nextP.Key == -1 && prevP.Key == -1) ret[i] = 0;
                             else if (nextP.Key == -1) ret[i] = prevP.Value;
                             else if (prevP.Key == -1) ret[i] = nextP.Value;
-                            else ret[i]=MathUtility.LineValue(prevP.Key, prevP.Value, nextP.Key, nextP.Value, timeKey);
+                            else if (nextP.Key == prevP.Key) ret[i] = prevP.Value;
+                            else ret[i] = MathUtility.LineValue(prevP.Key, prevP.Value, nextP.Key, nextP.Value, timeKey);
                         }
                         return ret;
                     });
@@ -110,26 +112,26 @@ namespace UtaubaseForTuneLab
                         reader.Close();
                     }
                     catch {File.Delete(OutputFile);Error?.Invoke("Rendered File Cannot Readable"); return; }
-                    CompleteTask(OutputFile,pitchtable);
+                    CompleteTask(OutputFile,pitchtable,phonemeInfoList);
                 }
             });
         }
 
-        private void CompleteTask(string OutputWav, SortedDictionary<double, double> pitchLines)
+        private void CompleteTask(string OutputWav, SortedDictionary<double, double> pitchLines, Dictionary<ISynthesisNote, SynthesizedPhoneme[]>? phonemeInfoList=null)
         {
             var audioInfo=TaskHelper.ReadWaveAudioData(OutputWav,synthesisData.StartTime());
 
-            var pitLines= TaskHelper.WaveAudioDataPitchDetect(audioInfo);
+            //var pitLines= TaskHelper.WaveAudioDataPitchDetect2(audioInfo);
 
-            /*List<List<Point>> pitLines = new List<List<Point>>();
+            List<List<Point>> pitLines = new List<List<Point>>();
             List<Point> pPLine = new List<Point>();
             foreach(var kv in pitchLines)
             {
                 pPLine.Add(new Point() { X=(synthesisData.StartTime()-UtauProject.HeadPreSequenceMillsectionTime/1000.0) + (kv.Key / 1000.0), Y=kv.Value });
             }
             pitLines.Add(pPLine);
-            */
-            var ret = new SynthesisResult(audioInfo.audio_StartMillsec/1000.0, 44100, audioInfo.audio_Data, pitLines);
+
+            var ret = new SynthesisResult(audioInfo.audio_StartMillsec/1000.0, 44100, audioInfo.audio_Data, pitLines,phonemeInfoList);
 
             Complete?.Invoke(ret);
         }

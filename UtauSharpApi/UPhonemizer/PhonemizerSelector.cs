@@ -13,6 +13,7 @@ namespace UtauSharpApi.UPhonemizer
         {
             IPhonemizer curIP;
             if ((curIP = new DefaultJapanesePhonemizer()).ProcessAble(vb)) return curIP;
+            if ((curIP = new DefaultVCVJapanesePhonemizer()).ProcessAble(vb)) return curIP;
             return new DefaultPhonemizer();
         }
 

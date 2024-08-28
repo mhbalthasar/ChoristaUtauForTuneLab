@@ -173,7 +173,7 @@ namespace UtauSharpApi.UVoiceBank
             }
 
             vb.DefaultLyric = "a";
-            if (vb.FindSymbol("あ") != null || vb.FindSymbol("あ",60) != null) vb.DefaultLyric = "あ";
+            if (vb.FindSymbol("あ") != null || vb.FindSymbol("あ",60) != null || vb.FindSymbol("- あ", 60) != null) vb.DefaultLyric = "あ";
 
             vb.Serialize(cache);
             vb.vbBasePath = VoiceBankPath;

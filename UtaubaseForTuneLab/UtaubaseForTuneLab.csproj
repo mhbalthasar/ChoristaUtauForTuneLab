@@ -6,11 +6,13 @@
     <Nullable>enable</Nullable>
 	  <PlatformTarget>x64</PlatformTarget>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\TuneLab.Base\TuneLab.Base.csproj" />
     <ProjectReference Include="..\..\..\TuneLab.Extensions.Voices\TuneLab.Extensions.Voices.csproj" />
+    <ProjectReference Include="..\NWaves\NWaves.csproj" />
     <ProjectReference Include="..\UtauSharpApi\UtauSharpApi.csproj" />
   </ItemGroup>
 

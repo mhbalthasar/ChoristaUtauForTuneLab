@@ -14,6 +14,7 @@ namespace UtauSharpApi.UTask
         public List<UMidiNote> Notes { get; set; } = new List<UMidiNote>();
         public IPhonemizer Phonemizer { get; set; } = new DefaultPhonemizer();
         public VoiceBank? VoiceBank { get; private set; } = null;
+        public object? ObjectTag { get; set; } = null;//BringInformations
 
         public void SetVoiceBank(VoiceBank vb)
         {
@@ -69,6 +70,7 @@ namespace UtauSharpApi.UTask
                     rpNote.EngineSalt = EngineSalt;
                     rpNote.StartMSec = curMs;
                     rpNote.DurationMSec = (ppNote.SymbolMSec<=0)?dynmaticLength:ppNote.SymbolMSec;
+                    rpNote.ObjectTag = ppNote;
                     curMs = curMs+ rpNote.DurationMSec;
                     if (ret.Count > 0)
                     {
