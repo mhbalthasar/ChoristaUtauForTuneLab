@@ -25,9 +25,7 @@ namespace UtauSharpApi.UPhonemizer
             if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
             {
                 return new List<UPhonemeNote>() {
-                    new UPhonemeNote(MidiPart.Notes[NoteIndex],MidiPart.Notes[NoteIndex].Lyric){
-                        SymbolMSec=-1
-                    } };
+                    new UPhonemeNote(MidiPart.Notes[NoteIndex],MidiPart.Notes[NoteIndex].Lyric,-1)};
             }
             return new List<UPhonemeNote>();
         }

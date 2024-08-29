@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="protobuf-net" Version="3.2.30" />
+    <PackageReference Include="Tomlyn" Version="0.17.0" />
     <PackageReference Include="Ude.NET" Version="1.0.0" />
   </ItemGroup>
 

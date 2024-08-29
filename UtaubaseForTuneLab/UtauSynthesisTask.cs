@@ -120,13 +120,15 @@ namespace UtaubaseForTuneLab
             });
         }
 
-        private List<List<Point>> FormatPitchLines(SortedDictionary<double, double> pitchLines)
+        private List<List<Point>> FormatPitchLines(SortedDictionary<double, double> pitchLines, double startMillSecond = 0)
         {
             List<List<Point>> pitLines = new List<List<Point>>();
             List<Point> pPLine = new List<Point>();
             foreach (var kv in pitchLines)
             {
-                pPLine.Add(new Point() { X = (synthesisData.StartTime() - UtauProject.HeadPreSequenceMillsectionTime / 1000.0) + (kv.Key / 1000.0), Y = kv.Value });
+                double PointX = (synthesisData.StartTime() - UtauProject.HeadPreSequenceMillsectionTime / 1000.0) + (kv.Key / 1000.0);
+                if(PointX< startMillSecond/1000.0) continue; 
+                pPLine.Add(new Point() { X = PointX, Y = kv.Value });
             }
             pitLines.Add(pPLine);
             return pitLines;
@@ -137,7 +139,7 @@ namespace UtaubaseForTuneLab
             var audioInfo=TaskHelper.ReadWaveAudioData(OutputWav,synthesisData.StartTime());
 
             //var pitLines= TaskHelper.WaveAudioDataPitchDetect2(audioInfo);
-            var pitLines = FormatPitchLines(pitchLines);
+            var pitLines = FormatPitchLines(pitchLines, audioInfo.audio_StartMillsec);
 
             var ret = new SynthesisResult(audioInfo.audio_StartMillsec/1000.0, 44100, audioInfo.audio_Data, pitLines,phonemeInfoList);
 

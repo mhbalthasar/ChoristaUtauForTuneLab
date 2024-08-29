@@ -10,7 +10,8 @@ namespace UtaubaseForTuneLab
     {
         public List<string> UVoiceBankSearchPath = new List<string>()
         {
-            @"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb"
+            @"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb",
+            @"C:\Program Files (x86)\VoiceDB\Iroha_V4\BFPG63T4DEZMRFCD"
         };
 
 

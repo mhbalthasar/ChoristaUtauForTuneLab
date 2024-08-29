@@ -201,9 +201,8 @@ namespace UtauSharpApi.UPhonemizer
             if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
             {
                 return new List<UPhonemeNote>() {
-                    new UPhonemeNote(MidiPart.Notes[NoteIndex],DefaultP2JapaneseDict.TransformLyric(MidiPart.Notes[NoteIndex].Lyric)){
-                        SymbolMSec=-1
-                    } };
+                    new UPhonemeNote(MidiPart.Notes[NoteIndex],DefaultP2JapaneseDict.TransformLyric(MidiPart.Notes[NoteIndex].Lyric),-1)
+                };
             }
             return new List<UPhonemeNote>();
         }
@@ -268,9 +267,8 @@ namespace UtauSharpApi.UPhonemizer
                         nSymbol = Symbol;
                 }
                 return new List<UPhonemeNote>() {
-                    new UPhonemeNote(MidiPart.Notes[NoteIndex],nSymbol){
-                        SymbolMSec=-1
-                    } };
+                    new UPhonemeNote(MidiPart.Notes[NoteIndex],nSymbol,-1)
+                };
             }
             return new List<UPhonemeNote>();
         }

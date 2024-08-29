@@ -179,6 +179,8 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                         EndTime = endMs / 1000.0,
                         Symbol = ((UPhonemeNote)rNote.ObjectTag).Symbol
                     };
+
+                    retCount[kNote]++;
                 }
                 return ret;
             }

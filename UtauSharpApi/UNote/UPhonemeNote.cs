@@ -18,6 +18,12 @@ namespace UtauSharpApi.UNote
             Parent = note;
             Symbol = symbol;
         }
+        public UPhonemeNote(UMidiNote note, string symbol,double symbolDurMs=-1)
+        {
+            Parent = note;
+            Symbol = symbol;
+            SymbolMSec = symbolDurMs;
+        }
 
         public string Symbol { get; private set; } = "R";
         public double SymbolMSec { get; set; } = -1;
