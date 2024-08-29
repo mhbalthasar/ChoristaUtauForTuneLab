@@ -53,7 +53,7 @@ namespace UtaubaseForTuneLab
                 var pitchtable = UtauProject.PitchPrerender(synthesisData);
                 foreach (URenderNote rNote in rPart)
                 {
-                    rNote.SetPitchBends((ms_times) =>
+                    rNote.Attributes.SetPitchLine((ms_times) =>
                     {
                         double[] ret=new double[ms_times.Length];
                         for (int i = 0; i < ms_times.Length; i++)
@@ -71,6 +71,9 @@ namespace UtaubaseForTuneLab
                     });
                 }
 
+                //Generate All Args
+                TaskHelper.UpdateExecutors(rPart);
+
                 //PrepareHash
                 string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine);
 
@@ -80,9 +83,9 @@ namespace UtaubaseForTuneLab
                     foreach (URenderNote rNote in rPart)
                     {
                         string resampler_exe = renderEngine.ResamplerPath;
-                        List<string> args = rNote.GetResamplerArgs();
+                        List<string> args = rNote.Executors.GetResamplerArgs(true);
                         if (args.Count == 0) continue;
-                        if (File.Exists(rNote.TempFilePath)) continue;
+                        if (File.Exists(rNote.Executors.TempFilePath)) continue;
                         Process p = wine.CreateWineProcess(resampler_exe, args);
                         p.Start();
                         p.WaitForExit();
@@ -93,7 +96,7 @@ namespace UtaubaseForTuneLab
                     foreach (URenderNote rNote in rPart)
                     {
                         string wavtool_exe = renderEngine.WavtoolPath;
-                        List<string> args = rNote.GetWavToolArgs(OutputFile);
+                        List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile,true);
                         Process p = wine.CreateWineProcess(wavtool_exe, args, WorkDir);
                         p.Start();
                         p.WaitForExit();
@@ -117,19 +120,24 @@ namespace UtaubaseForTuneLab
             });
         }
 
+        private List<List<Point>> FormatPitchLines(SortedDictionary<double, double> pitchLines)
+        {
+            List<List<Point>> pitLines = new List<List<Point>>();
+            List<Point> pPLine = new List<Point>();
+            foreach (var kv in pitchLines)
+            {
+                pPLine.Add(new Point() { X = (synthesisData.StartTime() - UtauProject.HeadPreSequenceMillsectionTime / 1000.0) + (kv.Key / 1000.0), Y = kv.Value });
+            }
+            pitLines.Add(pPLine);
+            return pitLines;
+        }
+
         private void CompleteTask(string OutputWav, SortedDictionary<double, double> pitchLines, Dictionary<ISynthesisNote, SynthesizedPhoneme[]>? phonemeInfoList=null)
         {
             var audioInfo=TaskHelper.ReadWaveAudioData(OutputWav,synthesisData.StartTime());
 
             //var pitLines= TaskHelper.WaveAudioDataPitchDetect2(audioInfo);
-
-            List<List<Point>> pitLines = new List<List<Point>>();
-            List<Point> pPLine = new List<Point>();
-            foreach(var kv in pitchLines)
-            {
-                pPLine.Add(new Point() { X=(synthesisData.StartTime()-UtauProject.HeadPreSequenceMillsectionTime/1000.0) + (kv.Key / 1000.0), Y=kv.Value });
-            }
-            pitLines.Add(pPLine);
+            var pitLines = FormatPitchLines(pitchLines);
 
             var ret = new SynthesisResult(audioInfo.audio_StartMillsec/1000.0, 44100, audioInfo.audio_Data, pitLines,phonemeInfoList);
 

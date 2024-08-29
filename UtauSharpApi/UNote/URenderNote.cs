@@ -1,112 +1,108 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+﻿using System.Text;
 using UtauSharpApi.Utils;
 using UtauSharpApi.UVoiceBank;
 
 namespace UtauSharpApi.UNote
 {
-    public class USTPFix(URenderNote pNote)
+    public class URenderNote_Attributes(URenderNote pNote)
     {
-        public double FixPreuttr { get; set; } = 0;
-        public double FixOverlap { get; set; } = 0;
-        public double FixSTPoint { get; set; } = 0;
-
-        public void UpdateSTPFix()
+        public bool IsRest { get => pNote == null || pNote.RenderOto == null || pNote.RenderOto.Alias == "R"; }
+        public string InputWavFile { get; set; } = "";
+        public string Tone { get => OctaveUtils.NoteNumber2Str(pNote.NoteNumber - 12); }
+        public string Flags { get => pNote.Flags; }
+        public int Velocity { get => pNote.Velocity; }
+        public int Volume { get => (int)(pNote.GainVolDiff * 100 + 100.0); }
+        public int Modulation { get; private set; } = 0;
+        public int StaticTempo { get; private set; } = 125;
+        public double Preutter { get; set; } = 0;
+        public double Overlap { get; set; } = 0;
+        public double Offset { get; set; } = 0;
+        public double SkipOver { get; set; } = 0;//STPoint
+        public double Consonant { get; set; } = 0;
+        public double Cutoff { get; set; } = 0;
+        public double DurCorrection { get; set; } = 0;
+        public double DurRequired { get; set; } = 0;
+        public double TailIntrude { get; set; } = 0;
+        public double TailOverlap { get; set; } = 0;
+        public double EnvOverlap { get; set; } = 0;
+        public double EnvIntrude { get => Math.Max(DurRequired > 35 ? 35 : DurRequired / 2, TailOverlap); }
+        public string PitchLineString { get; set; } = "";
+        private void GenerateFixedSTPs()
         {
-            if (pNote == null || pNote.IsRest)
+            var consonantStretchRatio = Math.Pow(2, 1.0 - Velocity * 0.01);
+            var autoOverlap = pNote.RenderOto.Overlap * consonantStretchRatio;
+            var autoPreutter = pNote.RenderOto.Preutter * consonantStretchRatio;
+            var origPreutter = pNote.RenderOto.Preutter * consonantStretchRatio;
+            bool overlapped = false;
+            TailIntrude = 0;
+            TailOverlap = 0;
+            var Prev = pNote.PrevNote;
+            if (Prev != null)
             {
-                FixPreuttr = 0; FixOverlap = 0; FixSTPoint = 0;
-                return;
-            }
-
-            double correctRate = 1.0;
-            double velocityRate = Math.Pow(2, 1 - pNote.Velocity / 100.0);
-            double curPreuttr = pNote.RenderOto.Preutter * velocityRate;
-            double curOverlap = pNote.RenderOto.Overlap * velocityRate;
-
-            if (pNote != null && pNote.PrevNote != null)
-            {
-                double prevDuration = pNote.PrevNote.DurationMSec;
-                double maxOccupy = pNote.PrevNote.IsRest ? prevDuration : prevDuration / 2;
-                if (curPreuttr - curOverlap > maxOccupy)
+                double gapMs = pNote.StartMSec - Prev.EndMSec;
+                double prevDur = Prev.DurationMSec;
+                double maxPreutter = autoPreutter;
+                if (gapMs <= 0)
                 {
-                    correctRate = maxOccupy / (curPreuttr - curOverlap);
+                    overlapped = true;
+                    if (autoPreutter - autoOverlap > prevDur * 0.5f)
+                    {
+                        maxPreutter = prevDur * 0.5f / (autoPreutter - autoOverlap) * autoPreutter;
+                    }
+                }
+                else if (gapMs < autoPreutter)
+                {
+                    maxPreutter = gapMs;
+                }
+                if (autoPreutter > maxPreutter)
+                {
+                    double ratio = maxPreutter / autoPreutter;
+                    autoPreutter = maxPreutter;
+                    autoOverlap *= ratio;
+                }
+                if (autoPreutter > prevDur * 0.9f && overlapped)
+                {
+                    double delta = autoPreutter - prevDur * 0.9f;
+                    autoPreutter -= delta;
+                    autoOverlap -= delta;
                 }
             }
-
-            double correctPreuttr = correctRate * curPreuttr;
-            double correctOverlap = correctRate * curOverlap;
-            FixSTPoint = curPreuttr - correctPreuttr;
-            FixPreuttr = correctPreuttr - pNote.RenderOto.Preutter;
-            FixOverlap = correctOverlap - pNote.RenderOto.Overlap;
+            Preutter = Math.Max(0, autoPreutter);
+            Overlap = autoOverlap;
+            SkipOver = origPreutter - Preutter;
+            EnvOverlap = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 5;
+            if (Prev != null)
+            {
+                Prev.Attributes.TailIntrude = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 0;
+                Prev.Attributes.TailOverlap = overlapped ? Math.Max(Overlap, 0) : 0;
+            }
         }
-    }
-
-    public enum URenderNoteArgs
-    {
-        Preutter,
-        Overlap,
-        Startpoint,
-        Duration,
-        Correction
-    }
-    public enum URenderNotePos
-    {
-        PrevNote,
-        CurrentNote,
-        NextNote
-    }
-    public class URenderNote
-    {
-        public URenderNote() { 
-            FixSTP = new USTPFix(this); 
-        }
-        public URenderNote? PrevNote { get; set; } = null;
-        public URenderNote? NextNote { get; set; } = null;
-        public Oto? RenderOto { get; set; } = null;
-        public bool IsRest { get => RenderOto == null || RenderOto.Alias == "R"; }
-        public USTPFix FixSTP { get; private set; }
-        public string VoiceBankPath { get; set; } = "";
-        public double StartMSec { get; set; } = 0;
-        public double DurationMSec { get; set; } = 0;
-        public int NoteNumber { get; set; } = 60;
-        public string Flags { get; set; } = "";
-        public string EngineSalt { get; set; } = "";
-        public int Velocity { get; set; } = 100;
-        public double STPoint { get; set; } = 0;
-        public List<int> PitchBends { get; set; } = new List<int>();
-        public double GainVolDiff { get; set; } = 0;
-        public object? ObjectTag { get; set; } = null;//BringInformations
-
-
-        //for resampler
-        #region
-        private string NoteString()
+        public void UpdateAttributes()
         {
-            return OctaveUtils.NoteNumber2Str(NoteNumber - 12);
+            if(pNote==null) return;
+            if (pNote.RenderOto != null)
+            {
+                InputWavFile = pNote.RenderOto.GetWavfilePath(pNote.VoiceBankPath);
+                GenerateFixedSTPs();
+                Offset=pNote.RenderOto.Offset;   
+                Consonant = pNote.RenderOto.Consonant;  
+                Cutoff = pNote.RenderOto.Cutoff;
+                DurCorrection = Preutter - TailIntrude + TailOverlap;
+                {
+                    DurRequired = pNote.DurationMSec + DurCorrection + SkipOver;
+                    DurRequired = Math.Max(DurRequired,pNote.RenderOto.Consonant);
+                    DurRequired = Math.Ceiling(DurRequired / 50.0 + 0.5) * 50.0;
+                }
+            }
         }
-        private double PitchStartMSec()
-        {
-            return StartMSec - GetFixedArgs(URenderNoteArgs.Preutter) - GetFixedArgs(URenderNoteArgs.Startpoint);
-        }
-        private double PitchDurationMSec()
-        {
-            double RealLength = DurationMSec + GetFixedArgs(URenderNoteArgs.Correction);
-            return RealLength;
-        }
-        private string PitchLines = "";
-        public void SetPitchBends(Func<double[], double[]> PitchGetter)
+
+
+        public void SetPitchLine(Func<double[], double[]> PitchGetter)
         {
             if (IsRest) return;
             List<double> millsec_times = new List<double>();
-            double t = PitchStartMSec();// - 25;
-            double end = t + PitchDurationMSec();
+            double t = (pNote.StartMSec - EnvOverlap - SkipOver);
+            double end = DurRequired + t;
             while (t < end) { millsec_times.Add(t); t += 5.0; }
             var pitcharray = PitchGetter(millsec_times.ToArray());
             //PitToStr
@@ -116,7 +112,7 @@ namespace UtauSharpApi.UNote
             int cep = 0;
             foreach (var pit in pitcharray)
             {
-                int pcent = (int)Math.Round((pit - NoteNumber) * 100.0);
+                int pcent = (int)Math.Round((pit - pNote.NoteNumber) * 100.0);
                 pcent = Math.Max(Math.Min(pcent, 2047), -2048);
                 pcent = pcent >= 0 ? pcent : pcent + 4096;
                 char x = Base64EncodeMap[(int)(pcent / 64.0)];
@@ -152,198 +148,169 @@ namespace UtauSharpApi.UNote
                 else { encodedPit.Add(lep); }
                 lep = ""; cep = 0;
             }
-            PitchLines = string.Join("", encodedPit);
+            PitchLineString = string.Join("", encodedPit);
         }
-        private List<string> GetSampleArgs()
+    }
+    public class URenderNote_RenderExecutor(URenderNote pNote)
+    {
+        public string TempFilePath { get; private set; } = "";
+        private List<string> Attr_EnvlopeArgs { get; set; } = new List<string>();
+        private string Attr_FixedDuration { get; set; } = "";
+        private List<string> Attr_SynthesisArgs { get; set; } = new List<string>();
+        private void UpdateTempFileName()
         {
-            List<string> ret = new List<string>();
-            ret.Add(NoteString());
-            ret.Add(Velocity.ToString());
-            ret.Add(Flags);
-            //oto
-            ret.Add(RenderOto.Offset.ToString("F3"));
-            ret.Add(GetFixedArgs(URenderNoteArgs.Duration).ToString("F3"));
-            ret.Add(RenderOto.Consonant.ToString("F3"));
-            ret.Add(RenderOto.Cutoff.ToString("F3"));
-            ret.Add("100");
-            ret.Add("0");
-            ret.Add("!125");//5ms space each point
-            ret.Add(PitchLines);
-            return ret;
-        }
-        public List<string> GetResamplerArgs(bool ToolIsWindowsPlatform = true)
-        {
-            if (IsRest) return new List<string>();
-            List<string> ret = new List<string>();
-            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(RenderOto.GetWavfilePath(VoiceBankPath)) : RenderOto.GetWavfilePath(VoiceBankPath));
-            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(TempFilePath) : TempFilePath);
-            ret.AddRange(GetSampleArgs());
-            return ret;
-        }
-        #endregion
+            if (pNote.Attributes.IsRest) TempFilePath = Path.Combine(pNote.VoiceBankPath, "R.wav");
+            List<string> HashArgs = new List<string>();
+            HashArgs.Add(pNote.EngineSalt);//Add Engine Signal
+            HashArgs.Add(pNote.Attributes.InputWavFile);
+            HashArgs.AddRange(Attr_SynthesisArgs);
 
-        //for wavtool
-        #region
-        //WavToolArg4
-        public double GetFixedArgs(URenderNoteArgs argType, URenderNotePos noteType=URenderNotePos.CurrentNote)
-        {
-            URenderNote? note = null;
-            switch(noteType)
-            {
-                case URenderNotePos.CurrentNote:
-                    note = this;break;
-                case URenderNotePos.PrevNote:
-                    note = PrevNote;break;
-                case URenderNotePos.NextNote:
-                    note = NextNote;break;
-            }
-            switch(argType)
-            {
-                case URenderNoteArgs.Preutter:
-                    return (note == null || note.IsRest || note.RenderOto == null) ? 0 : (note.RenderOto.Preutter + note.FixSTP.FixPreuttr);
-                case URenderNoteArgs.Overlap:
-                    return (note == null || note.IsRest || note.RenderOto == null) ? 0 : (note.RenderOto.Overlap + note.FixSTP.FixOverlap);
-                case URenderNoteArgs.Startpoint:
-                    return (note == null) ? 0 : (note.STPoint + note.FixSTP.FixSTPoint);
-                case URenderNoteArgs.Correction:
-                    {
-                        //末端偏移
-                        double tailFix = GetFixedArgs(URenderNoteArgs.Overlap, URenderNotePos.NextNote) - GetFixedArgs(URenderNoteArgs.Preutter, URenderNotePos.NextNote);
-                        //double nextDur = Next GetFixedArgs(URenderNoteArgs.Duration, URenderNotePos.NextNote);
-                        if (NextNote != null && tailFix > NextNote.DurationMSec) tailFix = NextNote.DurationMSec;
-                        return GetFixedArgs(URenderNoteArgs.Preutter) + tailFix;
-                    }
-                case URenderNoteArgs.Duration:
-                    return DurationMSec + GetFixedArgs(URenderNoteArgs.Startpoint) +GetFixedArgs(URenderNoteArgs.Correction);
-            }
-            return 0;
-        }
-        private string WavAppendLengthStr()
-        {
-            double dur = GetFixedArgs(URenderNoteArgs.Duration);
-            double fix = dur - Math.Round(dur);
-            string ret = string.Format("{0}@125", Math.Round(dur)) ;//125bpm，1tick=1ms
-            ret = ret + (fix >= 0 ? "+" : "") + fix.ToString("F3");
-            return ret;
-        }
-        //WavToolArg5
-        private double[] Envlope()
-        {
-            //0     5       55.1   0  100  100  0 17.415
-            //p1    p2      p3     v1  v2  v3  v4   ovr
-            //0   prevOvl  nextOvl 0  100  100 0  thisOvl
-            if (IsRest) return [0, 0];
-            var ret = new double[9];// 8];
-            ret[0] = 0;//p1
-            ret[1] = Math.Max(5,GetFixedArgs(URenderNoteArgs.Overlap));//p2
-            ret[2] = Math.Max(35, GetFixedArgs(URenderNoteArgs.Overlap,URenderNotePos.NextNote));//p3
-            ret[3] = 0;//v1
-            ret[4] = GainVolDiff * 100 + 100.0;//v2
-            ret[5] = GainVolDiff * 100 + 100.0;//v3
-            ret[6] = 0;//v4
-            ret[7] = GetFixedArgs(URenderNoteArgs.Overlap);
-            ret[8] = 0;//p4
-            return ret;
-        }
-        public List<string> GetWavToolArgs(string targetWavPath = "temp.wav", bool ToolIsWindowsPlatform = true)
-        {
-            List<string> ret = new List<string>();
-            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(targetWavPath) : targetWavPath);
-            ret.Add(ToolIsWindowsPlatform ? CrossPlatformUtils.KeepWindows(TempFilePath) : TempFilePath);
-            ret.Add(GetFixedArgs(URenderNoteArgs.Startpoint).ToString("F3"));
-            ret.Add(WavAppendLengthStr());
-            ret.AddRange(Envlope().Select(d => d.ToString("F3")));
-            return ret;
-        }
-        #endregion
+            string hash = GetMixedHash(HashArgs);
+            string tmpPath = Path.Combine(Path.GetTempPath(), "UtauSharp", "ResamplerCache");
+            if (!Directory.Exists(tmpPath)) { Directory.CreateDirectory(tmpPath); }
 
-        //BatchBat FileContent
-        #region
-        private List<string> BatchBat_GetParams()
-        {
-            List<string> ret = new List<string>();
-            ret.Add("100");
-            ret.Add("0");
-            ret.Add("!125");//5ms space each point
-            ret.Add(PitchLines);
-            return ret;
+            TempFilePath = Path.Combine(tmpPath, string.Format("{0}.wav", hash));
         }
-        private List<string> BatchBat_GetEnv()
-        {
-            return Envlope().Select(d => d.ToString("F3")).ToList();
-        }
-        private string BatchBat_GetVel()
-        {
-            return Velocity.ToString();
-        }
-        private string BatchBat_GetTemp()
-        {
-            return string.Format("\"{0}\"", TempFilePath);
-        }
-        private List<string> BatchBat_GetHelperArgs()
-        {
-            double RealLength = GetFixedArgs(URenderNoteArgs.Duration);
-            List<string> ret = new List<string>();
-            ret.Add(string.Format("\"{0}\"", CrossPlatformUtils.KeepWindows(RenderOto.GetWavfilePath(VoiceBankPath))));//%1
-            ret.Add(NoteString());//%2
-            ret.Add(WavAppendLengthStr());//%3
-            ret.Add(GetFixedArgs(URenderNoteArgs.Preutter).ToString("F3"));//%4?没用？
-            ret.Add(RenderOto.Offset.ToString("F3"));//%5
-            ret.Add(RealLength.ToString("F3"));//%6
-            ret.Add(RenderOto.Consonant.ToString("F3"));//%7
-            ret.Add(RenderOto.Cutoff.ToString("F3"));//%8
-            ret.Add("1");//%9也没用
-            return ret;
-        }
-        public string GetBatchBat()
-        {
-            if (IsRest)
-            {
-                List<string> args = new List<string>();
-                args.Add(string.Format("\"{0}\"", CrossPlatformUtils.KeepWindows(Path.Combine(VoiceBankPath, "R.wav"))));
-                args.Add("0");
-                args.Add(WavAppendLengthStr());
-                args.Add("0");
-                args.Add("0");
-                return "@\"%tool%\" \"%output%\" " + string.Join(" ", args);
-            }
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("@set params=" + string.Join(" ", BatchBat_GetParams()));
-            sb.AppendLine("@set env=" + string.Join(" ", BatchBat_GetEnv()));
-            sb.AppendLine("@set vel=" + BatchBat_GetVel());
-            sb.AppendLine("@set temp=" + BatchBat_GetTemp());
-            sb.AppendLine("@set flag=\"" + Flags + "\"");
-            sb.AppendLine("@set stp="+ GetFixedArgs(URenderNoteArgs.Startpoint).ToString("F3"));
-            sb.AppendLine("@echo Processing");
-            sb.AppendLine("@call %helper% " + string.Join(" ", BatchBat_GetHelperArgs()));
-            return sb.ToString();
-        }
-        #endregion
-
-        //Temp File NameGenerate && GlobalFixed
-        #region
-
-        private static string GetMixedHash(List<string> hashes, string appendSalt = "")
+        private string GetMixedHash(List<string> hashes)
         {
             using (var sha256 = System.Security.Cryptography.SHA256.Create())
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(appendSalt + string.Join("\r\n", hashes));
+                byte[] inputBytes = Encoding.UTF8.GetBytes(string.Join("\r\n", hashes));
                 byte[] hashBytes = sha256.ComputeHash(inputBytes);
                 return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
         }
-        public string TempFilePath
+        private string CPath(string path, bool isWindowsTool = true)
         {
-            get
-            {
-                if (IsRest) return Path.Combine(VoiceBankPath, "R.wav");
-                string resWav = RenderOto.GetWavfilePath(VoiceBankPath);
-                string hash = GetMixedHash(GetSampleArgs(), EngineSalt + "\r\n" + resWav + "\r\n");
-                string tmpPath = Path.Combine(Path.GetTempPath(), "UtauSharp", "ResamplerCache");
-                if (!Directory.Exists(tmpPath)) { Directory.CreateDirectory(tmpPath); }
-                return Path.Combine(tmpPath, string.Format("{0}.wav", hash));
+            return isWindowsTool ? CrossPlatformUtils.KeepWindows(path) : path;
+        }
+        private void UpdateSynthesisArgs()
+        {
+            Attr_SynthesisArgs.Clear();
+            if (pNote.Attributes.IsRest) { return; }
+            Attr_SynthesisArgs.Add(pNote.Attributes.Tone);
+            Attr_SynthesisArgs.Add(pNote.Attributes.Velocity.ToString());
+            Attr_SynthesisArgs.Add("\""+pNote.Attributes.Flags+"\"");
+            Attr_SynthesisArgs.Add(pNote.Attributes.Offset.ToString("F3"));
+            Attr_SynthesisArgs.Add(pNote.Attributes.DurRequired.ToString("F3"));
+            Attr_SynthesisArgs.Add(pNote.Attributes.Consonant.ToString("F3"));
+            Attr_SynthesisArgs.Add(pNote.Attributes.Cutoff.ToString("F3"));
+            Attr_SynthesisArgs.Add("100");//Volume
+            Attr_SynthesisArgs.Add(pNote.Attributes.Modulation.ToString("F3"));
+            Attr_SynthesisArgs.Add("!125");//Tempo
+            Attr_SynthesisArgs.Add(pNote.Attributes.PitchLineString);
+        }
+        private void UpdateEnvlope()
+        {
+            if (pNote.Attributes.IsRest) { Attr_EnvlopeArgs.AddRange(["0", "0"]); return; }//Rest is Concat Directly,No ENV
+            Tuple<double, double>[] EnvlopeItem = new Tuple<double, double>[5];
+            EnvlopeItem[0] = new Tuple<double, double>(0, 0);
+            EnvlopeItem[1] = new Tuple<double, double>(pNote.Attributes.EnvOverlap, pNote.Attributes.Volume);
+            EnvlopeItem[2] = new Tuple<double, double>(pNote.Attributes.EnvIntrude, pNote.Attributes.Volume);
+            EnvlopeItem[3] = new Tuple<double, double>(0, 0);
+
+            Attr_EnvlopeArgs.Clear();
+            //0     5       55.1   0  100  100  0 17.415
+            //p1    p2      p3     v1  v2  v3  v4   ovr
+            //0   prevOvl  nextOvl 0  100  100 0  thisOvl
+            Attr_EnvlopeArgs.Add(EnvlopeItem[0].Item1.ToString("F3"));//p1
+            Attr_EnvlopeArgs.Add(EnvlopeItem[1].Item1.ToString("F3"));//p2
+            Attr_EnvlopeArgs.Add(EnvlopeItem[2].Item1.ToString("F3"));//p3
+            Attr_EnvlopeArgs.Add(EnvlopeItem[0].Item2.ToString("F3"));//v1
+            Attr_EnvlopeArgs.Add(EnvlopeItem[1].Item2.ToString("F3"));//v2
+            Attr_EnvlopeArgs.Add(EnvlopeItem[2].Item2.ToString("F3"));//v3
+            Attr_EnvlopeArgs.Add(EnvlopeItem[3].Item2.ToString("F3"));//v4
+            Attr_EnvlopeArgs.Add(pNote.Attributes.EnvOverlap.ToString("F3"));//ovl
+            Attr_EnvlopeArgs.Add(EnvlopeItem[3].Item1.ToString("F3"));//p4
+        }
+        private void UpdateFixedDuration()
+        {
+            double duration = pNote.DurationMSec;
+            Attr_FixedDuration = string.Format("{0:0.000}@125{1}{2}", duration, pNote.Attributes.DurCorrection < 0 ? "" : "+", pNote.Attributes.DurCorrection.ToString("F3"));
+        }
+        public List<string> GetWavtoolArgs(string outputFile="temp.wav",bool isWindowsTool=true)
+        {
+            List<string> ret = new List<string>();
+            ret.Add(CPath(outputFile, isWindowsTool));
+            ret.Add(CPath(TempFilePath, isWindowsTool));
+            ret.Add(pNote.Attributes.SkipOver.ToString("F3"));
+            ret.Add(Attr_FixedDuration);
+            ret.AddRange(Attr_EnvlopeArgs);
+            return ret;
+        }
+        public List<string> GetResamplerArgs(bool isWindowsTool=true)
+        {
+            if (pNote.Attributes.IsRest) { return new List<string>(); }//Rest is Concat Directly,No ENV
+            List<string> ResamplerArgs = new List<string>();
+            ResamplerArgs.Add(CPath(pNote.Attributes.InputWavFile, isWindowsTool));
+            ResamplerArgs.Add(CPath(TempFilePath, isWindowsTool));
+            ResamplerArgs.AddRange(Attr_SynthesisArgs);
+            return ResamplerArgs;
+        }
+        public string GetBatchBatItem(int index=1)
+        {
+            if (pNote.Attributes.IsRest) {
+                List<string> args = new List<string>();
+                args.Add(string.Format("\"{0}\"", CPath(TempFilePath, true)));
+                args.Add("0");
+                args.Add(Attr_FixedDuration);
+                args.Add("0");
+                args.Add("0");
+                return "@\"%tool%\" \"%output%\" " + string.Join(" ", args);
             }
-        }//TODO
-        #endregion
+
+            List<string> Lines = new List<string>();
+            Lines.Add("@set params=" + string.Format("100 {0} !125 {1}", pNote.Attributes.Modulation.ToString("F3"), pNote.Attributes.PitchLineString));
+            Lines.Add("@set env=" + string.Join(" ", Attr_EnvlopeArgs));
+            Lines.Add("@set vel=" + pNote.Attributes.Velocity.ToString("F3"));
+            Lines.Add("@set temp=125");
+            Lines.Add("@set flag=\"" + pNote.Attributes.Flags + "\"");
+            Lines.Add("@set stp=" + pNote.Attributes.SkipOver.ToString("F3"));
+            Lines.Add("@call %helper% " + string.Join(" ", new Func<List<string>>(() => {
+                List<string> prms = new List<string>();
+                prms.Add(string.Format("\"{0}\"",CPath(pNote.Attributes.InputWavFile)));
+                prms.Add(pNote.Attributes.Tone);
+                prms.Add(Attr_FixedDuration);
+                prms.Add(pNote.Attributes.Preutter.ToString("F3"));//%4
+                prms.Add(pNote.Attributes.Offset.ToString("F3"));//%5
+                prms.Add(pNote.Attributes.DurRequired.ToString("F3"));//%6
+                prms.Add(pNote.Attributes.Consonant.ToString("F3"));//%7
+                prms.Add(pNote.Attributes.Cutoff.ToString("F3"));//%8
+                prms.Add(index.ToString());//%9也没用
+                return prms;
+            })));
+            return string.Join("\r\n",Lines);
+        }
+        public void UpdateExecutor()
+        {
+            UpdateSynthesisArgs();
+            UpdateTempFileName();
+
+            UpdateEnvlope();
+            UpdateFixedDuration();
+        }
+    }
+    public class URenderNote
+    {
+        public URenderNote()
+        {
+            Attributes = new URenderNote_Attributes(this);
+            Executors = new URenderNote_RenderExecutor(this);
+        }
+        public URenderNote? PrevNote { get; set; } = null;
+        public URenderNote? NextNote { get; set; } = null;
+        public Oto? RenderOto { get; set; } = null;
+        public URenderNote_Attributes Attributes { get; set; }
+        public URenderNote_RenderExecutor Executors { get; set; }
+        public string VoiceBankPath { get; set; } = "";
+        public double StartMSec { get; set; } = 0;
+        public double DurationMSec { get; set; } = 0;
+        public double EndMSec { get => StartMSec + DurationMSec; }
+        public int NoteNumber { get; set; } = 60;
+        public string Flags { get; set; } = "";
+        public string EngineSalt { get; set; } = "";
+        public int Velocity { get; set; } = 100;
+        public double GainVolDiff { get; set; } = 0;
+        public object? ObjectTag { get; set; } = null;//BringInformations
     }
 }

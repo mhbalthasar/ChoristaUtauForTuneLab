@@ -158,7 +158,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 Dictionary<ISynthesisNote, int> retCount = new Dictionary<ISynthesisNote, int>();
                 foreach (var rNote in rPart)
                 {
-                    if (rNote.IsRest) continue;
+                    if (rNote.Attributes.IsRest) continue;
                     double startMs = baseStart + rNote.StartMSec - emptyTime;
                     double endMs = rNote.DurationMSec + startMs;
                     ISynthesisNote? kNote = (ISynthesisNote?)((UPhonemeNote)rNote.ObjectTag).Parent.ObjectTag;
@@ -185,6 +185,10 @@ namespace UtaubaseForTuneLab.UProjectGenerator
     }
     internal static class TaskHelper
     {
+        public static void UpdateExecutors(List<URenderNote> rPart)
+        {
+            foreach (var rNote in rPart) { rNote.Executors.UpdateExecutor(); }
+        }
 
         public static string GetPartRenderedFilePath(List<URenderNote> rPart, IRenderEngine renderEngine)
         {
@@ -202,10 +206,10 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             infos.Add(renderEngine.WavtoolPath);
             foreach (URenderNote rNote in rPart)
             {
-                List<string> resamplerArgs = rNote.GetResamplerArgs();
+                List<string> resamplerArgs = rNote.Executors.GetResamplerArgs();
                 if (resamplerArgs.Count > 0) infos.Add(File.Exists(resamplerArgs[0]).ToString());
                 infos.AddRange(resamplerArgs);
-                infos.AddRange(rNote.GetWavToolArgs("temp.wav"));
+                infos.AddRange(rNote.Executors.GetWavtoolArgs("temp.wav"));
             }
             string hash = GetMixedHash(infos);
             string tmpPath = Path.Combine(Path.GetTempPath(), "UtauSharp", "PartRendered");
@@ -225,9 +229,11 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 using (TextWriter tw = new StreamWriter(fs))
                 {
                     tw.WriteLine(uTask.Part.GetBatchBat());
+                    int index = 0;
                     foreach (URenderNote rNote in rPart)
                     {
-                        tw.WriteLine(rNote.GetBatchBat());
+                        index++;
+                        tw.WriteLine(rNote.Executors.GetBatchBatItem(index));
                     }
                 }
             }

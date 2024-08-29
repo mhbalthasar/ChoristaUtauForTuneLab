@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using UtauSharpApi.UNote;
 using UtauSharpApi.UPhonemizer;
 using UtauSharpApi.UVoiceBank;
@@ -46,8 +47,8 @@ namespace UtauSharpApi.UTask
                     {
                         rNote.PrevNote = ret[ret.Count - 1];
                         ret[ret.Count - 1].NextNote = rNote;
+                        ret[ret.Count - 1].Attributes.UpdateAttributes();
                     }
-                    rNote.FixSTP.UpdateSTPFix();
                     ret.Add(rNote);
                 }
                 else curMs = note.StartMSec;
@@ -76,11 +77,12 @@ namespace UtauSharpApi.UTask
                     {
                         rpNote.PrevNote = ret[ret.Count - 1];
                         ret[ret.Count - 1].NextNote = rpNote;
+                        ret[ret.Count - 1].Attributes.UpdateAttributes();
                     }
-                    rpNote.FixSTP.UpdateSTPFix();
                     ret.Add(rpNote);
                 }
             }
+            if (ret.Count > 0) ret[ret.Count - 1].Attributes.UpdateAttributes();
             return ret;
         }
 
