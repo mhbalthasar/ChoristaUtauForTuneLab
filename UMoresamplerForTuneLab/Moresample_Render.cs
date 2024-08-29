@@ -12,8 +12,8 @@ namespace UMoresamplerForTuneLab
         public string ResamplerPath { get { return "E:\\UserDirectory\\Downloads\\MinLab\\MoreSampler\\moresampler.exe"; } }
         public string WavtoolPath { get {
                 return
-                    @"F:\F\G\VocalUtau\VocalUtau.DebugExampleFiles\UTAUKernel\wavtool.exe";
-                    //"E:\\UserDirectory\\Downloads\\MinLab\\MoreSampler\\moresampler.exe"; 
+                    //@"F:\F\G\VocalUtau\VocalUtau.DebugExampleFiles\UTAUKernel\wavtool.exe";
+                    "E:\\UserDirectory\\Downloads\\MinLab\\MoreSampler\\moresampler.exe"; 
             } }
 
         public string EngineUniqueString => "Utau_MoreSampler";

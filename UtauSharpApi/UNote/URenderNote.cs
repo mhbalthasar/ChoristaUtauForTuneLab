@@ -24,8 +24,8 @@ namespace UtauSharpApi.UNote
         public double DurRequired { get; set; } = 0;
         public double TailIntrude { get; set; } = 0;
         public double TailOverlap { get; set; } = 0;
-        public double EnvOverlap { get; set; } = 0;
-        public double EnvIntrude { get => Math.Max(DurRequired > 35 ? 35 : DurRequired / 2, TailOverlap); }
+        public double EnvFadeIn { get; set; } = 0;
+        public double EnvFadeOut { get => Math.Max(DurRequired > 35 ? 35 : DurRequired / 2, TailOverlap); }
         public string PitchLineString { get; set; } = "";
         private void GenerateFixedSTPs()
         {
@@ -70,7 +70,7 @@ namespace UtauSharpApi.UNote
             Preutter = Math.Max(0, autoPreutter);
             Overlap = autoOverlap;
             SkipOver = origPreutter - Preutter;
-            EnvOverlap = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 5;
+            EnvFadeIn = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 5;
             if (Prev != null)
             {
                 Prev.Attributes.TailIntrude = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 0;
@@ -101,7 +101,7 @@ namespace UtauSharpApi.UNote
         {
             if (IsRest) return;
             List<double> millsec_times = new List<double>();
-            double t = (pNote.StartMSec - EnvOverlap - SkipOver);
+            double t = (pNote.StartMSec - EnvFadeIn - SkipOver);
             double end = DurRequired + t;
             while (t < end) { millsec_times.Add(t); t += 5.0; }
             var pitcharray = PitchGetter(millsec_times.ToArray());
@@ -205,8 +205,8 @@ namespace UtauSharpApi.UNote
             if (pNote.Attributes.IsRest) { Attr_EnvlopeArgs.AddRange(["0", "0"]); return; }//Rest is Concat Directly,No ENV
             Tuple<double, double>[] EnvlopeItem = new Tuple<double, double>[5];
             EnvlopeItem[0] = new Tuple<double, double>(0, 0);
-            EnvlopeItem[1] = new Tuple<double, double>(pNote.Attributes.EnvOverlap, pNote.Attributes.Volume);
-            EnvlopeItem[2] = new Tuple<double, double>(pNote.Attributes.EnvIntrude, pNote.Attributes.Volume);
+            EnvlopeItem[1] = new Tuple<double, double>(Math.Max(5,pNote.Attributes.EnvFadeIn), pNote.Attributes.Volume);
+            EnvlopeItem[2] = new Tuple<double, double>(Math.Max(35,pNote.Attributes.EnvFadeOut), pNote.Attributes.Volume);
             EnvlopeItem[3] = new Tuple<double, double>(0, 0);
 
             Attr_EnvlopeArgs.Clear();
@@ -220,7 +220,7 @@ namespace UtauSharpApi.UNote
             Attr_EnvlopeArgs.Add(EnvlopeItem[1].Item2.ToString("F3"));//v2
             Attr_EnvlopeArgs.Add(EnvlopeItem[2].Item2.ToString("F3"));//v3
             Attr_EnvlopeArgs.Add(EnvlopeItem[3].Item2.ToString("F3"));//v4
-            Attr_EnvlopeArgs.Add(pNote.Attributes.EnvOverlap.ToString("F3"));//ovl
+            Attr_EnvlopeArgs.Add(pNote.Attributes.EnvFadeIn.ToString("F3"));//ovl
             Attr_EnvlopeArgs.Add(EnvlopeItem[3].Item1.ToString("F3"));//p4
         }
         private void UpdateFixedDuration()
@@ -259,14 +259,14 @@ namespace UtauSharpApi.UNote
                 return "@\"%tool%\" \"%output%\" " + string.Join(" ", args);
             }
 
-            List<string> Lines = new List<string>();
-            Lines.Add("@set params=" + string.Format("100 {0} !125 {1}", pNote.Attributes.Modulation.ToString("F3"), pNote.Attributes.PitchLineString));
-            Lines.Add("@set env=" + string.Join(" ", Attr_EnvlopeArgs));
-            Lines.Add("@set vel=" + pNote.Attributes.Velocity.ToString("F3"));
-            Lines.Add("@set temp=125");
-            Lines.Add("@set flag=\"" + pNote.Attributes.Flags + "\"");
-            Lines.Add("@set stp=" + pNote.Attributes.SkipOver.ToString("F3"));
-            Lines.Add("@call %helper% " + string.Join(" ", new Func<List<string>>(() => {
+            StringBuilder Lines = new StringBuilder();
+            Lines.AppendLine("@set params=" + string.Format("100 {0} !125 {1}", pNote.Attributes.Modulation.ToString("F3"), pNote.Attributes.PitchLineString));
+            Lines.AppendLine("@set env=" + string.Join(" ", Attr_EnvlopeArgs));
+            Lines.AppendLine("@set vel=" + pNote.Attributes.Velocity.ToString("F3"));
+            Lines.AppendLine("@set temp=" + string.Format("\"{0}\"", CPath(TempFilePath, true)));
+            Lines.AppendLine("@set flag=\"" + pNote.Attributes.Flags + "\"");
+            Lines.AppendLine("@set stp=" + pNote.Attributes.SkipOver.ToString("F3"));
+            Lines.AppendLine("@call %helper% " + string.Join(" ", (new Func<List<string>>(() => {
                 List<string> prms = new List<string>();
                 prms.Add(string.Format("\"{0}\"",CPath(pNote.Attributes.InputWavFile)));
                 prms.Add(pNote.Attributes.Tone);
@@ -278,8 +278,8 @@ namespace UtauSharpApi.UNote
                 prms.Add(pNote.Attributes.Cutoff.ToString("F3"));//%8
                 prms.Add(index.ToString());//%9也没用
                 return prms;
-            })));
-            return string.Join("\r\n",Lines);
+            }))()));
+            return Lines.ToString();
         }
         public void UpdateExecutor()
         {

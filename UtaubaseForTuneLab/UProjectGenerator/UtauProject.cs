@@ -53,13 +53,16 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 
             var pNote = data.Notes.GetEnumerator();
             int count = data.Notes.Count();
-            while(pNote.MoveNext()){
+            while (pNote.MoveNext())
+            {
                 var note = pNote.Current;
-                if(note.Lyric =="-")
+                if (note.Lyric == "-")
                 {
                     double newEnd = (note.EndTime - baseStart) * 1000.0 + emptyTime;
-                    mPart.Notes[mPart.Notes.Count - 1].DurationMSec = newEnd - mPart.Notes[mPart.Notes.Count - 1].StartMSec;//延长
-                }else
+                    double newLen = newEnd - mPart.Notes[mPart.Notes.Count - 1].StartMSec;//延长;
+                    if (newLen > 0) mPart.Notes[mPart.Notes.Count - 1].DurationMSec = newLen;
+                }
+                else
                 {
                     UMidiNote uNote = mPart.createNote();
                     uNote.Lyric = note.Lyric;
@@ -68,7 +71,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     uNote.StartMSec = (note.StartTime - baseStart) * 1000.0 + emptyTime;
                     uNote.DurationMSec = note.Duration() * 1000.0;
                     uNote.ObjectTag = note;
-                    mPart.Notes.Add(uNote);
+                    if (uNote.DurationMSec > 0) mPart.Notes.Add(uNote);
                 }
             }
             return ret;

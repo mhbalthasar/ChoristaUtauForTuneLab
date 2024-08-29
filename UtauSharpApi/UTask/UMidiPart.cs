@@ -43,13 +43,16 @@ namespace UtauSharpApi.UTask
                     rNote.StartMSec = curMs;
                     rNote.DurationMSec = note.StartMSec - curMs;
                     curMs = note.StartMSec;
-                    if (ret.Count > 0)
+                    if (rNote.DurationMSec > 0)
                     {
-                        rNote.PrevNote = ret[ret.Count - 1];
-                        ret[ret.Count - 1].NextNote = rNote;
-                        ret[ret.Count - 1].Attributes.UpdateAttributes();
+                        if (ret.Count > 0)
+                        {
+                            rNote.PrevNote = ret[ret.Count - 1];
+                            ret[ret.Count - 1].NextNote = rNote;
+                            ret[ret.Count - 1].Attributes.UpdateAttributes();
+                        }
+                        ret.Add(rNote);
                     }
-                    ret.Add(rNote);
                 }
                 else curMs = note.StartMSec;
                 double staticLength = 0;
@@ -72,14 +75,17 @@ namespace UtauSharpApi.UTask
                     rpNote.StartMSec = curMs;
                     rpNote.DurationMSec = (ppNote.SymbolMSec<=0)?dynmaticLength:ppNote.SymbolMSec;
                     rpNote.ObjectTag = ppNote;
-                    curMs = curMs+ rpNote.DurationMSec;
-                    if (ret.Count > 0)
+                    if (rpNote.DurationMSec > 0)
                     {
-                        rpNote.PrevNote = ret[ret.Count - 1];
-                        ret[ret.Count - 1].NextNote = rpNote;
-                        ret[ret.Count - 1].Attributes.UpdateAttributes();
+                        curMs = curMs + rpNote.DurationMSec;
+                        if (ret.Count > 0)
+                        {
+                            rpNote.PrevNote = ret[ret.Count - 1];
+                            ret[ret.Count - 1].NextNote = rpNote;
+                            ret[ret.Count - 1].Attributes.UpdateAttributes();
+                        }
+                        ret.Add(rpNote);
                     }
-                    ret.Add(rpNote);
                 }
             }
             if (ret.Count > 0) ret[ret.Count - 1].Attributes.UpdateAttributes();
