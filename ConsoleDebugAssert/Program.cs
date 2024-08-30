@@ -1,4 +1,6 @@
-﻿using UtauSharpApi.Utils;
+﻿
+
+using ConsoleDebugAssert.Presamp;
 using UtauSharpApi.UVoiceBank;
 
 internal class Program
@@ -16,13 +18,11 @@ internal class Program
         uVoiceBank.Serialize("Test.bin");
 
         UVoiceBank rr = UVoiceBank.Deserialize("Test.bin");*/
-
-        string str=OctaveUtils.NoteNumber2Str(60);
-        int num = OctaveUtils.Str2NoteNumber(str);
-
-        VoiceBank rr = UVoiceBankLoader.LoadVoiceBank(@"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb\uta");// @"F:\DF\DFZZ_U");
-        string fn = rr.Otos[0].GetWavfilePath(@"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb\uta");
-        bool fb = Path.Exists(fn);
-        Console.WriteLine("Hello, World!");
+        var vb = UVoiceBankLoader.LoadVoiceBank("F:\\DF\\DFZZ_U");
+        string preFile = "F:\\DF\\DFZZ_U\\presamp.ini";
+        var p=Presamp.ParsePresamp(preFile);
+        var m=new PresampSpliter(p,vb);
+        m.SplitCVVC(new PresampSpliter.PresampNote() { Symbol = "chang",Duration=120 }, new PresampSpliter.PresampNote() { Symbol = "cheng" });
+        var c = p;
     }
 }

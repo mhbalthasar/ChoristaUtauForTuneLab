@@ -12,9 +12,10 @@ namespace UtauSharpApi.UPhonemizer
         public static IPhonemizer GuessPhonemizer(VoiceBank vb)
         {
             IPhonemizer curIP;
-            if ((curIP = new DefaultJapanesePhonemizer()).ProcessAble(vb)) return curIP;
-            if ((curIP = new DefaultVCVJapanesePhonemizer()).ProcessAble(vb)) return curIP;
             if ((curIP = new MocaloidPhonemizer(vb)).ProcessAble(vb)) return curIP;
+            if ((curIP = new PresampCVVCPhonemizer(vb)).ProcessAble(vb)) return curIP;
+            if ((curIP = new DefaultVCVJapanesePhonemizer()).ProcessAble(vb)) return curIP;
+            if ((curIP = new DefaultJapanesePhonemizer()).ProcessAble(vb)) return curIP;
             return new DefaultPhonemizer();
         }
 

@@ -58,6 +58,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 var note = pNote.Current;
                 if (note.Lyric == "-")
                 {
+                    if (mPart.Notes.Count <= 0) continue;
                     double newEnd = (note.EndTime - baseStart) * 1000.0 + emptyTime;
                     double newLen = newEnd - mPart.Notes[mPart.Notes.Count - 1].StartMSec;//延长;
                     if (newLen > 0) mPart.Notes[mPart.Notes.Count - 1].DurationMSec = newLen;
@@ -68,6 +69,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     uNote.Lyric = note.Lyric;
                     uNote.NoteNumber = note.Pitch;
                     uNote.Phonemes = new List<string>();
+                    uNote.Flags = note.Properties.GetString(UtauEngine.NoteFlagsID);
                     uNote.StartMSec = (note.StartTime - baseStart) * 1000.0 + emptyTime;
                     uNote.DurationMSec = note.Duration() * 1000.0;
                     uNote.ObjectTag = note;

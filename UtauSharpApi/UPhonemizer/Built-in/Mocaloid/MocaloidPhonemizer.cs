@@ -105,11 +105,11 @@ namespace UtauSharpApi.UPhonemizer
                         string VCSymbol = gv + " " + NextC;
 
                         double totalLen = curNote.DurationMSec;
-                        double VCLen = (int)Limit(totalLen * 0.2, 0, 180.0);
+                        double VCLen = (int)Limit(totalLen * 0.2, 0, 60.0);//180
                         double CVLen = totalLen - VCLen;
                         ret.Clear();
-                        ret.Add(new UPhonemeNote(curNote, CVSymbol, CVLen));
-                        ret.Add(new UPhonemeNote(curNote, VCSymbol, VCLen));
+                        ret.Add(new UPhonemeNote(curNote, CVSymbol,CVLen));
+                        ret.Add(new UPhonemeNote(curNote, VCSymbol,VCLen));
                     }
                 }
             }

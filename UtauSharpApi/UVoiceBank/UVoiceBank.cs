@@ -41,12 +41,16 @@ namespace UtauSharpApi.UVoiceBank
         public Oto? FindSymbol(string symbol, PrefixItem? prefix=null)
         {
             if (prefix == null) prefix = new PrefixItem();
-            return Otos.Find(p=>p.Alias==prefix.prefix+symbol+prefix.suffix);
+            Oto? ret = Otos.Find(p=>p.Alias==prefix.prefix+symbol+prefix.suffix);
+            if (ret == null) ret = Otos.Find(p => p.Alias == symbol);
+            return ret;
         }
         public Oto? FindSymbol(string symbol, int NoteNumber)
         {
-            PrefixItem prefix = GetPrefixItem(NoteNumber);
-            return Otos.Find(p => p.Alias == prefix.prefix + symbol + prefix.suffix);
+            PrefixItem prefix = GetPrefixItem(NoteNumber-12);//UtauNoteNumber is Higher than Vocaloid 1 Octave.
+            Oto? ret= Otos.Find(p => p.Alias == prefix.prefix + symbol + prefix.suffix);
+            if (ret == null) ret = Otos.Find(p=>p.Alias==symbol);
+            return ret;
         }
 
         public PrefixItem GetPrefixItem(int NoteNumber)

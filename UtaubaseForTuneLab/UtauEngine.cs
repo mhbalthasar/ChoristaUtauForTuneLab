@@ -11,12 +11,16 @@ namespace UtaubaseForTuneLab
         public List<string> UVoiceBankSearchPath = new List<string>()
         {
             @"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb",
-            @"C:\Program Files (x86)\VoiceDB\Iroha_V4\BFPG63T4DEZMRFCD"
+            @"C:\Program Files (x86)\VoiceDB\Iroha_V4\BFPG63T4DEZMRFCD",
+            "C:\\Program Files\\Common Files\\VOCALOID5\\Voicelib\\BD79E492NWWK3DDF\\Ext",
+            "D:\\UtauDB\\"
         };
 
 
         public const string PitchTransitionTimeID = "PitchTransitionTime";
         public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
+        public const string NoteFlagsID = "Flags";
+        public readonly static StringConfig NoteFlagsConfig = new() { DefaultValue = string.Empty };
 
         public IReadOnlyOrderedMap<string, VoiceSourceInfo> VoiceInfos { get; set; }=new OrderedMap<string, VoiceSourceInfo>();
         private Dictionary<string, VoiceBank> VoiceBanks = new Dictionary<string, VoiceBank>();
@@ -37,8 +41,9 @@ namespace UtaubaseForTuneLab
                 new OrderedMap<string, IPropertyConfig>() {
                     { PitchTransitionTimeID, PitchTransitionTimeConfig}
                 },
-                new OrderedMap<string, IPropertyConfig>()
-                );
+                new OrderedMap<string, IPropertyConfig>() {
+                    { NoteFlagsID,NoteFlagsConfig}
+                });
         }
         public void Destroy()
         {
