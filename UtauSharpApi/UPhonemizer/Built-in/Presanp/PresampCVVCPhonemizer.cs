@@ -58,13 +58,11 @@ namespace UtauSharpApi.UPhonemizer
 
                 UMidiNote? curNote = MidiPart.Notes[NoteIndex];
                 UMidiNote? nextNote = (NoteIndex+1)<MidiPart.Notes.Count?MidiPart.Notes[NoteIndex+1]:null;
-                UMidiNote? prevNote = (NoteIndex - 1) >=0 ? MidiPart.Notes[NoteIndex - 1] : null;
+                UMidiNote? nextNextNote = (NoteIndex + 2) < MidiPart.Notes.Count ? MidiPart.Notes[NoteIndex + 2] : null;
 
                 Presamp.PresampSpliter sp = new Presamp.PresampSpliter(MCache, voiceBank);
                 {
-                    Presamp.PresampSpliter.PresampNote inputNote = new Presamp.PresampSpliter.PresampNote(curNote);
-                    Presamp.PresampSpliter.PresampNote? inputNextNote = nextNote == null ? null : new Presamp.PresampSpliter.PresampNote(nextNote);
-                    var splited = sp.SplitCVVC(inputNote, inputNextNote, curNote.NoteNumber);
+                    var splited = sp.SplitCVVC(curNote,nextNote,nextNextNote);
                     if (splited.Count == 1)
                     {
                         ret.Clear();
@@ -73,8 +71,8 @@ namespace UtauSharpApi.UPhonemizer
                     else if(splited.Count>1)
                     {
                         double totalLen = curNote.DurationMSec;
-                        double VCLen = (int)Limit(totalLen * 0.2, 0, 60.0);
-                        double CVLen = totalLen - VCLen;
+                        double VCLen = splited[1].Duration;//(int)Limit(totalLen * 0.2, 0, 60.0);
+                        double CVLen = splited[0].Duration;//totalLen - VCLen;
                         ret.Clear();
                         ret.Add(new UPhonemeNote(curNote, splited[0].Symbol, CVLen));
                         ret.Add(new UPhonemeNote(curNote, splited[1].Symbol, VCLen));

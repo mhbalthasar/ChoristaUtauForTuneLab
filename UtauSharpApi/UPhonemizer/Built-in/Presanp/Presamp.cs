@@ -535,7 +535,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             public bool bVCLength = false;
             public void Parse(Presamp sMap, PresampNote note)
             {
-                string Symbol = note.Symbol;
+                string Symbol = note==null?"R":note.Symbol;
                 {
                     //DoReplace
                     var repSymbol = sMap.Replace.Find(p => p.Source == Symbol);
@@ -563,7 +563,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
                 return ret;
             }
         }
-        private SymbolItem GetSymbolItem(PresampNote note)
+        private SymbolItem GetSymbolItem(PresampNote? note)
         {
             var ret = new SymbolItem();
             ret.Parse(sMap, note);
@@ -591,8 +591,14 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             return ret;
         }
 
-        public List<PresampNote> SplitCVVC(PresampNote currentNote, PresampNote? nextNote, int NoteNumber = 60)
+        public List<PresampNote> SplitCVVC(UMidiNote curUNote, UMidiNote? nextUNote, UMidiNote? nextNextUNote)
         {
+            PresampNote currentNote = new PresampNote(curUNote);
+            PresampNote? nextNote = nextUNote == null ? null : new PresampNote(nextUNote);
+            PresampNote? nextNextNote = nextNextUNote == null ? null : new PresampNote(nextNextUNote);
+            int nextNoteNumber=nextUNote==null?curUNote.NoteNumber:nextUNote.NoteNumber;
+            int currentNoteNumber = curUNote.NoteNumber;
+
             if (nextNote == null || nextNote.Symbol == "R") return SplitCVVCEndNote(currentNote);
 
             string GetSymbolString(string FormatType, SymbolItem? cn, SymbolItem? nn)
@@ -627,6 +633,10 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             List<PresampNote> ret = new List<PresampNote>();
             var cn = GetSymbolItem(currentNote);
             var nn = GetSymbolItem(nextNote);
+            var nnn = GetSymbolItem(nextNextNote);
+
+            string nextCVSymbol = GetSymbolString("CV", nn, nnn);
+            Oto? nextCVOto = vb.FindSymbol(nextCVSymbol, nextNoteNumber);
 
             //CV
             string cvSymbol = GetSymbolString("CV", cn, nn);
@@ -634,16 +644,21 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             double cvLen = currentNote.Duration;
             //VC
             string vcSymbol = GetSymbolString("VC", cn, nn);
-            Oto? vcOto = vb.FindSymbol(vcSymbol, NoteNumber);
+            Oto? vcOto = vb.FindSymbol(vcSymbol, currentNoteNumber);
 
-            Oto? cvOto = vb.FindSymbol(nn.CV, NoteNumber);
             double vcLen = 120;
-            if (cvOto != null)
+            if (nextCVOto != null)
             {
-                vcLen = cvOto.Preutter;
-                if (cvOto.Overlap == 0 && vcLen < 120) vcLen = Math.Min(120, vcLen * 2);
-                if (cvOto.Overlap < 0) vcLen = (cvOto.Preutter - cvOto.Overlap);
+                vcLen = nextCVOto.Preutter;
+                if (nextCVOto.Overlap == 0 && vcLen < 120) vcLen = Math.Min(120, vcLen * 2);
+                if (nextCVOto.Overlap < 0) vcLen = (nextCVOto.Preutter - nextCVOto.Overlap);
             }
+            {
+                double dur = curUNote.DurationMSec;
+                var consonantStretchRatio = Math.Pow(2, 1.0 - nextUNote.Velocity * 0.01);
+                vcLen = Convert.ToInt32(Math.Min(dur/1.5,Math.Max(30,vcLen*consonantStretchRatio)));
+            }
+            
             cvLen-= vcLen;
             //CVVC
             ret.Add(new PresampNote()

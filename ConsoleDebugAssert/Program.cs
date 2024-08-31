@@ -1,6 +1,7 @@
 ﻿
 
-using ConsoleDebugAssert.Presamp;
+using UtauSharpApi.UPhonemizer.Presamp;
+using UtauSharpApi.UTask;
 using UtauSharpApi.UVoiceBank;
 
 internal class Program
@@ -22,7 +23,12 @@ internal class Program
         string preFile = "F:\\DF\\DFZZ_U\\presamp.ini";
         var p=Presamp.ParsePresamp(preFile);
         var m=new PresampSpliter(p,vb);
-        m.SplitCVVC(new PresampSpliter.PresampNote() { Symbol = "chang",Duration=120 }, new PresampSpliter.PresampNote() { Symbol = "cheng" });
+        UMidiPart up = new UMidiPart();
+        var ap=m.SplitCVVC(
+            new UtauSharpApi.UNote.UMidiNote(up) { Lyric="chang",DurationMSec=120},
+            new UtauSharpApi.UNote.UMidiNote(up) { Lyric = "cheng", DurationMSec = 120 },
+            new UtauSharpApi.UNote.UMidiNote(up) { Lyric="wai",DurationMSec=120}
+);
         var c = p;
     }
 }

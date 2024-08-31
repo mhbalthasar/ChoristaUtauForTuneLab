@@ -17,4 +17,8 @@
     <ProjectReference Include="..\UtauSharpApi\UtauSharpApi.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Presamp\" />
+  </ItemGroup>
+
 </Project>
