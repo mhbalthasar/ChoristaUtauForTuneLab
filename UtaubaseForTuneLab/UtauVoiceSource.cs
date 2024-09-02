@@ -14,7 +14,7 @@ namespace UtaubaseForTuneLab
     IReadOnlyOrderedMap<string, IPropertyConfig> partProperties,
     IReadOnlyOrderedMap<string, IPropertyConfig> noteProperties) : IVoiceSource
     {
-        public string Name => voiceBank.Name;
+        public string Name => renderEngine.EngineUniqueString + " : " + voiceBank.Name;
 
         public string DefaultLyric => voiceBank.DefaultLyric;
 
@@ -31,7 +31,7 @@ namespace UtaubaseForTuneLab
 
         public IReadOnlyList<SynthesisSegment<T>> Segment<T>(SynthesisSegment<T> segment) where T : ISynthesisNote
         {
-            return this.SimpleSegment(segment, 0);
+            return this.SimpleSegment(segment, segment.PartProperties.GetDouble(UtauEngine.MinSegmentSpacingID, UtauEngine.MinSegmentSpacingConfig.DefaultValue));
         }
 
     }

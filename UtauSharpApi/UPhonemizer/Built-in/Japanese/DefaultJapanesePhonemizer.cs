@@ -23,7 +23,7 @@ namespace UtauSharpApi.UPhonemizer
             { "bu", "ぶ" },
             { "bya", "びゃ" },
             { "bye", "びぇ" },
-            { "byi", "び" },
+            { "byi", "びぃ" },
             { "byo", "びょ" },
             { "byu", "びゅ" },
             { "cha", "ちゃ" },
@@ -182,7 +182,7 @@ namespace UtauSharpApi.UPhonemizer
             { "ぢ", "じ" },
             { "づ", "ず" }
         };
-        static readonly Dictionary<string, string> invertedRomajiMap = romajiMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
+        //static readonly Dictionary<string, string> invertedRomajiMap = romajiMap.ToDictionary(kvp => kvp.Value, kvp => kvp.Key);
         public static string TransformLyric(string lyric)
         {
             if (romajiMap.ContainsValue(lyric)) return lyric;
@@ -190,12 +190,6 @@ namespace UtauSharpApi.UPhonemizer
             return "あ";
         }
 
-        public static string GetVowel(string Lyric)
-        {
-            if (romajiMap.ContainsKey(Lyric)) { return TransformLyric(Lyric.Substring(Lyric.Length - 1)); }
-            if (invertedRomajiMap.ContainsKey(Lyric)) { string romaji = invertedRomajiMap[Lyric]; return TransformLyric(romaji.Substring(romaji.Length - 1)); }
-            return Lyric;
-        }
     }
     public class DefaultJapanesePhonemizer:IPhonemizer
     {

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace UtaubaseForTuneLab
+namespace UtaubaseForTuneLab.Utils
 {
     public class WineProcessInfo
     {
@@ -18,16 +18,18 @@ namespace UtaubaseForTuneLab
     }
     public class WineHelper
     {
+        public static bool UnderWine { get => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows); }
+
         public WineProcessInfo GetWineInfo(string exePath)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return new WineProcessInfo() { exePath=exePath};
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return new WineProcessInfo() { exePath = exePath };
             WineProcessInfo ret = new WineProcessInfo();
             ret.exePath = "wine";
             ret.args.Add(exePath);
             return ret;
         }
 
-        public Process CreateWineProcess(string exePath,List<string> args,string WorkDir="",bool NoWindow=true)
+        public Process CreateWineProcess(string exePath, List<string> args, string WorkDir = "", bool NoWindow = true)
         {
             WineProcessInfo wpi = GetWineInfo(exePath);
             Process p = new Process();

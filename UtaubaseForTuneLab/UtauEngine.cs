@@ -1,6 +1,7 @@
 ﻿using TuneLab.Base.Properties;
 using TuneLab.Base.Structures;
 using TuneLab.Extensions.Voices;
+using UtaubaseForTuneLab.Utils;
 using UtauSharpApi.UPhonemizer;
 using UtauSharpApi.UVoiceBank;
 
@@ -8,19 +9,22 @@ namespace UtaubaseForTuneLab
 {
     public abstract class UtauEngine : IVoiceEngine
     {
-        public List<string> UVoiceBankSearchPath = new List<string>()
-        {
-            @"F:\F\G\VocalUtau\VocalUtau\bin\Debug\voicedb",
-            @"C:\Program Files (x86)\VoiceDB\Iroha_V4\BFPG63T4DEZMRFCD",
-            "C:\\Program Files\\Common Files\\VOCALOID5\\Voicelib\\BD79E492NWWK3DDF\\Ext",
-            "D:\\UtauDB\\"
-        };
-
-
+        public const string MinSegmentSpacingID = "MinSegmentSpacing";
+        public readonly static NumberConfig MinSegmentSpacingConfig = new() { DefaultValue = 0, MinValue = 0, MaxValue = 2 };
         public const string PitchTransitionTimeID = "PitchTransitionTime";
         public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
-        public const string NoteFlagsID = "Flags";
-        public readonly static StringConfig NoteFlagsConfig = new() { DefaultValue = string.Empty };
+        public const string PrefixPairID = "PrefixPair";
+        public const string VelocityID = "Velocity";
+        public readonly static NumberConfig VelocityConfig = new() { DefaultValue = 1, MinValue = 0, MaxValue = 2};
+
+        public const string XTrack_XPrefixKeyID = "XTrack Synthesis Percent";
+        public readonly static AutomationConfig XTrack_XPrefixKeyConfig = new("XSM", 0, 0, 1, "#73ACE5");
+        public const string AttrackID = "AttrackVolume";
+        public readonly static AutomationConfig AttrackConfig = new("ATK", 1, 0, 1, "#73ACE5");
+        public const string ReleaseID = "ReleaseVolume";
+        public readonly static AutomationConfig ReleaseConfig = new("RLE", 1, 0, 1, "#73ACE5");
+
+        public const string XTrack_PrefixPairID = "XTrack:PrefixPair";
 
         public IReadOnlyOrderedMap<string, VoiceSourceInfo> VoiceInfos { get; set; }=new OrderedMap<string, VoiceSourceInfo>();
         private Dictionary<string, VoiceBank> VoiceBanks = new Dictionary<string, VoiceBank>();
@@ -33,17 +37,35 @@ namespace UtaubaseForTuneLab
                 throw new Exception("Render Engine is not inited!");
             if (!VoiceBanks.ContainsKey(id))
                 throw new Exception("Unloaded VoiceBank!");
+            List<string> PrefixPair = new List<string>() { "AutoSelect" };
+            PrefixPair.AddRange(VoiceBanks[id].GetPrefixPairs());
+
+            OrderedMap<string, IPropertyConfig> XTrackNoteProperties = new OrderedMap<string, IPropertyConfig>()
+            {
+                {XTrack_PrefixPairID,new EnumConfig(PrefixPair)}
+            };
+
             return new UtauVoiceSource(
                 RenderEngine,
                 VoiceBanks[id],
                 PhonemizerSelector.GuessPhonemizer(VoiceBanks[id]),
-                new OrderedMap<string, AutomationConfig>(),
+                new OrderedMap<string, AutomationConfig>()
+                {
+                    {XTrack_XPrefixKeyID, XTrack_XPrefixKeyConfig },
+                    {AttrackID,AttrackConfig },
+                    {ReleaseID,ReleaseConfig }
+                }.Combine(RenderEngine.AutomationConfigs, false),
                 new OrderedMap<string, IPropertyConfig>() {
-                    { PitchTransitionTimeID, PitchTransitionTimeConfig}
-                },
+                    { PitchTransitionTimeID, PitchTransitionTimeConfig},
+                    { MinSegmentSpacingID, MinSegmentSpacingConfig}
+                }.Combine(RenderEngine.PartProperties)
+                 .Combine(AudioEffect.AudioEffectHelper.PartProperties),
                 new OrderedMap<string, IPropertyConfig>() {
-                    { NoteFlagsID,NoteFlagsConfig}
-                });
+                    { VelocityID,VelocityConfig },
+                    { PrefixPairID, new EnumConfig(PrefixPair) }
+                }.Combine(RenderEngine.NoteProperties)
+                 .Combine(XTrackNoteProperties)
+                ); 
         }
         public void Destroy()
         {
@@ -53,6 +75,7 @@ namespace UtaubaseForTuneLab
         private List<string> FindVB(string DirPath,int SearchDeeply=10)
         {
             List<string> ret = new List<string>();
+            if (!Directory.Exists(DirPath)) return ret;
             if(File.Exists(Path.Combine(DirPath,"character.txt")))
             {
                 ret.Add(DirPath);
@@ -69,21 +92,42 @@ namespace UtaubaseForTuneLab
         public abstract bool InitRenderEngine(string enginePath, out string? error);
         public bool Init(string enginePath, out string? error)
         {
-            if(!InitRenderEngine(enginePath, out error))return false;
+            if (!InitRenderEngine(enginePath, out error)) return false;
             if (RenderEngine == null) { error = "Utau Render engine not impl!"; return false; }
             error = "";
 
-            List<string> VBPaths = new List<string>();
-            foreach(string path in UVoiceBankSearchPath)
+            string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+            //Load Extended Phonemizer
             {
-                VBPaths.AddRange(FindVB(path,10));
+                List<string> UPhonemizerSearchDir = new List<string>(){
+                Path.Combine(enginePath, "phonemizers"),
+                Path.Combine(UserProfile,".TuneLab","Utau", "phonemizers")
+            };
+                foreach (string searchDir in UPhonemizerSearchDir) UtauSharpApi.UPhonemizer.PhonemizerSelector.LoadExtendedPhonemizer(searchDir);
             }
-            
-            foreach(string vbp in VBPaths)
+            //Load VoiceBanks
             {
-                VoiceBank vb = UVoiceBankLoader.LoadVoiceBank(vbp);
-                ((OrderedMap<string, VoiceSourceInfo>)VoiceInfos).Add("UTAU_" + vb.Name, new VoiceSourceInfo() { Name = vb.Name });
-                VoiceBanks.Add("UTAU_" + vb.Name, vb);
+                List<string> UVoiceBankSearchPath = new List<string>()
+                {
+                    Path.Combine(enginePath, "voicedb"),
+                    Path.Combine(UserProfile,".TuneLab","Utau", "voicedb"),
+                    Path.Combine(UserProfile,"utauvbs")
+                };
+                if(File.Exists(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")))
+                    UVoiceBankSearchPath.AddRange(File.ReadAllLines(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")).Select(p=>p.Trim()).Where(p=>p.Length>0 && Directory.Exists(p)));
+
+                //SearchAllDir
+                List<string> VBPaths = new List<string>();
+                foreach (string path in UVoiceBankSearchPath) VBPaths.AddRange(FindVB(path, 10));
+
+                //LoadEachVoiceBank
+                foreach (string vbp in VBPaths)
+                {
+                    VoiceBank vb = UVoiceBankLoader.LoadVoiceBank(vbp);
+                    ((OrderedMap<string, VoiceSourceInfo>)VoiceInfos).Add("UTAU_" + vb.Name, new VoiceSourceInfo() { Name = vb.Name });
+                    VoiceBanks.Add("UTAU_" + vb.Name, vb);
+                }
             }
             return true;
         }

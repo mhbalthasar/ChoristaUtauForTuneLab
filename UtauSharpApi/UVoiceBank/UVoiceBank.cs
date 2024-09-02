@@ -18,6 +18,14 @@ namespace UtauSharpApi.UVoiceBank
         [ProtoMember(3)]
         public int PitchNumber { get; set; } = 0;
     }
+    [ProtoContract]
+    public class PrefixPair
+    {
+        [ProtoMember(1)]
+        public string Key { get; set; } = "";
+        [ProtoMember(2)]
+        public int PitchNumber { get; set; } = 0;
+    }
 
     [ProtoContract]
     public class VoiceBank
@@ -36,6 +44,9 @@ namespace UtauSharpApi.UVoiceBank
 
         [ProtoMember(5)]
         public List<Oto> Otos { get; set; } = new List<Oto>();
+
+        [ProtoMember(6)]
+        public List<PrefixPair> PrefixPairs { get; set; } = new List<PrefixPair>();
 
 
         public Oto? FindSymbol(string symbol, PrefixItem? prefix=null)
@@ -69,6 +80,25 @@ namespace UtauSharpApi.UVoiceBank
                 foreach (var p in PrefixMap.Where(p => p.PitchNumber == NoteNumber)) PrefixMap.Remove(p);
                 PrefixMap.Add(new PrefixItem() { PitchNumber = NoteNumber, suffix = suffix, prefix = prefix });
             }
+        }
+        public void SetPrefixPairs(Dictionary<string,int> Pairs)
+        {
+            PrefixPairs.Clear();
+            foreach(var kv in Pairs)
+            {
+                PrefixPairs.Add(new PrefixPair() { Key = kv.Key, PitchNumber = kv.Value });
+            }
+        }
+
+        public List<string> GetPrefixPairs()
+        {
+            return PrefixPairs.Select(p => p.Key).ToList();
+        }
+        public int GetPrefixPairNoteNumber(string PairKey)
+        {
+            PrefixPair? item = PrefixPairs.Where(p => p.Key == PairKey).FirstOrDefault();
+            if (item != null) return item.PitchNumber+12;
+            return -1;
         }
 
         public void Serialize(string TargetFile)

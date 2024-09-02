@@ -1,0 +1,41 @@
+How to use
+===
+
+The complete Moresampler tutorial:
+https://web.engr.illinois.edu/~khua5/index.php/2016/04/07/the-complete-moresampler-tutorial/
+
+1. Copy moresampler.exe and moreconfig.txt into the directory where UTAU is installed;
+2. Open project configurations, set both Tool1 and Tool2 to moresampler.exe;
+  * If you are using presamp, go to predit and do the same thing.
+3. That's it. Enjoy :)
+
+(If it doesn't work, check out the website for a more detailed instruction)
+
+By default Moresampler uses LLSM model file as temporary format instead of wav file,
+  so it won't work with other wavtools. If you want to use Moresampler solely as
+  a resampler, open moreconfig.txt and set the configurations as follows,
+
+# === Output settings ===
+output-sampling-rate 44100
+output-bit-depth 16
+resampler-compatibility on
+
+Troubleshooting
+===
+
+* Check if the settings are correct.
+* Clean the cache and render again.
+* Go to the cache's directory and manually delete all the files.
+* Check if you've updated Moresampler to latest version.
+* Check if it works when you move the voicebank to any place other than drive C.
+  (Windows sometimes blocks Moresampler from accessing files)
+* Switch to the legacy version ("moresampler-legacy.exe").
+  Note: the legacy version offers full functionuality but it runs much slower, in
+  order to be compatible with old systems.
+* If it still doesn't work, please don't hesitate to send me a bug report!
+
+How to send a bug report: http://web.engr.illinois.edu/~khua5/moresampler/troubleshooting.html
+Note: on Windows 10 Moresampler may not be able to generate log files under system
+  owned directories, such as "C:\" and "C:\Program Files\". You need to specify a
+  user owned directory.
+

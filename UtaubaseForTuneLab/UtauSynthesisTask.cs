@@ -16,6 +16,8 @@ using UtauSharpApi.UTask;
 using UtauSharpApi.UVoiceBank;
 using TuneLab.Base.Structures;
 using System.Formats.Tar;
+using System.Xml.Linq;
+using UtaubaseForTuneLab.Utils;
 
 namespace UtaubaseForTuneLab
 {
@@ -30,6 +32,8 @@ namespace UtaubaseForTuneLab
         public event Action<double>? Progress;
         public event Action<string>? Error;
 
+        private bool mCacnel = false;
+
         public void Resume()
         {
             return;
@@ -42,82 +46,202 @@ namespace UtaubaseForTuneLab
 
         public void Start()
         {
-            WineHelper wine = new WineHelper();
             Task.Run(() =>
             {
-                UTaskProject uTask = UtauProject.GenerateFrom(synthesisData,voiceBank).ProcessPhonemizer(phonemizer);
-                List<URenderNote> rPart = uTask.Part.GenerateRendPart(renderEngine.EngineUniqueString);
+                StartRenderTask();
+            });
+        }
 
-                Dictionary<ISynthesisNote, SynthesizedPhoneme[]> phonemeInfoList = UtauProject.GetPhonemeInfoList(rPart);
-                //set pitchs
-                var pitchtable = UtauProject.PitchPrerender(synthesisData);
-                foreach (URenderNote rNote in rPart)
+        public enum RenderPart
+        {
+            FirstTrack,
+            SecondTrack
+        }
+        private bool bHaveXTrack { get
+            {
+                foreach(var note in synthesisData.Notes)
                 {
-                    rNote.Attributes.SetPitchLine((ms_times) =>
-                    {
-                        double[] ret=new double[ms_times.Length];
-                        for (int i = 0; i < ms_times.Length; i++)
-                        {
-                            double timeKey = ms_times[i];
-                            var nextP = pitchtable.Where(x => x.Key >= timeKey).FirstOrDefault(new KeyValuePair<double, double>(-1, -1));
-                            var prevP = pitchtable.Where(x => x.Key <= timeKey).LastOrDefault(new KeyValuePair<double, double>(-1, -1));
-                            if (nextP.Key == -1 && prevP.Key == -1) ret[i] = 0;
-                            else if (nextP.Key == -1) ret[i] = prevP.Value;
-                            else if (prevP.Key == -1) ret[i] = nextP.Value;
-                            else if (nextP.Key == prevP.Key) ret[i] = prevP.Value;
-                            else ret[i] = MathUtility.LineValue(prevP.Key, prevP.Value, nextP.Key, nextP.Value, timeKey);
-                        }
-                        return ret;
-                    });
+                    if (note.Lyric == "-") continue;
+                    string XPrefixKey = note.Properties.GetString(UtauEngine.PrefixPairID, "AutoSelect");
+                    string PrefixKey = note.Properties.GetString(UtauEngine.XTrack_PrefixPairID, "AutoSelect");
+                    if (XPrefixKey.ToLower() == "AutoSelect") continue;
+                    if (XPrefixKey == PrefixKey) continue;
+                    AutoPropertyGetter apg = new AutoPropertyGetter(synthesisData, UtauEngine.XTrack_XPrefixKeyID, 0,1,0);
+                    double XPKV=apg.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(note), AutoPropertyGetter.PropertyType.FullBar, AutoPropertyGetter.ValueSelectType.FarZero);
+                    if (XPKV > 0) 
+                        return true;
                 }
+                return false;
+            } 
+        }
+        private void StartRenderTask(RenderPart loop = RenderPart.FirstTrack, string? firstTrackAudioFile = null)
+        {
+            WineHelper wine = new WineHelper();
+            UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop).ProcessPhonemizer(phonemizer);
+            List<URenderNote> rPart = uTask.Part.GenerateRendPart(
+                renderEngine.EngineUniqueString,
+                null,
+                new Func<URenderNote, URenderNote>((iNote) =>
+                {
+                    if (iNote.Attributes.IsRest) return iNote;
+                    //Setup Attrack&Release
+                    {
+                        AutoPropertyGetter atk = new AutoPropertyGetter(synthesisData, UtauEngine.AttrackID, 0, 1, 1);
+                        AutoPropertyGetter rle = new AutoPropertyGetter(synthesisData, UtauEngine.ReleaseID, 0, 1, 1);
+                        iNote.AttrackVolume = MathUtils.Limit(atk.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.AttrackBar, AutoPropertyGetter.ValueSelectType.NearZero) * 100.0, 0, 100);
+                        iNote.ReleaseVolume = MathUtils.Limit(rle.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.ReleaseBar, AutoPropertyGetter.ValueSelectType.NearZero) * 100.0, 0, 100);
+                    }
+                    //Setup Flags
+                    {
+                        var bar = new AutoPropertyGetter.VirtualNote(synthesisData, iNote);
+                        var area = bar.GetTimeArea(AutoPropertyGetter.PropertyType.FullBar);
+                        iNote.Flags = renderEngine.GetTimeFlags(synthesisData, area.Item1, iNote.Flags, area.Item2 - area.Item1,loop == RenderPart.SecondTrack);
+                    }
+                    return iNote;
+                })
+            );
 
-                //Generate All Args
-                TaskHelper.UpdateExecutors(rPart);
+            //set pitchs
+            var pitchtable = UtauProject.PitchPrerender(synthesisData);
+            foreach (URenderNote rNote in rPart)
+            {
+                rNote.Attributes.SetPitchLine((ms_times) =>
+                {
+                    double[] ret = new double[ms_times.Length];
+                    for (int i = 0; i < ms_times.Length; i++)
+                    {
+                        double timeKey = ms_times[i];
+                        var nextP = pitchtable.Where(x => x.Key >= timeKey).FirstOrDefault(new KeyValuePair<double, double>(-1, -1));
+                        var prevP = pitchtable.Where(x => x.Key <= timeKey).LastOrDefault(new KeyValuePair<double, double>(-1, -1));
+                        { //ROBOT
+                          //
+                            prevP = new KeyValuePair<double, double>(prevP.Key, Math.Round(prevP.Value));
+                            nextP = new KeyValuePair<double, double>(nextP.Key, Math.Round(nextP.Value));
+                        }
+                        if (nextP.Key == -1 && prevP.Key == -1) ret[i] = 0;
+                        else if (nextP.Key == -1) ret[i] = prevP.Value;
+                        else if (prevP.Key == -1) ret[i] = nextP.Value;
+                        else if (nextP.Key == prevP.Key) ret[i] = prevP.Value;
+                        else ret[i] = MathUtility.LineValue(prevP.Key, prevP.Value, nextP.Key, nextP.Value, timeKey);
+                    }
+                    return ret;
+                });
+            }
 
-                //PrepareHash
-                string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine);
+            //Generate All Args
+            TaskHelper.UpdateExecutors(rPart);
 
+            //PrepareHash
+            string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine);
+
+            //  lock (MutexObject)
+            {
                 if (!File.Exists(OutputFile))
                 {
+                    //PrepareWorkDir
+                    string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile, uTask, rPart);
+
                     //resampler
-                    foreach (URenderNote rNote in rPart)
+
+                    if (WineHelper.UnderWine)
                     {
-                        string resampler_exe = renderEngine.ResamplerPath;
-                        List<string> args = rNote.Executors.GetResamplerArgs(true);
-                        if (args.Count == 0) continue;
-                        if (File.Exists(rNote.Executors.TempFilePath)) continue;
-                        Process p = wine.CreateWineProcess(resampler_exe, args);
-                        p.Start();
-                        p.WaitForExit();
+                        StringBuilder resampleBatContent = new StringBuilder();
+                        string resampleBatFile = Path.Combine(WorkDir, "resampler.bat");
+                        resampleBatContent.AppendLine("chcp 932");//CodePage:Shift-JIS
+                        foreach (URenderNote rNote in rPart)
+                        {
+                            string resampler_exe = renderEngine.ResamplerPath;
+                            List<string> args = rNote.Executors.GetResamplerArgs(true);
+                            if (args.Count == 0) continue;
+                            if (File.Exists(rNote.Executors.TempFilePath)) continue;
+                            resampleBatContent.AppendLine(TaskHelper.CreateCommandLine(resampler_exe, args, WorkDir, args[1]));
+                        }
+
+                        File.WriteAllText(resampleBatFile, resampleBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
+                        if (File.Exists(resampleBatFile))
+                        {
+                            Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", resampleBatFile]));
+                            wavP.Start();
+                            wavP.WaitForExit();
+                            File.Delete(resampleBatFile);
+                        }
+                    }
+                    else
+                    {
+                        Dictionary<string, Process> resampleProcess = new Dictionary<string, Process>();
+                        foreach (URenderNote rNote in rPart)
+                        {
+                            string resampler_exe = renderEngine.ResamplerPath;
+                            List<string> args = rNote.Executors.GetResamplerArgs(true);
+                            if (args.Count == 0) continue;
+                            if (File.Exists(rNote.Executors.TempFilePath)) continue;
+                            Process p = wine.CreateWineProcess(resampler_exe, args);
+                            p.Start();
+                            p.WaitForExit();
+                            if (!resampleProcess.ContainsKey(rNote.Executors.TempFilePath))
+                            {
+                                resampleProcess.Add(rNote.Executors.TempFilePath, p);
+                            }
+                        }
                     }
 
                     //wavtool
-                    string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile,uTask,rPart);
-                    foreach (URenderNote rNote in rPart)
+                    if (WineHelper.UnderWine)
                     {
-                        string wavtool_exe = renderEngine.WavtoolPath;
-                        List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile,true);
-                        Process p = wine.CreateWineProcess(wavtool_exe, args, WorkDir);
-                        p.Start();
-                        p.WaitForExit();
+                        StringBuilder wavtoolBatContent = new StringBuilder();
+                        string wavtoolBatFile = Path.Combine(WorkDir, "wavtool.bat");
+                        wavtoolBatContent.AppendLine("chcp 932");//CodePage:Shift-JIS
+                        foreach (URenderNote rNote in rPart)
+                        {
+                            string wavtool_exe = renderEngine.WavtoolPath;
+                            List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile, true);
+                            wavtoolBatContent.AppendLine(TaskHelper.CreateCommandLine(wavtool_exe, args, WorkDir));
+                        }
+                        File.WriteAllText(wavtoolBatFile, wavtoolBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
+                        if (File.Exists(wavtoolBatFile))
+                        {
+                            Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", wavtoolBatFile]));
+                            wavP.Start();
+                            wavP.WaitForExit();
+                            File.Delete(wavtoolBatFile);
+                        }
                     }
-
+                    else
+                    {
+                        foreach (URenderNote rNote in rPart)
+                        {
+                            string wavtool_exe = renderEngine.WavtoolPath;
+                            List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile, true);
+                            Process p = wine.CreateWineProcess(wavtool_exe, args, WorkDir);
+                            p.Start();
+                            p.WaitForExit();
+                        }
+                    }
+                    if (mCacnel) { return; }
                 }
 
                 TaskHelper.FinishWavTool(OutputFile);
+            }
 
-                if(File.Exists(OutputFile))
+            if (mCacnel) { return; }
+            if (File.Exists(OutputFile))
+            {
+                TaskHelper.WaitForFileRelease(OutputFile);
+                try
                 {
-                    TaskHelper.WaitForFileRelease(OutputFile);
-                    try
-                    {
-                        var reader = new WaveFileReader(OutputFile);
-                        reader.Close();
-                    }
-                    catch {File.Delete(OutputFile);Error?.Invoke("Rendered File Cannot Readable"); return; }
-                    CompleteTask(OutputFile,pitchtable,phonemeInfoList);
+                    var reader = new WaveFileReader(OutputFile);
+                    reader.Close();
                 }
-            });
+                catch { try { File.Delete(OutputFile); } catch {; } Error?.Invoke("Rendered File Cannot Readable"); return; }
+                if (mCacnel) { return; }
+
+                if (loop == RenderPart.FirstTrack && bHaveXTrack)
+                {
+                    StartRenderTask(RenderPart.SecondTrack, OutputFile);
+                    return;
+                }
+                CompleteTask(OutputFile, pitchtable, rPart, firstTrackAudioFile);
+            }
         }
 
         private List<List<Point>> FormatPitchLines(SortedDictionary<double, double> pitchLines, double startMillSecond = 0)
@@ -134,12 +258,22 @@ namespace UtaubaseForTuneLab
             return pitLines;
         }
 
-        private void CompleteTask(string OutputWav, SortedDictionary<double, double> pitchLines, Dictionary<ISynthesisNote, SynthesizedPhoneme[]>? phonemeInfoList=null)
+        private void CompleteTask(string OutputWav, SortedDictionary<double, double> pitchLines, List<URenderNote> renderNotes,string? firstTrackOutputWav=null)
         {
             var audioInfo=TaskHelper.ReadWaveAudioData(OutputWav,synthesisData.StartTime());
+            if (mCacnel) { return; }
 
+            Dictionary<ISynthesisNote, SynthesizedPhoneme[]>? phonemeInfoList = UtauProject.GetPhonemeInfoList(renderNotes);
             //var pitLines= TaskHelper.WaveAudioDataPitchDetect2(audioInfo);
             var pitLines = FormatPitchLines(pitchLines, audioInfo.audio_StartMillsec);
+
+            if(firstTrackOutputWav!=null && File.Exists(firstTrackOutputWav))
+            {
+                var xAudioInfo = TaskHelper.ReadWaveAudioData(firstTrackOutputWav, synthesisData.StartTime());
+                audioInfo = AudioEffect.AudioEffectHelper.MixSynthesis(synthesisData, xAudioInfo, audioInfo);
+            }
+
+            AudioEffect.AudioEffectHelper.DoProcess(synthesisData, ref audioInfo);
 
             var ret = new SynthesisResult(audioInfo.audio_StartMillsec/1000.0, 44100, audioInfo.audio_Data, pitLines,phonemeInfoList);
 
@@ -148,6 +282,7 @@ namespace UtaubaseForTuneLab
 
         public void Stop()
         {
+            //mCacnel = true;
             return;
         }
 

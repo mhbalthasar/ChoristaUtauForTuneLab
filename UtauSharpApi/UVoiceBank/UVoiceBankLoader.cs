@@ -122,6 +122,7 @@ namespace UtauSharpApi.UVoiceBank
             //ReadVBPrefix
             if (File.Exists(Path.Combine(VoiceBankPath, "prefix.map")))
             {
+                Dictionary<string,int> Pairs = new Dictionary<string, int>();
                 string EncodName = DetectFileEncoding(Path.Combine(VoiceBankPath, "prefix.map"));
                 string[] prefixText = File.ReadAllLines(Path.Combine(VoiceBankPath, "prefix.map"), EncodingUtils.GetEncoding(EncodName));
                 foreach (string line in prefixText)
@@ -134,8 +135,14 @@ namespace UtauSharpApi.UVoiceBank
                         string prefixStr = pfx[1];
                         string suffixStr = pfx[2];
                         vb.SetPrefixItem(nn,prefixStr, suffixStr);
+                        string kPair=prefixStr.Trim() + suffixStr.Trim();
+                        if(!Pairs.ContainsKey(kPair))
+                        {
+                            Pairs.Add(kPair, nn);
+                        }
                     }
                 }
+                vb.SetPrefixPairs(Pairs);
             }
 
             //LoadOto

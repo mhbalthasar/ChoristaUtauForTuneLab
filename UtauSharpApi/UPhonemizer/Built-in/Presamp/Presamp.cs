@@ -274,6 +274,8 @@ namespace UtauSharpApi.UPhonemizer.Presamp
         public string EndType1 { get; private set; } = "";
         [ProtoMember(22)]
         public string EndType2 { get; private set; } = "";
+        [ProtoMember(23)]
+        public bool VCLength { get; private set; } = false;
 
         public List<string> GetAliasFromat(string Type)
         {
@@ -432,10 +434,9 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             if (iniData.ContainsKey("LOCALE")) ret.Locale = Presamp_Static.ParseLocale(iniData["LOCALE"]);
             if (iniData.ContainsKey("VOWEL")) ret.Vowels = Presamp_Static.ParseVowel(iniData["VOWEL"]);
             bool defCFlag = false;
-            bool defVCLength = false;
             if (iniData.ContainsKey("CFLAGS")) defCFlag= Presamp_Static.ParseBool(iniData["CFLAGS"], false);
-            if (iniData.ContainsKey("VCLENGTH")) defVCLength = Presamp_Static.ParseBool(iniData["VCLENGTH"], false);
-            if (iniData.ContainsKey("CONSONANT")) ret.Consonants = Presamp_Static.ParseConsonant(iniData["CONSONANT"],defCFlag,defVCLength);
+            if (iniData.ContainsKey("VCLENGTH")) ret.VCLength = Presamp_Static.ParseBool(iniData["VCLENGTH"], false);
+            if (iniData.ContainsKey("CONSONANT")) ret.Consonants = Presamp_Static.ParseConsonant(iniData["CONSONANT"],defCFlag,ret.VCLength);
             if (iniData.ContainsKey("PRIORITY")) ret.Priority = Presamp_Static.ParsePriority(iniData["PRIORITY"]);
             if (iniData.ContainsKey("REPLACE")) ret.Replace = Presamp_Static.ParseReplace(iniData["REPLACE"]);
             if (iniData.ContainsKey("ALIAS")) ret.Alias = Presamp_Static.ParseAlias(iniData["ALIAS"]);
@@ -635,6 +636,8 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             var nn = GetSymbolItem(nextNote);
             var nnn = GetSymbolItem(nextNextNote);
 
+            bool vcLength = sMap.VCLength ? true : nn.bVCLength;
+
             string nextCVSymbol = GetSymbolString("CV", nn, nnn);
             Oto? nextCVOto = vb.FindSymbol(nextCVSymbol, nextNoteNumber);
 
@@ -647,19 +650,39 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             Oto? vcOto = vb.FindSymbol(vcSymbol, currentNoteNumber);
 
             double vcLen = 120;
-            if (nextCVOto != null)
+            if (vcLength)
             {
-                vcLen = nextCVOto.Preutter;
-                if (nextCVOto.Overlap == 0 && vcLen < 120) vcLen = Math.Min(120, vcLen * 2);
-                if (nextCVOto.Overlap < 0) vcLen = (nextCVOto.Preutter - nextCVOto.Overlap);
+                double cvLen1 = 120;
+                if(vcOto!= null)
+                {
+                    cvLen1 = vcOto.Preutter;
+                    if (vcOto.Overlap == 0 && cvLen1 < 120) cvLen1 = Math.Min(120, cvLen1 * 2);
+                    if (vcOto.Overlap < 0) cvLen1 = (vcOto.Preutter - vcOto.Overlap);
+                }
+                {
+                    double dur = curUNote.DurationMSec;
+                    double minVC = Math.Min(30, dur / 3);
+                    cvLen1 = Convert.ToInt32(Math.Min(cvLen1, dur - minVC));
+                    vcLen = cvLen - cvLen1;
+                    cvLen = cvLen1;
+                }
             }
+            else
             {
-                double dur = curUNote.DurationMSec;
-                var consonantStretchRatio = Math.Pow(2, 1.0 - nextUNote.Velocity * 0.01);
-                vcLen = Convert.ToInt32(Math.Min(dur/1.5,Math.Max(30,vcLen*consonantStretchRatio)));
+                if (nextCVOto != null)
+                {
+                    vcLen = nextCVOto.Preutter;
+                    if (nextCVOto.Overlap == 0 && vcLen < 120) vcLen = Math.Min(120, vcLen * 2);
+                    if (nextCVOto.Overlap < 0) vcLen = (nextCVOto.Preutter - nextCVOto.Overlap);
+                }
+                {
+                    double dur = curUNote.DurationMSec;
+                    var consonantStretchRatio = Math.Pow(2, 1.0 - nextUNote.Velocity * 0.01);
+                    vcLen = Convert.ToInt32(Math.Min(dur / 1.5, Math.Max(30, vcLen * consonantStretchRatio)));
+                }
+
+                cvLen -= vcLen;
             }
-            
-            cvLen-= vcLen;
             //CVVC
             ret.Add(new PresampNote()
             {

@@ -8,6 +8,7 @@ using Tomlyn;
 using UtauSharpApi.UNote;
 using UtauSharpApi.UTask;
 using UtauSharpApi.UVoiceBank;
+using ProtoBuf.WellKnownTypes;
 
 namespace UtauSharpApi.UPhonemizer
 {
@@ -78,20 +79,24 @@ namespace UtauSharpApi.UPhonemizer
                 if (MCache.LangType.ToLower() == "chinese" || MCache.LangType.ToLower() == "japanese")
                 {
                     string NextC = "";
+                    string NextCV = "";
                     if (nextNote != null)
                     {
-                        if (nextNote.Lyric == "R") NextC = "R";
+                        if (nextNote.Lyric == "R") { NextC = "R"; NextCV = "R"; }
                         else if (MCache.G2PA_Table.TryGetValue(nextNote.Lyric, out object gr))
                         {
                             TomlArray pnArray = (TomlArray)gr;
                             var gc = (string)pnArray[0];
+                            var gcv = (string)pnArray[1];
                             var gv = (string)pnArray[2];
                             NextC = gc;
+                            NextCV = gcv;
                         }
                     }
                     else
                     {
                         NextC = "R";
+                        NextCV = "R";
                     }
                     if (MCache.G2PA_Table.TryGetValue(curNote.Lyric, out object gCurN))
                     {
@@ -104,9 +109,36 @@ namespace UtauSharpApi.UPhonemizer
                         string VSymbol = gv;
                         string VCSymbol = gv + " " + NextC;
 
-                        double totalLen = curNote.DurationMSec;
-                        double VCLen = (int)Limit(totalLen * 0.2, 0, 60.0);//180
-                        double CVLen = totalLen - VCLen;
+                        double VCLen;
+                        double CVLen;
+                        if (NextCV == "R")
+                        {
+                            CVLen = curNote.DurationMSec;
+                            VCLen = Limit(CVLen * 0.2, 0, 80);
+                        }
+                        else
+                        {
+                            Oto? nextCVOto = voiceBank.FindSymbol(NextCV, nextNote==null?curNote.NoteNumber:nextNote.NoteNumber);
+                            VCLen = 120;
+                            {
+
+                                if (nextCVOto != null)
+                                {
+                                    VCLen = nextCVOto.Preutter;
+                                    if (nextCVOto.Overlap == 0 && VCLen < 120) VCLen = Math.Min(120, VCLen * 2);
+                                    if (nextCVOto.Overlap < 0) VCLen = (nextCVOto.Preutter - nextCVOto.Overlap);
+                                }
+                                {
+                                    double dur = curNote.DurationMSec;
+                                    var consonantStretchRatio = nextNote==null?1:Math.Pow(2, 1.0 - nextNote.Velocity * 0.01);
+                                    VCLen = Convert.ToInt32(Math.Min(dur *0.2, Math.Max(60, VCLen * consonantStretchRatio)));
+                                    CVLen = dur - VCLen;
+                                }
+;
+                            }
+                        }
+                        //VCLen = (int)Limit(curNote.DurationMSec * 0.2, 0, 60.0);//180
+                        //CVLen = curNote.DurationMSec - VCLen;
                         ret.Clear();
                         ret.Add(new UPhonemeNote(curNote, CVSymbol,CVLen));
                         ret.Add(new UPhonemeNote(curNote, VCSymbol,VCLen));

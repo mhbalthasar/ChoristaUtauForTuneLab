@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Xml.Linq;
 using UtauSharpApi.Utils;
 using UtauSharpApi.UVoiceBank;
 
@@ -11,7 +12,6 @@ namespace UtauSharpApi.UNote
         public string Tone { get => OctaveUtils.NoteNumber2Str(pNote.NoteNumber - 12); }
         public string Flags { get => pNote.Flags; }
         public int Velocity { get => pNote.Velocity; }
-        public int Volume { get => (int)(pNote.GainVolDiff * 100 + 100.0); }
         public int Modulation { get; private set; } = 0;
         public int StaticTempo { get; private set; } = 125;
         public double Preutter { get; set; } = 0;
@@ -24,8 +24,9 @@ namespace UtauSharpApi.UNote
         public double DurRequired { get; set; } = 0;
         public double TailIntrude { get; set; } = 0;
         public double TailOverlap { get; set; } = 0;
+        public double TailOffset { get; set; } = 0;
         public double EnvFadeIn { get; set; } = 0;
-        public double EnvFadeOut { get => Math.Max(DurRequired > 35 ? 35 : DurRequired / 2, TailOverlap); }
+        public double EnvFadeOut { get => TailOverlap; }
         public string PitchLineString { get; set; } = "";
         private void GenerateFixedSTPs()
         {
@@ -75,23 +76,45 @@ namespace UtauSharpApi.UNote
             {
                 Prev.Attributes.TailIntrude = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 0;
                 Prev.Attributes.TailOverlap = overlapped ? Math.Max(Overlap, 0) : 0;
+                Prev.Attributes.TailOffset = overlapped ? Math.Max(0, Preutter - Overlap) : 0;
             }
         }
-        public void UpdateAttributes()
+        public void UpdateAttributes(
+            Func<URenderNote, URenderNote>? CallbackBeforeUpdates = null,
+            Func<URenderNote, URenderNote>? CallbackAfterUpdates = null
+            )
         {
-            if(pNote==null) return;
+            if (pNote == null) return;
+            if (CallbackBeforeUpdates != null)
+            {
+                var nNote = CallbackBeforeUpdates(pNote);
+                if(nNote!=null)
+                {
+                    if (pNote.Flags != nNote.Flags) pNote.Flags = nNote.Flags;
+                }
+            }
             if (pNote.RenderOto != null)
             {
                 InputWavFile = pNote.RenderOto.GetWavfilePath(pNote.VoiceBankPath);
                 GenerateFixedSTPs();
-                Offset=pNote.RenderOto.Offset;   
-                Consonant = pNote.RenderOto.Consonant;  
+                Offset = pNote.RenderOto.Offset;
+                Consonant = pNote.RenderOto.Consonant;
                 Cutoff = pNote.RenderOto.Cutoff;
                 DurCorrection = Preutter - TailIntrude + TailOverlap;
                 {
                     DurRequired = pNote.DurationMSec + DurCorrection + SkipOver;
-                    DurRequired = Math.Max(DurRequired,pNote.RenderOto.Consonant);
+                    DurRequired = Math.Max(DurRequired, pNote.RenderOto.Consonant);
                     DurRequired = Math.Ceiling(DurRequired / 50.0 + 0.5) * 50.0;
+                }
+            }
+            if (CallbackAfterUpdates != null)
+            { 
+                var nNote = CallbackAfterUpdates(pNote);
+                if (nNote != null)
+                {
+                    pNote.AttrackVolume = nNote.AttrackVolume;
+                    pNote.ReleaseVolume = nNote.ReleaseVolume;
+                    if (pNote.Flags != nNote.Flags) pNote.Flags = nNote.Flags;
                 }
             }
         }
@@ -192,7 +215,7 @@ namespace UtauSharpApi.UNote
             Attr_SynthesisArgs.Add(pNote.Attributes.Velocity.ToString());
             Attr_SynthesisArgs.Add("\""+pNote.Attributes.Flags+"\"");
             Attr_SynthesisArgs.Add(pNote.Attributes.Offset.ToString("F3"));
-            Attr_SynthesisArgs.Add(pNote.Attributes.DurRequired.ToString("F3"));
+            Attr_SynthesisArgs.Add((pNote.Attributes.DurRequired - pNote.Attributes.TailOffset).ToString("F3"));
             Attr_SynthesisArgs.Add(pNote.Attributes.Consonant.ToString("F3"));
             Attr_SynthesisArgs.Add(pNote.Attributes.Cutoff.ToString("F3"));
             Attr_SynthesisArgs.Add("100");//Volume
@@ -205,9 +228,9 @@ namespace UtauSharpApi.UNote
             if (pNote.Attributes.IsRest) { Attr_EnvlopeArgs.AddRange(["0", "0"]); return; }//Rest is Concat Directly,No ENV
             Tuple<double, double>[] EnvlopeItem = new Tuple<double, double>[5];
             EnvlopeItem[0] = new Tuple<double, double>(0, 0);
-            EnvlopeItem[1] = new Tuple<double, double>(Math.Max(5,pNote.Attributes.EnvFadeIn), pNote.Attributes.Volume);
-            EnvlopeItem[2] = new Tuple<double, double>(Math.Max(35,pNote.Attributes.EnvFadeOut), pNote.Attributes.Volume);
-            EnvlopeItem[3] = new Tuple<double, double>(0, 0);
+            EnvlopeItem[1] = new Tuple<double, double>(Math.Max(5, pNote.Attributes.EnvFadeIn), pNote.AttrackVolume);
+            EnvlopeItem[2] = new Tuple<double, double>(Math.Max(35, pNote.Attributes.EnvFadeOut), pNote.ReleaseVolume);
+            EnvlopeItem[3] = new Tuple<double, double>(pNote.Attributes.TailOffset, 0);
 
             Attr_EnvlopeArgs.Clear();
             //0     5       55.1   0  100  100  0 17.415
@@ -281,6 +304,7 @@ namespace UtauSharpApi.UNote
             }))()));
             return Lines.ToString();
         }
+
         public void UpdateExecutor()
         {
             UpdateSynthesisArgs();
@@ -292,10 +316,11 @@ namespace UtauSharpApi.UNote
     }
     public class URenderNote
     {
-        public URenderNote()
+        public URenderNote(UPhonemeNote? parent=null)
         {
             Attributes = new URenderNote_Attributes(this);
             Executors = new URenderNote_RenderExecutor(this);
+            this.Parent = parent;
         }
         public URenderNote? PrevNote { get; set; } = null;
         public URenderNote? NextNote { get; set; } = null;
@@ -310,7 +335,8 @@ namespace UtauSharpApi.UNote
         public string Flags { get; set; } = "";
         public string EngineSalt { get; set; } = "";
         public int Velocity { get; set; } = 100;
-        public double GainVolDiff { get; set; } = 0;
-        public object? ObjectTag { get; set; } = null;//BringInformations
+        public double AttrackVolume { get; set; } = 100;
+        public double ReleaseVolume { get; set; } = 100;
+        public UPhonemeNote? Parent { get; set; } = null;
     }
 }

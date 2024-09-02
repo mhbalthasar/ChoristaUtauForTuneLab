@@ -71,8 +71,8 @@ namespace UtauSharpApi.UPhonemizer
                     else if(splited.Count>1)
                     {
                         double totalLen = curNote.DurationMSec;
-                        double VCLen = splited[1].Duration;//(int)Limit(totalLen * 0.2, 0, 60.0);
-                        double CVLen = splited[0].Duration;//totalLen - VCLen;
+                        double VCLen = splited[1].Duration;
+                        double CVLen = splited[0].Duration;
                         ret.Clear();
                         ret.Add(new UPhonemeNote(curNote, splited[0].Symbol, CVLen));
                         ret.Add(new UPhonemeNote(curNote, splited[1].Symbol, VCLen));

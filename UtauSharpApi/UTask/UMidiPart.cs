@@ -28,30 +28,40 @@ namespace UtauSharpApi.UTask
             return new UMidiNote(this);
         }
 
-        public List<URenderNote> GenerateRendPart(string EngineSalt="")
+        public List<URenderNote> GenerateRendPart(string EngineSalt="",
+            Func<URenderNote, URenderNote>? CallbackBeforeUpdates = null,
+            Func<URenderNote, URenderNote>? CallbackAfterUpdates = null
+            )
         {
             double curMs = 0;
-            double minR = 0;
+            double minR = 120;//30ms
             List<URenderNote> ret = new List<URenderNote>();
             foreach(var note in Notes)
             {
-                if (note.StartMSec - curMs > minR)
+                if (note.StartMSec - curMs > 0)
                 {
-                    URenderNote rNote = new URenderNote();
-                    rNote.RenderOto = Oto.GetR;
-                    rNote.VoiceBankPath = "";
-                    rNote.StartMSec = curMs;
-                    rNote.DurationMSec = note.StartMSec - curMs;
-                    curMs = note.StartMSec;
-                    if (rNote.DurationMSec > 0)
+                    if (note.StartMSec - curMs > minR)
                     {
-                        if (ret.Count > 0)
+                        URenderNote rNote = new URenderNote();
+                        rNote.RenderOto = Oto.GetR;
+                        rNote.VoiceBankPath = "";
+                        rNote.StartMSec = curMs;
+                        rNote.DurationMSec = note.StartMSec - curMs;
+                        curMs = note.StartMSec;
+                        if (rNote.DurationMSec > 0)
                         {
-                            rNote.PrevNote = ret[ret.Count - 1];
-                            ret[ret.Count - 1].NextNote = rNote;
-                            ret[ret.Count - 1].Attributes.UpdateAttributes();
+                            if (ret.Count > 0)
+                            {
+                                rNote.PrevNote = ret[ret.Count - 1];
+                                ret[ret.Count - 1].NextNote = rNote;
+                                ret[ret.Count - 1].Attributes.UpdateAttributes(CallbackBeforeUpdates,CallbackAfterUpdates);
+                            }
+                            ret.Add(rNote);
                         }
-                        ret.Add(rNote);
+                    }else if(ret.Count>0)
+                    {
+                        //DeleteSpacing
+                        ret[ret.Count-1].DurationMSec = Math.Max(note.StartMSec - curMs, ret[ret.Count - 1].DurationMSec);
                     }
                 }
                 else curMs = note.StartMSec;
@@ -65,7 +75,7 @@ namespace UtauSharpApi.UTask
                 double dynmaticLength = (note.DurationMSec - staticLength) / dynmaticPartCount;
                 foreach (UPhonemeNote ppNote in note.PhonemeNotes)
                 {
-                    URenderNote rpNote = new URenderNote();
+                    URenderNote rpNote = new URenderNote(ppNote);
                     rpNote.RenderOto = VoiceBank.FindSymbol(ppNote.Symbol,note.NoteNumber);
                     rpNote.VoiceBankPath = VoiceBank.vbBasePath;
                     rpNote.NoteNumber = note.NoteNumber;
@@ -74,7 +84,6 @@ namespace UtauSharpApi.UTask
                     rpNote.EngineSalt = EngineSalt;
                     rpNote.StartMSec = curMs;
                     rpNote.DurationMSec = (ppNote.SymbolMSec<=0)?dynmaticLength:ppNote.SymbolMSec;
-                    rpNote.ObjectTag = ppNote;
                     if (rpNote.DurationMSec > 0)
                     {
                         curMs = curMs + rpNote.DurationMSec;
@@ -82,13 +91,13 @@ namespace UtauSharpApi.UTask
                         {
                             rpNote.PrevNote = ret[ret.Count - 1];
                             ret[ret.Count - 1].NextNote = rpNote;
-                            ret[ret.Count - 1].Attributes.UpdateAttributes();
+                            ret[ret.Count - 1].Attributes.UpdateAttributes(CallbackBeforeUpdates, CallbackAfterUpdates);
                         }
                         ret.Add(rpNote);
                     }
                 }
             }
-            if (ret.Count > 0) ret[ret.Count - 1].Attributes.UpdateAttributes();
+            if (ret.Count > 0) ret[ret.Count - 1].Attributes.UpdateAttributes(CallbackBeforeUpdates, CallbackAfterUpdates);
             return ret;
         }
 
