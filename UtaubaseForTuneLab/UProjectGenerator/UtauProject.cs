@@ -38,6 +38,13 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             if (phonemizer == null) phonemizer = new DefaultPhonemizer();
             for (int i = 0; i < uTask.Part.Notes.Count; i++)
             {
+                if(uTask.Part.Notes[i].Lyric.StartsWith("."))
+                {
+                    uTask.Part.Notes[i].PhonemeNotes=new List<UPhonemeNote>() {
+                        new UPhonemeNote(uTask.Part.Notes[i],uTask.Part.Notes[i].Lyric.Substring(1),-1)
+                    };
+                    continue;
+                }
                 uTask.Part.Notes[i].PhonemeNotes = phonemizer.ProcessEx(uTask.Part.VoiceBank, uTask.Part, i);
             }
             return uTask;
