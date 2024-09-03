@@ -559,7 +559,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
                 string ret = fmtString;
                 ret = ret.Replace("%v%", v);
                 ret = ret.Replace("%V%", V);
-                ret = ret.Replace("%c%", c);
+                ret = ret.Replace("%c%", c.Length>0?c:v);//if only vowels,cv=c=v=V;
                 ret = ret.Replace("%CV%", CV);
                 return ret;
             }
@@ -614,7 +614,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
                     bool flag = true;
                     var fp = ri.SplitedPart[0];
                     if (fp.IndexOf("%v%") > -1) flag = flag & cn.v.Length > 0;
-                    if (fp.IndexOf("%c%") > -1) flag = flag & cn.v.Length > 0;
+                    if (fp.IndexOf("%c%") > -1) flag = flag & (cn.c.Length > 0 || nn.v.Length>0);
                     if (fp.IndexOf("%V%") > -1) flag = flag & cn.V.Length > 0;
                     if (fp.IndexOf("%CV%") > -1) flag = flag & cn.CV.Length > 0;
                     if (flag) ri.SplitedPart[0] = cn.Replace(ri.SplitedPart[0]); else continue;
@@ -622,7 +622,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
                     {
                         fp = ri.SplitedPart[1];
                         if (fp.IndexOf("%v%") > -1) flag = flag & nn.v.Length > 0;
-                        if (fp.IndexOf("%c%") > -1) flag = flag & nn.v.Length > 0;
+                        if (fp.IndexOf("%c%") > -1) flag = flag & (nn.c.Length > 0 || nn.v.Length>0);
                         if (fp.IndexOf("%V%") > -1) flag = flag & nn.V.Length > 0;
                         if (fp.IndexOf("%CV%") > -1) flag = flag & nn.CV.Length > 0;
                         if (flag) ri.SplitedPart[1] = nn.Replace(ri.SplitedPart[1]); else continue;
