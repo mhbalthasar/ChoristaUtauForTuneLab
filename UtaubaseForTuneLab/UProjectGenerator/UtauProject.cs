@@ -321,11 +321,11 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             return sb.ToString();
         }
 
-        public static void FinishWavTool(string OutputFile)
+        public static void FinishWavTool(string OutputFile,string WorkDir="")
         {
             string ParentDir = Path.GetDirectoryName(OutputFile);
             string HelpName = Path.GetFileNameWithoutExtension(OutputFile);
-            string WorkDir = Path.Combine(ParentDir, string.Format("{0}_conf", HelpName));
+            WorkDir = WorkDir=="" ? Path.Combine(ParentDir, string.Format("{0}_conf", HelpName)):WorkDir;
 
             //RemoveCacheFile
             if (Directory.Exists(WorkDir))

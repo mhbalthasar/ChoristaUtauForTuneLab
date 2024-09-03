@@ -30,10 +30,26 @@ namespace UtauSharpApi.UNote
         public string PitchLineString { get; set; } = "";
         private void GenerateFixedSTPs()
         {
+            double OtoPreutter, OtoOverlap;
+            {//参数修正
+                //获取新Offset，偏移结果不能为负值
+                var nOtoOffset = (pNote.RenderOto.Offset + pNote.OtoOffsetCorrected) < 0 ? -pNote.RenderOto.Offset : pNote.OtoOffsetCorrected;
+
+                //获取新PU
+                var nOtoPreutter = pNote.RenderOto.Preutter + pNote.OtoPreutterCorrected + nOtoOffset;
+                //PU不能为负值
+                OtoPreutter = (pNote.RenderOto.Offset + nOtoPreutter) < 0 ? -pNote.RenderOto.Offset : nOtoPreutter;
+
+                //获取新OP
+                var nOtoOverlap = pNote.RenderOto.Overlap + pNote.OtoOverlapCorrected + nOtoOffset;
+                //OP不能为负值
+                OtoOverlap = (pNote.RenderOto.Offset + nOtoOverlap) < 0 ? -pNote.RenderOto.Offset : nOtoOverlap;
+            }
+
             var consonantStretchRatio = Math.Pow(2, 1.0 - Velocity * 0.01);
-            var autoOverlap = pNote.RenderOto.Overlap * consonantStretchRatio;
-            var autoPreutter = pNote.RenderOto.Preutter * consonantStretchRatio;
-            var origPreutter = pNote.RenderOto.Preutter * consonantStretchRatio;
+            var autoOverlap = OtoOverlap * consonantStretchRatio;
+            var autoPreutter = OtoPreutter * consonantStretchRatio;
+            var origPreutter = OtoPreutter * consonantStretchRatio;
             bool overlapped = false;
             TailIntrude = 0;
             TailOverlap = 0;
@@ -88,8 +104,15 @@ namespace UtauSharpApi.UNote
             if (CallbackBeforeUpdates != null)
             {
                 var nNote = CallbackBeforeUpdates(pNote);
-                if(nNote!=null)
+                if (nNote != null)
                 {
+                    if (pNote.OtoPreutterCorrected != nNote.OtoPreutterCorrected) pNote.OtoPreutterCorrected = nNote.OtoPreutterCorrected;
+                    if (pNote.OtoOverlapCorrected != nNote.OtoOverlapCorrected) pNote.OtoOverlapCorrected = nNote.OtoOverlapCorrected;
+
+                    if (pNote.OtoConsonantCorrected != nNote.OtoConsonantCorrected) pNote.OtoConsonantCorrected = nNote.OtoConsonantCorrected;
+                    if (pNote.OtoOffsetCorrected != nNote.OtoOffsetCorrected) pNote.OtoOffsetCorrected = nNote.OtoOffsetCorrected;
+                    if (pNote.OtoCutoffCorrected != nNote.OtoCutoffCorrected) pNote.OtoCutoffCorrected = nNote.OtoCutoffCorrected;
+
                     if (pNote.Flags != nNote.Flags) pNote.Flags = nNote.Flags;
                 }
             }
@@ -97,9 +120,33 @@ namespace UtauSharpApi.UNote
             {
                 InputWavFile = pNote.RenderOto.GetWavfilePath(pNote.VoiceBankPath);
                 GenerateFixedSTPs();
-                Offset = pNote.RenderOto.Offset;
-                Consonant = pNote.RenderOto.Consonant;
-                Cutoff = pNote.RenderOto.Cutoff;
+                {
+
+                    //获取新Offset，偏移结果不能为负值
+                    var nOtoOffset = (pNote.RenderOto.Offset + pNote.OtoOffsetCorrected) < 0 ? -pNote.RenderOto.Offset : pNote.OtoOffsetCorrected;
+                    //设置Offset
+                    Offset = pNote.RenderOto.Offset + nOtoOffset;
+
+                    //获取新FixedLength
+                    var nOtoConsonant = pNote.RenderOto.Consonant + pNote.OtoConsonantCorrected + nOtoOffset;
+                    Consonant = (pNote.RenderOto.Offset + nOtoConsonant) < 0 ? 0 : nOtoConsonant;
+
+                    //设置Cutoff
+                    if(pNote.RenderOto.Cutoff < 0)
+                    {
+                        //LeftBaner
+                        var nOtoCutoffType1 = (-pNote.RenderOto.Cutoff) + pNote.OtoConsonantCorrected + nOtoOffset;
+                        var CutoffType1 = (pNote.RenderOto.Offset + nOtoCutoffType1) < 0 ? 0 : nOtoCutoffType1;
+                        Cutoff = -CutoffType1;
+                    }
+                    else
+                    {
+                        //RightBaner
+                        var nOtoCutoffType2 = pNote.RenderOto.Cutoff - pNote.OtoCutoffCorrected;
+                        var CutoffType2 = nOtoCutoffType2 < 0 ? 0 : nOtoCutoffType2;
+                        Cutoff = CutoffType2;
+                    }
+                }
                 DurCorrection = Preutter - TailIntrude + TailOverlap;
                 {
                     DurRequired = pNote.DurationMSec + DurCorrection + SkipOver;
@@ -337,6 +384,12 @@ namespace UtauSharpApi.UNote
         public int Velocity { get; set; } = 100;
         public double AttrackVolume { get; set; } = 100;
         public double ReleaseVolume { get; set; } = 100;
+        public double OtoPreutterCorrected { get; set; } = 0;
+        public double OtoOverlapCorrected { get; set; } = 0;
+        public double OtoOffsetCorrected { get; set; } = 0;
+        public double OtoCutoffCorrected { get; set; } = 0;
+        public double OtoConsonantCorrected { get; set; } = 0;
+
         public UPhonemeNote? Parent { get; set; } = null;
     }
 }

@@ -80,7 +80,26 @@ namespace UtaubaseForTuneLab
             UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop).ProcessPhonemizer(phonemizer);
             List<URenderNote> rPart = uTask.Part.GenerateRendPart(
                 renderEngine.EngineUniqueString,
-                null,
+                new Func<URenderNote, URenderNote>((iNote) =>
+                {
+                    if (iNote.Attributes.IsRest) return iNote;
+                    if(loop==RenderPart.FirstTrack){//只在第一循环有用
+                        //OtoFix
+                        AutoPropertyGetter ooc = new AutoPropertyGetter(synthesisData, UtauEngine.OtoOverlapFixedID, -100,100, 0);
+                        AutoPropertyGetter opc = new AutoPropertyGetter(synthesisData, UtauEngine.OtoPreutterFixedID, -100,100,0);
+                        iNote.OtoOverlapCorrected = MathUtils.Limit(ooc.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.AttrackPoint, AutoPropertyGetter.ValueSelectType.NearZero), -100, 100);
+                        iNote.OtoPreutterCorrected = MathUtils.Limit(opc.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.AttrackPoint, AutoPropertyGetter.ValueSelectType.NearZero), -100, 100);
+
+                        AutoPropertyGetter olb = new AutoPropertyGetter(synthesisData, UtauEngine.OtoLeftBFixedID, -100, 100, 0);
+                        AutoPropertyGetter orb = new AutoPropertyGetter(synthesisData, UtauEngine.OtoRightBFixedID, -100, 100, 0);
+                        iNote.OtoOffsetCorrected = MathUtils.Limit(olb.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.AttrackPoint, AutoPropertyGetter.ValueSelectType.NearZero), -100, 100);
+                        iNote.OtoCutoffCorrected = MathUtils.Limit(orb.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.AttrackPoint, AutoPropertyGetter.ValueSelectType.NearZero), -100, 100);
+
+                        AutoPropertyGetter ofl = new AutoPropertyGetter(synthesisData, UtauEngine.OtoFixedLengthFixedID, -100, 100, 0);
+                        iNote.OtoConsonantCorrected = MathUtils.Limit(ofl.GetNoteBarValue(new AutoPropertyGetter.VirtualNote(synthesisData, iNote), AutoPropertyGetter.PropertyType.AttrackPoint, AutoPropertyGetter.ValueSelectType.NearZero), -100, 100);
+                    }
+                    return iNote;
+                }),
                 new Func<URenderNote, URenderNote>((iNote) =>
                 {
                     if (iNote.Attributes.IsRest) return iNote;
@@ -133,7 +152,7 @@ namespace UtaubaseForTuneLab
 
             //PrepareHash
             string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine);
-
+            FileLocker.WaitforLock(OutputFile);
             //  lock (MutexObject)
             {
                 if (!File.Exists(OutputFile))
@@ -217,11 +236,11 @@ namespace UtaubaseForTuneLab
                             p.WaitForExit();
                         }
                     }
-                    if (mCacnel) { return; }
-                }
 
-                TaskHelper.FinishWavTool(OutputFile);
+                    TaskHelper.FinishWavTool(OutputFile, WorkDir);
+                }
             }
+            FileLocker.UnlockFile(OutputFile);
 
             if (mCacnel) { return; }
             if (File.Exists(OutputFile))
