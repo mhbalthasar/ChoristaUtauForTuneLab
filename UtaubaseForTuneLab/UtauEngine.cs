@@ -13,12 +13,13 @@ namespace UtaubaseForTuneLab
         public readonly static NumberConfig MinSegmentSpacingConfig = new() { DefaultValue = 0, MinValue = 0, MaxValue = 2 };
         public const string PitchTransitionTimeID = "PitchTransitionTime";
         public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
+        
         public const string PrefixPairID = "PrefixPair";
         public const string VelocityID = "Velocity";
         public readonly static NumberConfig VelocityConfig = new() { DefaultValue = 1, MinValue = 0, MaxValue = 2};
         //XSynthesis
         public const string XTrack_XPrefixKeyID = "XTrack Synthesis Percent";
-        public readonly static AutomationConfig XTrack_XPrefixKeyConfig = new("XSM", 0, 0, 1, "#73ACE5");
+        public readonly static AutomationConfig XTrack_XPrefixKeyConfig = new("XSP", 0, 0, 1, "#73ACE5");
         //AttrackFixArgs
         public const string AttrackID = "AttrackVolume";
         public readonly static AutomationConfig AttrackConfig = new("ATK", 1, 0, 1, "#73ACE5");
@@ -26,15 +27,15 @@ namespace UtaubaseForTuneLab
         public readonly static AutomationConfig ReleaseConfig = new("RLE", 1, 0, 1, "#73ACE5");
         //OtoFixedArgs
         public const string OtoPreutterFixedID = "OtoCorrected:Preutter";
-        public readonly static AutomationConfig OtoPreutterFixedConfig = new("OCP", 0, -100, 100, "#73ACE5");
+        public readonly static AutomationConfig OtoPreutterFixedConfig = new("PRE", 0, -100, 100, "#73ACE5");
         public const string OtoOverlapFixedID = "OtoCorrected:Overlap";
-        public readonly static AutomationConfig OtoOverlapFixedConfig = new("OCO", 0, -100, 100, "#73ACE5");
+        public readonly static AutomationConfig OtoOverlapFixedConfig = new("OVL", 0, -100, 100, "#73ACE5");
         public const string OtoLeftBFixedID = "OtoCorrected:Leftbound";
-        public readonly static AutomationConfig OtoLeftBConfig = new("OLB", 0, -100, 100, "#73ACE5");
+        public readonly static AutomationConfig OtoLeftBConfig = new("LBD", 0, -100, 100, "#73ACE5");
         public const string OtoFixedLengthFixedID = "OtoCorrected:FixedLength";
-        public readonly static AutomationConfig OtoFixedLengthFixedConfig = new("OFL", 0, -100, 100, "#73ACE5");
+        public readonly static AutomationConfig OtoFixedLengthFixedConfig = new("FXL", 0, -100, 100, "#73ACE5");
         public const string OtoRightBFixedID = "OtoCorrected:Rightbound";
-        public readonly static AutomationConfig OtoRightBFixedConfig = new("ORB", 0, -100, 100, "#73ACE5");
+        public readonly static AutomationConfig OtoRightBFixedConfig = new("RBD", 0, -100, 100, "#73ACE5");
 
         public const string XTrack_PrefixPairID = "XTrack:PrefixPair";
 

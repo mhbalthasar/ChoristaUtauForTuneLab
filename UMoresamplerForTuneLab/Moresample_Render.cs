@@ -26,43 +26,45 @@ namespace UMoresamplerForTuneLab
 
 
 
-        public const string OpeningID = "MOpening";
+        public const string OpeningID = "Flags:Opening";
         public readonly static NumberConfig OpeningConfig = new() { DefaultValue = 0, MinValue = -1, MaxValue = 1 };
-        public const string PressingID = "UCompressing";
+        public const string PressingID = "Flags:Pressure";
         public readonly static NumberConfig CompressConfig = new() { DefaultValue = 0.86, MinValue = 0, MaxValue = 1 };
-        public const string ConsonantBreathID = "UConsonantBreath";
+        public const string ConsonantBreathID = "Flags:breath";
         public readonly static NumberConfig ConsonantBreathConfig = new() { DefaultValue = 0, MinValue = -0.2, MaxValue = 1 };
-        public const string StretchModeID = "MStretchMode";
-        public readonly static EnumConfig StretchModeConfig = new EnumConfig(new List<string>(["Auto","VowelStretch","TimeLoop"]), 0);
+        public const string StretchModeID = "Flags:MStretch";
+        public readonly static EnumConfig StretchModeConfig = new EnumConfig(new List<string>(["Auto","VowelStretch(e)","TimeLoop(Me)"]), 0);
+        public const string ToneShiftID = "Flags:ToneShift";
+        public readonly static NumberConfig ToneShiftConfig = new() { DefaultValue = 0, MinValue = -12, MaxValue = +12 };
 
 
         public const string XOpeningID = "XTrack:MOpening Corrected";
         public readonly static NumberConfig XOpeningConfig = new() { DefaultValue = 0, MinValue = -1, MaxValue = 1 };
-        public const string XGenderID = "XTrack:UGender Corrected";
+        public const string XGenderID = "XTrack:gender Corrected";
         public readonly static NumberConfig XGenderConfig = new() { DefaultValue = 0, MinValue = -0.5, MaxValue = 0.5 };
         public const string XBreathnessID = "XTrack:MBreathness Corrected";
         public readonly static NumberConfig XBreathnessConfig = new() { DefaultValue = 0, MinValue = -1, MaxValue = 1 };
         public const string XTenseID = "XTrack:MTense Corrected";
         public readonly static NumberConfig XTenseConfig = new() { DefaultValue = 0, MinValue = -1, MaxValue = 1 };
 
-        public const string GenderID = "UGender";
-        public readonly static AutomationConfig GenderConfig = new("GEN", 0, -0.5, 0.5, "#86E573");
-        public const string TenseID = "MTense";
-        public readonly static AutomationConfig TenseConfig = new("TEN", 0, -1, 1, "#86E573");
-        public const string ResonID = "MReson";
-        public readonly static AutomationConfig ResonConfig = new("RES", 0, -1, 1, "#86E573");
-        public const string BreathnessID = "MBreathness";
-        public readonly static AutomationConfig BreathnessConfig = new("BRE", 0, -1, 1, "#86E573");
-        public const string DryID = "MDryness";
-        public readonly static AutomationConfig DryConfig = new("DRY", 0, -1, 1, "#86E573");
-        public const string GrowlID = "MGrowl";
-        public readonly static AutomationConfig GrowlConfig = new("GWL", 0, 0, 1, "#86E573");
-        public const string CrudeID = "MCrude";
-        public readonly static AutomationConfig CrudeConfig = new("CUE", 0, 0, 1, "#86E573");
-        public const string DistortID = "MDistort";
-        public readonly static AutomationConfig DistortConfig = new("DSR", 0, 0, 1, "#86E573");
-        public const string EnhanceID = "MEnhance";
-        public readonly static AutomationConfig EnhanceConfig = new("MEH", 0, 0, 1, "#86E573");
+        public const string GenderID = "Flags:gender";
+        public readonly static AutomationConfig GenderConfig = new("g", 0, -0.5, 0.5, "#86E573");
+        public const string TenseID = "Flags:MTense";
+        public readonly static AutomationConfig TenseConfig = new("Mt", 0, -1, 1, "#86E573");
+        public const string ResonID = "Flags:MReson";
+        public readonly static AutomationConfig ResonConfig = new("Mr", 0, -1, 1, "#86E573");
+        public const string BreathnessID = "Flags:MBreathness";
+        public readonly static AutomationConfig BreathnessConfig = new("Mb", 0, -1, 1, "#86E573");
+        public const string DryID = "Flags:Mdryness";
+        public readonly static AutomationConfig DryConfig = new("Md", 0, -1, 1, "#86E573");
+        public const string GrowlID = "Flags:MGrowl";
+        public readonly static AutomationConfig GrowlConfig = new("MG", 0, 0, 1, "#86E573");
+        public const string CrudeID = "Flags:MCrude";
+        public readonly static AutomationConfig CrudeConfig = new("MC", 0, 0, 1, "#86E573");
+        public const string DistortID = "Flags:MDistort";
+        public readonly static AutomationConfig DistortConfig = new("MD", 0, 0, 1, "#86E573");
+        public const string EnhanceID = "Flags:MEnhance";
+        public readonly static AutomationConfig EnhanceConfig = new("ME", 0, 0, 1, "#86E573");
 
         public IReadOnlyOrderedMap<string, AutomationConfig> AutomationConfigs { get; set; } = new OrderedMap<string, AutomationConfig>()
         {
@@ -87,6 +89,7 @@ namespace UMoresamplerForTuneLab
         {
             {OpeningID,OpeningConfig },
             {ConsonantBreathID,ConsonantBreathConfig },
+            {ToneShiftID,ToneShiftConfig },
 
             {XBreathnessID,XBreathnessConfig },
             {XGenderID,XGenderConfig },
@@ -125,6 +128,8 @@ namespace UMoresamplerForTuneLab
             SetFlagType1("Mo", OpeningID, 0, -100, 100,isXTrackFlag,XOpeningID);
             //b flag
             SetFlagType1("b", ConsonantBreathID, 0, -20, 100);
+            //t flag
+            SetFlagType1("t", ToneShiftID, 0, -1200, 1200);
             //Pressing
             SetFlagType2("P", PressingID, 0.86, 0, 100);
             //Stretch

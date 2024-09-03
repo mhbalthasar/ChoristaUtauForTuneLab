@@ -88,16 +88,20 @@ namespace UtaubaseForTuneLab.AudioEffect
             synthesisData.GetAutomation(UtauEngine.XTrack_XPrefixKeyID, out var automation);
             if (automation != null)
             {
-                double[] values = automation.GetValue(times);
-                //xTrack is after origin
-                for (int i = Math.Max(0, delayXSample); i < audioInfo.audio_Data.Length; i++)
+                try
                 {
-                    int j = i - delayXSample;
-                    if (j >= xAudioInfo.audio_Data.Length) break;
-                    float t1p = (float)(1.0 - values[i]);
-                    float t2p = (float)(values[i]);
-                    audioInfo.audio_Data[i] = audioInfo.audio_Data[i] * t1p + xAudioInfo.audio_Data[j] * t2p;
+                    double[] values = automation.GetValue(times);
+                    //xTrack is after origin
+                    for (int i = Math.Max(0, delayXSample); i < audioInfo.audio_Data.Length; i++)
+                    {
+                        int j = i - delayXSample;
+                        if (j >= xAudioInfo.audio_Data.Length) break;
+                        float t1p = (float)(1.0 - values[i]);
+                        float t2p = (float)(values[i]);
+                        audioInfo.audio_Data[i] = audioInfo.audio_Data[i] * t1p + xAudioInfo.audio_Data[j] * t2p;
+                    }
                 }
+                catch {; }
             }
 
             return audioInfo;
