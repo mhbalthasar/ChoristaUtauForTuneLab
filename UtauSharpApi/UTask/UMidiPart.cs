@@ -76,7 +76,7 @@ namespace UtauSharpApi.UTask
                 foreach (UPhonemeNote ppNote in note.PhonemeNotes)
                 {
                     URenderNote rpNote = new URenderNote(ppNote);
-                    rpNote.RenderOto = VoiceBank.FindSymbol(ppNote.Symbol,note.NoteNumber);
+                    rpNote.RenderOto = VoiceBank.FindSymbol(ppNote.Symbol,note.PrefixKeyNumber);
                     rpNote.VoiceBankPath = VoiceBank.vbBasePath;
                     rpNote.NoteNumber = note.NoteNumber;
                     rpNote.Velocity = note.Velocity;

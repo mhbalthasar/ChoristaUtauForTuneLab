@@ -118,7 +118,7 @@ namespace UtauSharpApi.UPhonemizer
                         }
                         else
                         {
-                            Oto? nextCVOto = voiceBank.FindSymbol(NextCV, nextNote==null?curNote.NoteNumber:nextNote.NoteNumber);
+                            Oto? nextCVOto = voiceBank.FindSymbol(NextCV, nextNote==null?curNote.PrefixKeyNumber:nextNote.PrefixKeyNumber);
                             VCLen = 120;
                             {
 

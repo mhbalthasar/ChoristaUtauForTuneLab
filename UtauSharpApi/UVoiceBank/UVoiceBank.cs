@@ -56,9 +56,9 @@ namespace UtauSharpApi.UVoiceBank
             if (ret == null) ret = Otos.Find(p => p.Alias == symbol);
             return ret;
         }
-        public Oto? FindSymbol(string symbol, int NoteNumber)
+        public Oto? FindSymbol(string symbol, int PrefixKeyNumber)
         {
-            PrefixItem prefix = GetPrefixItem(NoteNumber-12);//UtauNoteNumber is Higher than Vocaloid 1 Octave.
+            PrefixItem prefix = GetPrefixItem(PrefixKeyNumber-12);//UtauNoteNumber is Higher than Vocaloid 1 Octave.
             Oto? ret= Otos.Find(p => p.Alias == prefix.prefix + symbol + prefix.suffix);
             if (ret == null) ret = Otos.Find(p=>p.Alias==symbol);
             return ret;

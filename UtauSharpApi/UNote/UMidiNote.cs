@@ -16,6 +16,7 @@ namespace UtauSharpApi.UNote
         public double StartMSec { get; set; } = 0;
         public double DurationMSec { get; set; } = 0;
         public int NoteNumber { get; set; } = 60;
+        public int PrefixKey { get; set; } = -1;
         public string Flags { get; set; } = "";
         public int Velocity { get; set; } = 100;
         public object? ObjectTag { get; set; } = null;//BringInformations
@@ -27,5 +28,7 @@ namespace UtauSharpApi.UNote
                 PhonemeNotes=value.Select(i => new UPhonemeNote(this, i)).ToList();
             } 
         }
+
+        public int PrefixKeyNumber { get => PrefixKey <= 12 ? NoteNumber:PrefixKey; }
     }
 }

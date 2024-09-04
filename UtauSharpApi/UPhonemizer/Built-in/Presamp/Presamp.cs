@@ -597,8 +597,8 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             PresampNote currentNote = new PresampNote(curUNote);
             PresampNote? nextNote = nextUNote == null ? null : new PresampNote(nextUNote);
             PresampNote? nextNextNote = nextNextUNote == null ? null : new PresampNote(nextNextUNote);
-            int nextNoteNumber=nextUNote==null?curUNote.NoteNumber:nextUNote.NoteNumber;
-            int currentNoteNumber = curUNote.NoteNumber;
+            int nextKeyNumber=nextUNote==null?curUNote.PrefixKeyNumber:nextUNote.PrefixKeyNumber;
+            int currentKeyNumber = curUNote.PrefixKeyNumber;
 
             if (nextNote == null || nextNote.Symbol == "R") return SplitCVVCEndNote(currentNote);
 
@@ -639,7 +639,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             bool vcLength = sMap.VCLength ? true : nn.bVCLength;
 
             string nextCVSymbol = GetSymbolString("CV", nn, nnn);
-            Oto? nextCVOto = vb.FindSymbol(nextCVSymbol, nextNoteNumber);
+            Oto? nextCVOto = vb.FindSymbol(nextCVSymbol,nextKeyNumber);
 
             //CV
             string cvSymbol = GetSymbolString("CV", cn, nn);
@@ -647,7 +647,7 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             double cvLen = currentNote.Duration;
             //VC
             string vcSymbol = GetSymbolString("VC", cn, nn);
-            Oto? vcOto = vb.FindSymbol(vcSymbol, currentNoteNumber);
+            Oto? vcOto = vb.FindSymbol(vcSymbol, currentKeyNumber);
 
             double vcLen = 120;
             if (vcLength)

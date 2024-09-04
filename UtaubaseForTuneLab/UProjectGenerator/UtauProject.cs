@@ -88,7 +88,8 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                         if (XPrefixKey != "AutoSelect") PrefixKey = XPrefixKey;
                     }
                     int PrefixOverlayNumber = vbanks.GetPrefixPairNoteNumber(PrefixKey);
-                    uNote.NoteNumber = PrefixOverlayNumber==-1?note.Pitch:PrefixOverlayNumber;
+                    uNote.NoteNumber = note.Pitch;
+                    uNote.PrefixKey= PrefixOverlayNumber == -1 ? note.Pitch : PrefixOverlayNumber;
                     uNote.Phonemes = new List<string>();
                     uNote.Flags = renderEngine.GetNoteFlags(data, note,"",loop==RenderPart.SecondTrack);
                     uNote.Velocity=MathUtils.RoundLimit(note.Properties.GetDouble(UtauEngine.VelocityID,1)*100.0,0,200);
