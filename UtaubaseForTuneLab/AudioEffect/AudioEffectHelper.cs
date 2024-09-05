@@ -16,6 +16,17 @@ namespace UtaubaseForTuneLab.AudioEffect
 {
     internal class AudioEffectHelper
     {
+        public const string Afx_Compressor_thresholdDb_ID = "AFX:Compressor thresholdDb";
+        public readonly static NumberConfig Afx_Compressor_thresholdDb_Config = new() { DefaultValue = 24.0, MinValue = -24, MaxValue = 24, IsInterger = true };
+        public const string Afx_Compressor_ratio_ID = "AFX:Compressor ratio";
+        public readonly static NumberConfig Afx_Compressor_ratio_Config = new() { DefaultValue = 0, MinValue = -30, MaxValue = 30 };
+        public const string Afx_Compressor_BoosterDb_ID = "AFX:Compressor BoosterDb";
+        public readonly static NumberConfig Afx_Compressor_BoosterDb_Config = new() { DefaultValue = 0.0, MinValue = -24, MaxValue = 24, IsInterger = true };
+        public const string Afx_Compressor_Att_ID = "AFX:Compressor AttrackTime";
+        public readonly static NumberConfig Afx_Compressor_Att_Config = new() { DefaultValue = 10.0, MinValue = 1, MaxValue = 100, IsInterger = true };
+        public const string Afx_Compressor_Rlt_ID = "AFX:Compressor ReleaseTime";
+        public readonly static NumberConfig Afx_Compressor_Rlt_Config = new() { DefaultValue = 10.0, MinValue = 1, MaxValue = 100, IsInterger = true };
+
         public const string Afx_Reverb_Mix_ID = "AFX:Reverb Mix";
         public readonly static NumberConfig Afx_Reverb_Mix_Config = new() { DefaultValue = 0.0, MinValue = 0, MaxValue = 1 };
         public const string Afx_Reverb_Delay_ID = "AFX:Reverb Delay";
@@ -32,17 +43,33 @@ namespace UtaubaseForTuneLab.AudioEffect
 
         public static OrderedMap<string, IPropertyConfig> PartProperties = new OrderedMap<string, IPropertyConfig>()
         {
-                    {Afx_Reverb_Mix_ID,Afx_Reverb_Mix_Config},
-                    {Afx_Reverb_Delay_ID,Afx_Reverb_Delay_Config},
-                    {Afx_Reverb_Decay_ID,Afx_Reverb_Decay_Config},
+                    {Afx_Compressor_thresholdDb_ID,Afx_Compressor_thresholdDb_Config },
+                    {Afx_Compressor_ratio_ID,Afx_Compressor_ratio_Config },
+                    {Afx_Compressor_BoosterDb_ID,Afx_Compressor_BoosterDb_Config },
+                    {Afx_Compressor_Att_ID,Afx_Compressor_Att_Config },
+                    {Afx_Compressor_Rlt_ID,Afx_Compressor_Rlt_Config },
+
                     {Afx_Eq_Bank_60Hz_ID,Afx_EqBand_Config },
                     {Afx_Eq_Bank_250Hz_ID,Afx_EqBand_Config },
                     {Afx_Eq_Bank_1kHz_ID,Afx_EqBand_Config },
                     {Afx_Eq_Bank_4kHz_ID,Afx_EqBand_Config },
-                    {Afx_Eq_Bank_16kHz_ID,Afx_EqBand_Config }
+                    {Afx_Eq_Bank_16kHz_ID,Afx_EqBand_Config },
+
+                    {Afx_Reverb_Mix_ID,Afx_Reverb_Mix_Config},
+                    {Afx_Reverb_Delay_ID,Afx_Reverb_Delay_Config},
+                    {Afx_Reverb_Decay_ID,Afx_Reverb_Decay_Config}
         };
         public static void DoProcess(ISynthesisData pData,ref TaskAudioData audioData)
         {
+            //Compressor
+            {
+                int thresholdDb = pData.PartProperties.GetInt(Afx_Compressor_thresholdDb_ID, 0);
+                int boosterDb = pData.PartProperties.GetInt(Afx_Compressor_BoosterDb_ID, 0);
+                double ratio = pData.PartProperties.GetDouble(Afx_Compressor_ratio_ID, 1);
+                int att = pData.PartProperties.GetInt(Afx_Compressor_Att_ID, 10);
+                int rlt = pData.PartProperties.GetInt(Afx_Compressor_Rlt_ID, 10);
+                if (thresholdDb < 24 && ratio != 0) audioData.audio_Data = Compressor.Mofidy(audioData.audio_Data, thresholdDb, ratio, boosterDb, att, rlt, (int)audioData.audio_SampleRate);
+            }
             //Equalizer
             {
                 double eb1 = pData.PartProperties.GetDouble(Afx_Eq_Bank_60Hz_ID, 0.0);

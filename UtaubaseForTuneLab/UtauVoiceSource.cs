@@ -9,7 +9,6 @@ namespace UtaubaseForTuneLab
     internal class UtauVoiceSource(
     IRenderEngine renderEngine,
     VoiceBank voiceBank,
-    IPhonemizer? phonemizer,
     IReadOnlyOrderedMap<string, AutomationConfig> automationConfigs,
     IReadOnlyOrderedMap<string, IPropertyConfig> partProperties,
     IReadOnlyOrderedMap<string, IPropertyConfig> noteProperties) : IVoiceSource
@@ -26,7 +25,7 @@ namespace UtaubaseForTuneLab
 
         public ISynthesisTask CreateSynthesisTask(ISynthesisData data)
         {
-            return new UtauSynthesisTask(data, renderEngine, voiceBank, phonemizer);
+            return new UtauSynthesisTask(data, renderEngine, voiceBank);
         }
 
         public IReadOnlyList<SynthesisSegment<T>> Segment<T>(SynthesisSegment<T> segment) where T : ISynthesisNote

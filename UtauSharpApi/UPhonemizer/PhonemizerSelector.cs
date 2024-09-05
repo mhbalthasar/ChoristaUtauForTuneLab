@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -10,7 +11,21 @@ namespace UtauSharpApi.UPhonemizer
 {
     public class PhonemizerSelector
     {
-        private static List<Type> ExtendedPhonemizer = new List<Type>();
+        private static List<KeyValuePair<string, Type>> PhonemizerList = new List<KeyValuePair<string, Type>>()
+        {
+            PhonemizerKeyPair(typeof(MocaloidPhonemizer)),
+            PhonemizerKeyPair(typeof(PresampCVVCPhonemizer)),
+            PhonemizerKeyPair(typeof(DefaultVCVJapanesePhonemizer)),
+            PhonemizerKeyPair(typeof(DefaultJapanesePhonemizer)),
+            PhonemizerKeyPair(typeof(DefaultPhonemizer)),
+        };
+        private static KeyValuePair<string, Type> PhonemizerKeyPair(Type type)
+        {
+            return new KeyValuePair<string, Type>(
+                type.GetCustomAttribute<PhonemeizerAttribute>().PhonemizerType,
+                type);
+        }
+
         public static void LoadExtendedPhonemizer(string SearchFolder)
         {
             if (!Directory.Exists(SearchFolder)) return;
@@ -23,32 +38,92 @@ namespace UtauSharpApi.UPhonemizer
                 {
                     Assembly ass = Assembly.LoadFrom(dllFile);
                     var types=ass.GetTypes().Where(t=>t.GetInterfaces().Contains(typeof(IPhonemizer)) && !t.IsAbstract);
-                    ExtendedPhonemizer.AddRange(types);
+                    foreach(var type in types)
+                    {
+                        if (type.GetCustomAttribute(typeof(PhonemeizerAttribute), false) != null)
+                        {
+                            PhonemizerList.Add(PhonemizerKeyPair(type));
+                        }
+                    }
                 }
                 catch {; }
             }
         }
 
+        private static object mObjectLocker = new object();//为了防止初始化Phonemizer时候出问题，加线程安全锁
+
         public static IPhonemizer GuessPhonemizer(VoiceBank vb)
         {
-            IPhonemizer curIP;
-            if ((curIP = new MocaloidPhonemizer(vb)).ProcessAble(vb)) return curIP;
-            if ((curIP = new PresampCVVCPhonemizer(vb)).ProcessAble(vb)) return curIP;
-            if ((curIP = new DefaultVCVJapanesePhonemizer()).ProcessAble(vb)) return curIP;
-            if ((curIP = new DefaultJapanesePhonemizer()).ProcessAble(vb)) return curIP;
-            foreach(var cp in ExtendedPhonemizer)
+            string lastKey = GetLastPhonemizer(vb);
+            if (lastKey != "")
             {
-                object? cObj = Activator.CreateInstance(cp);
+                IPhonemizer? lastPhon = BuildPhonemizer(lastKey,vb);
+                if (lastPhon != null) return lastPhon;
+            }
+            IPhonemizer curIP;
+            foreach (var pPair in PhonemizerList)
+            {
+                var cp = pPair.Value;
+                object? cObj = null;
+                lock (mObjectLocker)
+                {
+                    cObj = Activator.CreateInstance(cp, new object[1] { vb });
+                }
                 if (cObj == null) continue;
                 curIP = (IPhonemizer)cObj;
-                if (curIP.ProcessAble(vb)) return curIP;
+                if (curIP.ProcessAble()) 
+                    return curIP;
             }
             return new DefaultPhonemizer();
         }
 
-        public static IPhonemizer BuildPhonemizer(string phonemizer)
+        public static List<string> GetAllPhonemizerKeys()
         {
-            return new DefaultPhonemizer();
+            return PhonemizerList.Select(p => p.Key).Order().ToList();
+        }
+
+        public static IPhonemizer? BuildPhonemizer(string Key,VoiceBank vb)
+        {
+            var phonType =  PhonemizerList.Where(p=>p.Key==Key).Select(p => p.Value).FirstOrDefault();
+            if (phonType == null) return null;
+            object? cObj = null;
+            lock (mObjectLocker)
+            {
+                cObj = Activator.CreateInstance(phonType, new object[1] { vb });
+            }
+            if (cObj == null) return null;
+            return (IPhonemizer)cObj;
+        }
+
+        private static string GetLastPhonemizer(VoiceBank vb)
+        {
+            try
+            {
+                var pth = Path.Combine(vb.vbBasePath, "phonemizer.txt");
+                if (File.Exists(pth))
+                {
+                    return File.ReadAllLines(pth)[0].Trim();
+                }
+            }
+            catch {; }
+            return "";
+        }
+        public static void SaveLastPhonemizer(string key, VoiceBank vb)
+        {
+            try
+            {
+                var pth = Path.Combine(vb.vbBasePath, "phonemizer.txt");
+                if (key == "")
+                {
+                    if (File.Exists(pth)) File.Delete(pth);
+                }
+                else
+                {
+
+                    File.WriteAllLines(pth, new string[1] { key });
+                }
+            }
+            catch {; }
         }
     }
 }

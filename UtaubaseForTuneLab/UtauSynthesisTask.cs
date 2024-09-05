@@ -24,8 +24,7 @@ namespace UtaubaseForTuneLab
     internal class UtauSynthesisTask(
             ISynthesisData synthesisData,
             IRenderEngine renderEngine,
-            VoiceBank voiceBank,
-            IPhonemizer? phonemizer
+            VoiceBank voiceBank
         ) : ISynthesisTask
     {
         public event Action<SynthesisResult>? Complete;
@@ -77,6 +76,11 @@ namespace UtaubaseForTuneLab
         private void StartRenderTask(RenderPart loop = RenderPart.FirstTrack, string? firstTrackAudioFile = null)
         {
             WineHelper wine = new WineHelper();
+
+            IPhonemizer? phonemizer = null;
+            string phonemizerKey=synthesisData.PartProperties.GetString(UtauEngine.PhonemizerSelectorID, "AutoSelect");
+            if (phonemizerKey != "AutoSelect") phonemizer = PhonemizerSelector.BuildPhonemizer(phonemizerKey, voiceBank);
+
             UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop).ProcessPhonemizer(phonemizer);
             List<URenderNote> rPart = uTask.Part.GenerateRendPart(
                 renderEngine.EngineUniqueString,

@@ -9,18 +9,12 @@ using UtauSharpApi.UVoiceBank;
 
 namespace UtauSharpApi.UPhonemizer
 {
+    [Phonemeizer("Whole Word (CV)")]
     public class DefaultPhonemizer : IPhonemizer
     {
-        public List<string> Process(UMidiPart MidiPart, int NoteIndex)
-        {
-            if (NoteIndex>=0 && NoteIndex < MidiPart.Notes.Count)
-            {
-                return new List<string>() { MidiPart.Notes[NoteIndex].Lyric };
-            }
-            return new List<string>();
-        }
-
-        public List<UPhonemeNote> ProcessEx(VoiceBank voiceBank, UMidiPart MidiPart, int NoteIndex)
+        public DefaultPhonemizer() { }
+        public DefaultPhonemizer(VoiceBank voiceBank) { }
+        public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
             if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
             {
@@ -29,7 +23,7 @@ namespace UtauSharpApi.UPhonemizer
             }
             return new List<UPhonemeNote>();
         }
-        public bool ProcessAble(VoiceBank voiceBank)
+        public bool ProcessAble()
         {
             return true;
         }

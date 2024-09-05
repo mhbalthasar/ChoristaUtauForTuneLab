@@ -31,9 +31,9 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 {
     internal static class UtauProject
     {
-        public static UTaskProject ProcessPhonemizer(this UTaskProject uTask,IPhonemizer PerferPhonemizer=null)
+        public static UTaskProject ProcessPhonemizer(this UTaskProject uTask,IPhonemizer? PerferPhonemizer=null)
         {
-            IPhonemizer phonemizer = PerferPhonemizer;
+            IPhonemizer? phonemizer = PerferPhonemizer;
             if (phonemizer == null) phonemizer = uTask.Part.Phonemizer;
             if (phonemizer == null) phonemizer = new DefaultPhonemizer();
             for (int i = 0; i < uTask.Part.Notes.Count; i++)
@@ -45,7 +45,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     };
                     continue;
                 }
-                uTask.Part.Notes[i].PhonemeNotes = phonemizer.ProcessEx(uTask.Part.VoiceBank, uTask.Part, i);
+                uTask.Part.Notes[i].PhonemeNotes = phonemizer.Process(uTask.Part, i);
             }
             return uTask;
         }

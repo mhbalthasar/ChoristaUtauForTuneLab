@@ -28,7 +28,7 @@ namespace UMoresamplerForTuneLab
 
         public const string OpeningID = "Flags:Opening";
         public readonly static NumberConfig OpeningConfig = new() { DefaultValue = 0, MinValue = -1, MaxValue = 1 };
-        public const string PressingID = "Flags:Pressure";
+        public const string PeakcompressorID = "Flags:Peakcompressor";
         public readonly static NumberConfig CompressConfig = new() { DefaultValue = 0.86, MinValue = 0, MaxValue = 1 };
         public const string ConsonantBreathID = "Flags:breath";
         public readonly static NumberConfig ConsonantBreathConfig = new() { DefaultValue = 0, MinValue = -0.2, MaxValue = 1 };
@@ -81,7 +81,7 @@ namespace UMoresamplerForTuneLab
 
         public IReadOnlyOrderedMap<string, IPropertyConfig> PartProperties { get; set; } = new OrderedMap<string, IPropertyConfig>()
         {
-            {PressingID,CompressConfig },
+            {PeakcompressorID,CompressConfig },
             {StretchModeID,StretchModeConfig}
         };
 
@@ -131,7 +131,7 @@ namespace UMoresamplerForTuneLab
             //t flag
             SetFlagType1("t", ToneShiftID, 0, -1200, 1200);
             //Pressing
-            SetFlagType2("P", PressingID, 0.86, 0, 100);
+            SetFlagType2("P", PeakcompressorID, 0.86, 0, 100);
             //Stretch
             {
                 string tmp = data.PartProperties.GetString(StretchModeID, "Auto");

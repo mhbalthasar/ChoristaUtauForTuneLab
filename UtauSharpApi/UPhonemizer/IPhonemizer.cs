@@ -11,8 +11,7 @@ namespace UtauSharpApi.UPhonemizer
 {
     public interface IPhonemizer
     {
-        public List<string> Process(UMidiPart MidiPart, int NoteIndex);
-        public List<UPhonemeNote> ProcessEx(VoiceBank voiceBank,UMidiPart MidiPart, int NoteIndex);
-        public bool ProcessAble(VoiceBank voiceBank);
+        public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex);
+        public bool ProcessAble();
     }
 }

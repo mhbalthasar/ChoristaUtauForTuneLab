@@ -11,15 +11,18 @@ using UtauSharpApi.UVoiceBank;
 
 namespace UtauSharpApi.UPhonemizer
 {
+    [Phonemeizer("Auto CVVC(Presamp.ini)")]
     internal class PresampCVVCPhonemizer : IPhonemizer
     {
         internal static Dictionary<VoiceBank, Presamp.Presamp> loadCache = new Dictionary<VoiceBank, Presamp.Presamp>();
         private bool Able = true;
+        private VoiceBank voiceBank;
         public PresampCVVCPhonemizer(VoiceBank vb)
         {
-            if (!loadCache.ContainsKey(vb)) { Init(vb); }
+            voiceBank = vb;
+            if (!loadCache.ContainsKey(vb)) { Init(); }
         }
-        void Init(VoiceBank voiceBank)
+        void Init()
         {
             string presamp = Path.Combine(voiceBank.vbBasePath, "presamp.ini");
             string presamp2 = Path.Combine(voiceBank.vbBasePath, "presamp.protobuf");
@@ -33,17 +36,12 @@ namespace UtauSharpApi.UPhonemizer
             }
             else { Able = false; }
         }
-        public List<string> Process(UMidiPart MidiPart, int NoteIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool ProcessAble(VoiceBank voiceBank)
+        public bool ProcessAble()
         {
             return (!Able) ? false : loadCache.ContainsKey(voiceBank);
         }
 
-        public List<UPhonemeNote> ProcessEx(VoiceBank voiceBank, UMidiPart MidiPart, int NoteIndex)
+        public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
             double Limit(double Value, double Min, double Max)
             {

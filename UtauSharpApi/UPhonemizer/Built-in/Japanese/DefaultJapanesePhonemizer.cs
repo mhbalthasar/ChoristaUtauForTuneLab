@@ -191,18 +191,10 @@ namespace UtauSharpApi.UPhonemizer
         }
 
     }
-    public class DefaultJapanesePhonemizer:IPhonemizer
+    [Phonemeizer("Japanese Romaji")]
+    public class DefaultJapanesePhonemizer(VoiceBank voiceBank) :IPhonemizer
     {
-        public List<string> Process(UMidiPart MidiPart, int NoteIndex)
-        {
-            if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
-            {
-                return new List<string>() { DefaultP2JapaneseDict.TransformLyric(MidiPart.Notes[NoteIndex].Lyric) };
-            }
-            return new List<string>();
-        }
-
-        public List<UPhonemeNote> ProcessEx(VoiceBank voiceBank, UMidiPart MidiPart, int NoteIndex)
+        public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
             if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
             {
@@ -212,13 +204,15 @@ namespace UtauSharpApi.UPhonemizer
             }
             return new List<UPhonemeNote>();
         }
-        public bool ProcessAble(VoiceBank voiceBank)
+        public bool ProcessAble()
         {
             if(voiceBank.DefaultLyric== "あ" && voiceBank.FindSymbol("a",60)==null && voiceBank.FindSymbol("u あ", 60)==null) return true;
             return false;
         }
     }
-    public class DefaultVCVJapanesePhonemizer : IPhonemizer
+
+    [Phonemeizer("Japanese VCV")]
+    public class DefaultVCVJapanesePhonemizer(VoiceBank voiceBank) : IPhonemizer
     {
         private static readonly List<string> VowelA = new List<string>() { "あ", "か", "が", "さ", "ざ", "た", "だ", "な", "は", "ば", "ぱ", "ま", "や", "ら", "わ", "うぁ", "きゃ", "ぎゃ", "しゃ", "じゃ", "ちゃ", "つぁ", "てゃ", "ぢゃ", "でゃ", "にゃ", "ひゃ", "ぴゃ", "びゃ", "ふぁ", "みゃ", "りゃ", "ゔぁ", "ア", "カ", "ガ", "サ", "ザ", "タ", "ダ", "ナ", "ハ", "バ", "パ", "マ", "ヤ", "ラ", "ワ", "ウァ", "キャ", "ギャ", "シャ", "ジャ", "チャ", "ツァ", "テャ", "ヂャ", "デャ", "ニャ", "ヒャ", "ピャ", "ビャ", "ファ", "ミャ", "リャ", "ヴァ", "ウぁ", "キゃ", "ギゃ", "シゃ", "ジゃ", "チゃ", "ツぁ", "テゃ", "ヂゃ", "デゃ", "ニゃ", "ヒゃ", "ピゃ", "ビゃ", "フぁ", "ミゃ", "リゃ", "ヴぁ", "くぁ", "ぐぁ", "クぁ", "グぁ", "クァ", "グァ", "づぁ", "ヅぁ", "ヅァ", "ふゃ", "フゃ", "フャ" };
         private static readonly List<string> VowelI = new List<string>() { "い","き","ぎ","し","じ","ち","ぢ","に","ひ","び","ぴ","み","いぃ","り","ゐ","うぃ","すぃ","ずぃ","つぃ","てぃ","でぃ","ふぃ","ゔぃ","イ","キ","ギ","シ","ジ","チ","ヂ","ニ","ヒ","ビ","ピ","ミ","イィ","リ","ヰ","ウィ","スィ","ズィ","ツィ","ティ","ディ","フィ","ヴィ","イぃ","ウぃ","ツぃ","テぃ","デぃ","フぃ","ヴぃ","くぃ","ぐぃ","クぃ","グぃ","クィ","グィ","づぃ","ヅぃ","ヅィ"};
@@ -238,20 +232,8 @@ namespace UtauSharpApi.UPhonemizer
             if (VowelN.Contains(charSymbol)) return "n";
             return "-";
         }
-        public List<string> Process(UMidiPart MidiPart, int NoteIndex)
-        {
-            if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
-            {
-                string Symbol = DefaultP2JapaneseDict.TransformLyric(MidiPart.Notes[NoteIndex].Lyric);
-                string PrevSymbol = (NoteIndex==0 || (MidiPart.Notes[NoteIndex].StartMSec - (MidiPart.Notes[NoteIndex - 1].StartMSec+ MidiPart.Notes[NoteIndex - 1].DurationMSec))>1) ?"R" : DefaultP2JapaneseDict.TransformLyric(MidiPart.Notes[NoteIndex - 1].Lyric);
-                return new List<string>() {
-                    findVowel(PrevSymbol)==""?Symbol:findVowel(PrevSymbol)+" "+Symbol
-                };
-            }
-            return new List<string>();
-        }
 
-        public List<UPhonemeNote> ProcessEx(VoiceBank voiceBank, UMidiPart MidiPart, int NoteIndex)
+        public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
             if (NoteIndex >= 0 && NoteIndex < MidiPart.Notes.Count)
             {
@@ -278,7 +260,7 @@ namespace UtauSharpApi.UPhonemizer
             }
             return new List<UPhonemeNote>();
         }
-        public bool ProcessAble(VoiceBank voiceBank)
+        public bool ProcessAble()
         {
             if (voiceBank.DefaultLyric == "あ" && voiceBank.FindSymbol("u あ", 60) != null)
             {

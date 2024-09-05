@@ -157,12 +157,15 @@ namespace UtauSharpApi.UVoiceBank
                     string[] otoText = File.ReadAllLines(curPath, EncodingUtils.GetEncoding(EncodName));
                     foreach (string otoLine in otoText)
                     {
+                        if (otoLine.Trim().StartsWith("#")) continue;
                         Oto oto = new Oto();
                         oto.BaseDirs.AddRange(otoPathMap[0..(otoPathMap.Length - 1)]);
                         string[] spL1 = otoLine.Split('=');
+                        if (spL1.Length < 2) continue;
                         oto.Wav = spL1[0];
                         string otoLabel = spL1[1];
                         string[] spL2 = otoLabel.Split(',');
+                        if (spL2.Length < 6) continue;
 
                         //LP,FL,RP,PR,OV
                         oto.Alias = spL2[0];

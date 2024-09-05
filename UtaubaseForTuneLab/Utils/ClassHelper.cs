@@ -23,5 +23,16 @@ namespace UtaubaseForTuneLab.Utils
             }
             return map;
         }
+
+        public static List<T> InsertList<T>(this List<T> list,T item,int index = 0)
+        {
+            list.Insert(index, item);
+            return list;
+        }
+        public static List<T> AppendList<T>(this List<T> list, T item)
+        {
+            list.Append(item);
+            return list;
+        }
     }
 }

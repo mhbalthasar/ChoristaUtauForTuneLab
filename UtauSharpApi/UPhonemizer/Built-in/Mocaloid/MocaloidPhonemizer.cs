@@ -12,6 +12,7 @@ using ProtoBuf.WellKnownTypes;
 
 namespace UtauSharpApi.UPhonemizer
 {
+    [Phonemeizer("Auto Mocaloid")]
     internal class MocaloidPhonemizer : IPhonemizer
     {
         internal class MocaloidCache
@@ -31,11 +32,13 @@ namespace UtauSharpApi.UPhonemizer
         }
         internal static Dictionary<VoiceBank, MocaloidCache> loadCache = new Dictionary<VoiceBank, MocaloidCache>();
         private bool Able = true;
+        private VoiceBank voiceBank;
         public MocaloidPhonemizer(VoiceBank vb)
         {
-            if (!loadCache.ContainsKey(vb)) { Init(vb); }
+            voiceBank = vb;
+            if (!loadCache.ContainsKey(vb)) { Init(); }
         }
-        void Init(VoiceBank voiceBank)
+        void Init()
         {
             string g2paToml = Path.Combine(voiceBank.vbBasePath, "g2pa_map.toml");
             string mocaloidIni = Path.Combine(voiceBank.vbBasePath, "mocaloid.ini");
@@ -49,17 +52,12 @@ namespace UtauSharpApi.UPhonemizer
             }
             else { Able = false; }
         }
-        public List<string> Process(UMidiPart MidiPart, int NoteIndex)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool ProcessAble(VoiceBank voiceBank)
+        public bool ProcessAble()
         {
             return (!Able) ? false : loadCache.ContainsKey(voiceBank);
         }
 
-        public List<UPhonemeNote> ProcessEx(VoiceBank voiceBank, UMidiPart MidiPart, int NoteIndex)
+        public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
             double Limit(double Value, double Min, double Max)
             {

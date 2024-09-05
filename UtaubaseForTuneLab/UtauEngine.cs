@@ -13,7 +13,8 @@ namespace UtaubaseForTuneLab
         public readonly static NumberConfig MinSegmentSpacingConfig = new() { DefaultValue = 0, MinValue = 0, MaxValue = 2 };
         public const string PitchTransitionTimeID = "PitchTransitionTime";
         public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
-        
+        public const string PhonemizerSelectorID = "Phonemizer";
+
         public const string PrefixPairID = "PrefixPair";
         public const string VelocityID = "Velocity";
         public readonly static NumberConfig VelocityConfig = new() { DefaultValue = 1, MinValue = 0, MaxValue = 2};
@@ -61,7 +62,6 @@ namespace UtaubaseForTuneLab
             return new UtauVoiceSource(
                 RenderEngine,
                 VoiceBanks[id],
-                PhonemizerSelector.GuessPhonemizer(VoiceBanks[id]),
                 new OrderedMap<string, AutomationConfig>()
                 {
                     {XTrack_XPrefixKeyID, XTrack_XPrefixKeyConfig },
@@ -75,7 +75,8 @@ namespace UtaubaseForTuneLab
                 }.Combine(RenderEngine.AutomationConfigs, false),
                 new OrderedMap<string, IPropertyConfig>() {
                     { PitchTransitionTimeID, PitchTransitionTimeConfig},
-                    { MinSegmentSpacingID, MinSegmentSpacingConfig}
+                    { MinSegmentSpacingID, MinSegmentSpacingConfig},
+                    { PhonemizerSelectorID,new EnumConfig(PhonemizerSelector.GetAllPhonemizerKeys().InsertList("AutoSelect",0))}
                 }.Combine(RenderEngine.PartProperties)
                  .Combine(AudioEffect.AudioEffectHelper.PartProperties),
                 new OrderedMap<string, IPropertyConfig>() {
