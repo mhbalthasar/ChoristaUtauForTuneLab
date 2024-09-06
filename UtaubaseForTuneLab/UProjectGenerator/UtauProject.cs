@@ -59,6 +59,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
         }
         public static UTaskProject ProcessPhonemizer(this UTaskProject uTask,IPhonemizer? PerferPhonemizer=null)
         {
+            double minR = 120;//Hardcode As same as GenerateRenderPart
             IPhonemizer? phonemizer = PerferPhonemizer;
             if (phonemizer == null) phonemizer = uTask.Part.Phonemizer;
             if (phonemizer == null) phonemizer = new DefaultPhonemizer();
@@ -78,13 +79,21 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 }
                 if(Processed.Count== uTask.Part.Notes[i].PhonemeNotes.Count)
                 {
+                    var TailFix = (
+                        uTask.Part.Notes[i].PhonemeNotes.Count==1 //只有一个音素，无论如何都不管尾息（因为自己就是）
+                        || (i< uTask.Part.Notes.Count-1 //非最后一个音符
+                            && uTask.Part.Notes[i+1].StartMSec - uTask.Part.Notes[i].StartMSec <= minR //与后一个音符之间的间隙补偿（大于补偿会产生尾息）
+                           )
+                        )? 0: Processed.Last().SymbolMSec;//尾息修正
+
                     for(int pi=0;pi<Processed.Count;pi++)
                     {
                         if (Processed[pi].Equals(uTask.Part.Notes[i].PhonemeNotes[pi])) continue;
+                        var fixedTailDiff = ((pi != Processed.Count - 2) ? 0 : TailFix);//为尾息前一个音符增加尾息长度
                         Processed[pi] = 
                             new UPhonemeNote(uTask.Part.Notes[i],
                             Processed[pi].Symbol,
-                            uTask.Part.Notes[i].PhonemeNotes[pi].SymbolMSec);
+                            uTask.Part.Notes[i].PhonemeNotes[pi].SymbolMSec + fixedTailDiff);
                     }
                 }
                 uTask.Part.Notes[i].PhonemeNotes = Processed;
