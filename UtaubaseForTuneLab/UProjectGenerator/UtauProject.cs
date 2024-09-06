@@ -26,6 +26,7 @@ using ProtoBuf.Meta;
 using UtaubaseForTuneLab.AudioEffect;
 using UtaubaseForTuneLab.Utils;
 using static UtaubaseForTuneLab.UtauSynthesisTask;
+using NWaves.Filters.Base;
 
 namespace UtaubaseForTuneLab.UProjectGenerator
 {
@@ -36,31 +37,22 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             for (int i = 0; i < uTask.Part.Notes.Count; i++)
             {
                 var obj = uTask.Part.Notes[i].ObjectTag;
-                var sNote = obj is ISynthesisNote ? (ISynthesisNote)obj : null;
-                if (sNote == null) continue;
-                var phonemes=sNote.Phonemes.OrderBy(p=>p.StartTime);
-                var startTime = sNote.StartTime;
-                var endTime = sNote.EndTime;
-                var tEndTime = sNote.EndTime;
+                var sNoteList = obj is List<ISynthesisNote> ? (List<ISynthesisNote>)obj : null;
+                if (sNoteList == null) continue;
+
+                List<SynthesizedPhoneme> phonemeList = new List<SynthesizedPhoneme>();
+                foreach (var note in sNoteList)
                 {
-                    var tNote = sNote;
-                    while (tNote.Next != null && tNote.Lyric == "-")
-                    {
-                        tNote = tNote.Next;
-                        tEndTime = tNote.EndTime;
-                    }
+                    phonemeList.AddRange(note.Phonemes);
                 }
-                if (tEndTime != endTime)
+                phonemeList = phonemeList.OrderBy(p => p.EndTime).ToList();
+                var phonemes = phonemeList.OrderBy(p => p.StartTime);
+                uTask.Part.Notes[i].PhonemeNotes = new List<UPhonemeNote>();
+                for(int pi=0; pi < phonemeList.Count; pi++)
                 {
-                    //LinkedNote
-                }
-                else
-                {
-                    uTask.Part.Notes[i].PhonemeNotes = new List<UPhonemeNote>();
-                    foreach (var phoneme in phonemes)
-                    {
-                        uTask.Part.Notes[i].PhonemeNotes.Add(new UPhonemeNote(uTask.Part.Notes[i], phoneme.Symbol, (phoneme.EndTime - phoneme.StartTime) * 1000.0));
-                    }
+                    var phoneme = phonemeList[pi];
+                    var phonemeEnd = pi < phonemeList.Count - 1 ? phonemeList[pi + 1].StartTime : phonemeList.Last().EndTime;
+                    uTask.Part.Notes[i].PhonemeNotes.Add(new UPhonemeNote(uTask.Part.Notes[i], phoneme.Symbol, (phonemeEnd - phoneme.StartTime) * 1000.0));
                 }
             }
             return uTask;
@@ -125,6 +117,8 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     double newEnd = (note.EndTime - baseStart) * 1000.0 + emptyTime;
                     double newLen = newEnd - mPart.Notes[mPart.Notes.Count - 1].StartMSec;//延长;
                     if (newLen > 0) mPart.Notes[mPart.Notes.Count - 1].DurationMSec = newLen;
+                    var synthList=mPart.Notes[mPart.Notes.Count - 1].ObjectTag is List<ISynthesisNote> ? (List<ISynthesisNote>) mPart.Notes[mPart.Notes.Count - 1].ObjectTag : null;
+                    if(synthList!=null)synthList.Add(note);
                 }
                 else
                 {
@@ -145,7 +139,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     uNote.Velocity=MathUtils.RoundLimit(note.Properties.GetDouble(UtauEngine.VelocityID,1)*100.0,0,200);
                     uNote.StartMSec = (note.StartTime - baseStart) * 1000.0 + emptyTime;
                     uNote.DurationMSec = note.Duration() * 1000.0;
-                    uNote.ObjectTag = note;
+                    uNote.ObjectTag = new List<ISynthesisNote>() { note };
                     if (uNote.DurationMSec > 0) mPart.Notes.Add(uNote);
                 }
             }
@@ -239,23 +233,38 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     if (rNote.Attributes.IsRest) continue;
                     double startMs = baseStart + rNote.StartMSec - emptyTime;
                     double endMs = rNote.DurationMSec + startMs;
-                    ISynthesisNote? kNote = (ISynthesisNote?)rNote.Parent.Parent.ObjectTag;
-                    var kCount = rNote.Parent.Parent.PhonemeNotes.Count;
+                    var kNoteList = rNote.Parent.Parent.ObjectTag is List<ISynthesisNote> ? (List<ISynthesisNote>)rNote.Parent.Parent.ObjectTag : null;
 
-                    if (!ret.ContainsKey(kNote))
+                    double startTime = startMs / 1000.0;
+                    double endTime = endMs / 1000.0;
+                    foreach (var kNote in kNoteList)
                     {
-                        ret.Add(kNote, new SynthesizedPhoneme[kCount]);
-                        retCount.Add(kNote, 0);
+                        if (kNote.StartTime > startTime) break;
+                        if (kNote.EndTime < startTime) continue;
+
+                        //ISynthesisNote? kNote = (ISynthesisNote?)rNote.Parent.Parent.ObjectTag;
+                        var kCount = rNote.Parent.Parent.PhonemeNotes.Count;
+
+                        if (!ret.ContainsKey(kNote))
+                        {
+                            ret.Add(kNote, new SynthesizedPhoneme[kCount]);
+                            retCount.Add(kNote, 0);
+                        }
+
+                        ret[kNote][retCount[kNote]] = new SynthesizedPhoneme()
+                        {
+                            StartTime = startMs / 1000.0,
+                            EndTime = endMs / 1000.0,
+                            Symbol = rNote.Parent.Symbol
+                        };
+
+                        retCount[kNote]++;
                     }
-
-                    ret[kNote][retCount[kNote]] = new SynthesizedPhoneme()
-                    {
-                        StartTime = startMs / 1000.0,
-                        EndTime = endMs / 1000.0,
-                        Symbol = rNote.Parent.Symbol
-                    };
-
-                    retCount[kNote]++;
+                }
+                foreach(var kv in ret)
+                {
+                    var l = (kv.Value.Where(p => p.StartTime > 0 && p.EndTime > 0)).ToArray();
+                    if (kv.Value.Length != l.Length) ret[kv.Key] = l;
                 }
                 return ret;
             }
