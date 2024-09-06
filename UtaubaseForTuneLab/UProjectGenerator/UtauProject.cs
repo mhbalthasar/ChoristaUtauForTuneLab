@@ -80,11 +80,9 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 if(Processed.Count== uTask.Part.Notes[i].PhonemeNotes.Count)
                 {
                     var TailFix = (
-                        uTask.Part.Notes[i].PhonemeNotes.Count==1 //只有一个音素，无论如何都不管尾息（因为自己就是）
-                        || (i< uTask.Part.Notes.Count-1 //非最后一个音符
-                            && uTask.Part.Notes[i+1].StartMSec - uTask.Part.Notes[i].StartMSec <= minR //与后一个音符之间的间隙补偿（大于补偿会产生尾息）
-                           )
-                        )? 0: Processed.Last().SymbolMSec;//尾息修正
+                        uTask.Part.Notes[i].PhonemeNotes.Count == 1 //只有一个音素，无论如何都不管尾息（因为自己就是）
+                        || (i < uTask.Part.Notes.Count - 1)
+                        ) ? 0 : Processed.Last().SymbolMSec;//尾息修正
 
                     for(int pi=0;pi<Processed.Count;pi++)
                     {
