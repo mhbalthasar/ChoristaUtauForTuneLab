@@ -81,7 +81,9 @@ namespace UtaubaseForTuneLab
             string phonemizerKey=synthesisData.PartProperties.GetString(UtauEngine.PhonemizerSelectorID, "AutoSelect");
             if (phonemizerKey != "AutoSelect") phonemizer = PhonemizerSelector.BuildPhonemizer(phonemizerKey, voiceBank);
 
-            UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop).ProcessPhonemizer(phonemizer);
+            UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop)
+                .ProcessSynthesizedPhonemes()
+                .ProcessPhonemizer(phonemizer);
             List<URenderNote> rPart = uTask.Part.GenerateRendPart(
                 renderEngine.EngineUniqueString,
                 new Func<URenderNote, URenderNote>((iNote) =>

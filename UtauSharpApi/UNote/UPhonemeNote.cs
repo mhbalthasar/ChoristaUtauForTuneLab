@@ -24,6 +24,16 @@ namespace UtauSharpApi.UNote
             Symbol = symbol;
             SymbolMSec = symbolDurMs;
         }
+        public override bool Equals(object? obj)
+        {
+            if(obj is UPhonemeNote)
+            {
+                var flags = (((UPhonemeNote)obj).Symbol == Symbol)
+                    && (((UPhonemeNote)obj).SymbolMSec == SymbolMSec);
+                return flags;
+            }
+            return this == obj;
+        }
 
         public string Symbol { get; private set; } = "R";
         public double SymbolMSec { get; set; } = -1;

@@ -31,6 +31,40 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 {
     internal static class UtauProject
     {
+        public static UTaskProject ProcessSynthesizedPhonemes(this UTaskProject uTask)
+        {
+            for (int i = 0; i < uTask.Part.Notes.Count; i++)
+            {
+                var obj = uTask.Part.Notes[i].ObjectTag;
+                var sNote = obj is ISynthesisNote ? (ISynthesisNote)obj : null;
+                if (sNote == null) continue;
+                var phonemes=sNote.Phonemes.OrderBy(p=>p.StartTime);
+                var startTime = sNote.StartTime;
+                var endTime = sNote.EndTime;
+                var tEndTime = sNote.EndTime;
+                {
+                    var tNote = sNote;
+                    while (tNote.Next != null && tNote.Lyric == "-")
+                    {
+                        tNote = tNote.Next;
+                        tEndTime = tNote.EndTime;
+                    }
+                }
+                if (tEndTime != endTime)
+                {
+                    //LinkedNote
+                }
+                else
+                {
+                    uTask.Part.Notes[i].PhonemeNotes = new List<UPhonemeNote>();
+                    foreach (var phoneme in phonemes)
+                    {
+                        uTask.Part.Notes[i].PhonemeNotes.Add(new UPhonemeNote(uTask.Part.Notes[i], phoneme.Symbol, (phoneme.EndTime - phoneme.StartTime) * 1000.0));
+                    }
+                }
+            }
+            return uTask;
+        }
         public static UTaskProject ProcessPhonemizer(this UTaskProject uTask,IPhonemizer? PerferPhonemizer=null)
         {
             IPhonemizer? phonemizer = PerferPhonemizer;
@@ -38,16 +72,30 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             if (phonemizer == null) phonemizer = new DefaultPhonemizer();
             for (int i = 0; i < uTask.Part.Notes.Count; i++)
             {
+                List<UPhonemeNote> Processed;
                 if(uTask.Part.Notes[i].Lyric.StartsWith(".") || uTask.Part.Notes[i].Lyric.StartsWith(".."))
                 {
                     var newLyric = uTask.Part.Notes[i].Lyric.Substring(1);
                     newLyric=newLyric.StartsWith(".")? newLyric.Substring(1):newLyric;
-                    uTask.Part.Notes[i].PhonemeNotes=new List<UPhonemeNote>() {
+                    Processed = new List<UPhonemeNote>() {
                         new UPhonemeNote(uTask.Part.Notes[i],newLyric,-1)
                     };
-                    continue;
+                }else
+                {
+                    Processed = phonemizer.Process(uTask.Part, i);
                 }
-                uTask.Part.Notes[i].PhonemeNotes = phonemizer.Process(uTask.Part, i);
+                if(Processed.Count== uTask.Part.Notes[i].PhonemeNotes.Count)
+                {
+                    for(int pi=0;pi<Processed.Count;pi++)
+                    {
+                        if (Processed[pi].Equals(uTask.Part.Notes[i].PhonemeNotes[pi])) continue;
+                        Processed[pi] = 
+                            new UPhonemeNote(uTask.Part.Notes[i],
+                            Processed[pi].Symbol,
+                            uTask.Part.Notes[i].PhonemeNotes[pi].SymbolMSec);
+                    }
+                }
+                uTask.Part.Notes[i].PhonemeNotes = Processed;
             }
             return uTask;
         }
