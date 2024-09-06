@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Ude;
 using UtauSharpApi.UNote;
@@ -536,7 +537,37 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             public bool bVCLength = false;
             public void Parse(Presamp sMap, PresampNote note)
             {
-                string Symbol = note==null?"R":note.Symbol;
+                string Symbol = note == null ? "R" : note.Symbol;
+                if(Symbol.StartsWith(".."))
+                {
+                    //ThisType is customSymbol,Copy Full Symbol
+                    Symbol = Symbol.Substring(2);
+                }
+                else if(Symbol.StartsWith("."))
+                {
+                    //ThisType is customSymbol,CV is Same,VC is Splited
+                    var newSymbol = Symbol.Substring(1);
+                    var splitChar = sMap.GetAliasFromat("VCPAD")[0];
+                    var sPA=newSymbol.Split(splitChar);
+                    if (sPA.Length > 1)
+                    {
+                        var n_v = sPA[0];
+                        var n_c_cv = sPA[1];
+                        if (n_v == "-")
+                            Symbol = n_c_cv;
+                        else
+                        {
+                            v = n_v;
+                            V = n_v;
+                            c = "";
+                            CV = Symbol;
+                            return;
+                        }
+                    }else
+                    {
+                        Symbol = newSymbol;
+                    }
+                }
                 {
                     //DoReplace
                     var repSymbol = sMap.Replace.Find(p => p.Source == Symbol);
@@ -592,8 +623,9 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             return ret;
         }
 
-        public List<PresampNote> SplitCVVC(UMidiNote curUNote, UMidiNote? nextUNote, UMidiNote? nextNextUNote)
+        public List<PresampNote> SplitCVVC(UMidiNote prevUNote, UMidiNote curUNote, UMidiNote? nextUNote, UMidiNote? nextNextUNote)
         {
+            PresampNote? prevNote = prevUNote == null ? null : new PresampNote(prevUNote);
             PresampNote currentNote = new PresampNote(curUNote);
             PresampNote? nextNote = nextUNote == null ? null : new PresampNote(nextUNote);
             PresampNote? nextNextNote = nextNextUNote == null ? null : new PresampNote(nextNextUNote);
@@ -644,6 +676,15 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             //CV
             string cvSymbol = GetSymbolString("CV", cn, nn);
             //Oto? cvOto = vb.FindSymbol(cvSymbol, NoteNumber);
+            if (prevNote == null)
+            {
+                var vcvBeginSymbol = "-" + sMap.GetAliasFromat("VCVPAD") + cvSymbol;
+                var vcvTry = vb.FindSymbol(vcvBeginSymbol, 60);
+                if (vcvTry != null)
+                {
+                    cvSymbol = vcvBeginSymbol;
+                }
+            }
             double cvLen = currentNote.Duration;
             //VC
             string vcSymbol = GetSymbolString("VC", cn, nn);
@@ -696,5 +737,5 @@ namespace UtauSharpApi.UPhonemizer.Presamp
             });
             return ret;
         }
-    }
+   }
 }

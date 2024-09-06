@@ -9,6 +9,7 @@ using UtauSharpApi.UNote;
 using UtauSharpApi.UTask;
 using UtauSharpApi.UVoiceBank;
 using ProtoBuf.WellKnownTypes;
+using UtauSharpApi.UPhonemizer.Presamp;
 
 namespace UtauSharpApi.UPhonemizer
 {
@@ -81,6 +82,35 @@ namespace UtauSharpApi.UPhonemizer
                     if (nextNote != null)
                     {
                         if (nextNote.Lyric == "R") { NextC = "R"; NextCV = "R"; }
+                        else if (nextNote.Lyric.StartsWith(".."))
+                        {
+                            NextC = "";
+                            NextCV = "";
+                        }
+                        else if (nextNote.Lyric.StartsWith("."))
+                        {
+                            NextC = "";
+                            NextCV = "";
+                            var nextL = nextNote.Lyric.Substring(1);
+                            var nextA = nextL.Split(" ");
+                            if (nextA.Length > 1)
+                            {
+                                NextC = nextA[0];
+                                NextCV = nextA[0];
+                            }
+                            else
+                            {
+                                if (MCache.G2PA_Table.TryGetValue(nextL, out object gr))
+                                {
+                                    TomlArray pnArray = (TomlArray)gr;
+                                    var gc = (string)pnArray[0];
+                                    var gcv = (string)pnArray[1];
+                                    var gv = (string)pnArray[2];
+                                    NextC = gc;
+                                    NextCV = gcv;
+                                }
+                            }
+                        }
                         else if (MCache.G2PA_Table.TryGetValue(nextNote.Lyric, out object gr))
                         {
                             TomlArray pnArray = (TomlArray)gr;
@@ -114,6 +144,11 @@ namespace UtauSharpApi.UPhonemizer
                             CVLen = curNote.DurationMSec;
                             VCLen = Limit(CVLen * 0.2, 0, 80);
                         }
+                        else if(NextCV=="")
+                        {
+                            CVLen = curNote.DurationMSec;
+                            VCLen = 0;
+                        }
                         else
                         {
                             Oto? nextCVOto = voiceBank.FindSymbol(NextCV, nextNote==null?curNote.PrefixKeyNumber:nextNote.PrefixKeyNumber);
@@ -139,7 +174,7 @@ namespace UtauSharpApi.UPhonemizer
                         //CVLen = curNote.DurationMSec - VCLen;
                         ret.Clear();
                         ret.Add(new UPhonemeNote(curNote, CVSymbol,CVLen));
-                        ret.Add(new UPhonemeNote(curNote, VCSymbol,VCLen));
+                        if(VCLen>0)ret.Add(new UPhonemeNote(curNote, VCSymbol,VCLen));
                     }
                 }
             }

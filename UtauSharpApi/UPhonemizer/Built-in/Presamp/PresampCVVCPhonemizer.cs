@@ -54,13 +54,14 @@ namespace UtauSharpApi.UPhonemizer
             {
                 var MCache = loadCache[voiceBank];
 
+                UMidiNote? prevNote = NoteIndex>0?MidiPart.Notes[NoteIndex-1]:null;
                 UMidiNote? curNote = MidiPart.Notes[NoteIndex];
                 UMidiNote? nextNote = (NoteIndex+1)<MidiPart.Notes.Count?MidiPart.Notes[NoteIndex+1]:null;
                 UMidiNote? nextNextNote = (NoteIndex + 2) < MidiPart.Notes.Count ? MidiPart.Notes[NoteIndex + 2] : null;
 
                 Presamp.PresampSpliter sp = new Presamp.PresampSpliter(MCache, voiceBank);
                 {
-                    var splited = sp.SplitCVVC(curNote,nextNote,nextNextNote);
+                    var splited = sp.SplitCVVC(prevNote, curNote, nextNote, nextNextNote);
                     if (splited.Count == 1)
                     {
                         ret.Clear();
