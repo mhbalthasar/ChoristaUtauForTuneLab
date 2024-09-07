@@ -12,7 +12,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\TuneLab.Base\TuneLab.Base.csproj" />
     <ProjectReference Include="..\..\..\TuneLab.Extensions.Voices\TuneLab.Extensions.Voices.csproj" />
-    <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
+    <ProjectReference Include="..\NWaves\NWaves.csproj" />
+    <ProjectReference Include="..\ChoristaUtauApi\ChoristaApi.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,5 +1,4 @@
-﻿using NWaves.Effects;
-using NWaves.Filters.Base;
+﻿
 using ProtoBuf;
 using System;
 using System.Collections.Generic;

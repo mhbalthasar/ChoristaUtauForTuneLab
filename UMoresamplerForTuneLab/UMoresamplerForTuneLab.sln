@@ -7,15 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UMoresamplerForTuneLab", "U
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtaubaseForTuneLab", "..\UtaubaseForTuneLab\UtaubaseForTuneLab.csproj", "{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtauSharpApi", "..\UtauSharpApi\UtauSharpApi.csproj", "{14234800-D625-4F6C-A294-88E893A5D927}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChoristaUtauApi", "..\ChoristaUtauApi\ChoristaUtauApi.csproj", "{14234800-D625-4F6C-A294-88E893A5D927}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TuneLab.Extensions.Voices", "..\..\..\TuneLab.Extensions.Voices\TuneLab.Extensions.Voices.csproj", "{53186A34-0C53-49F3-B916-DE6FBBDBEFF9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TuneLab.Base", "..\..\..\TuneLab.Base\TuneLab.Base.csproj", "{4AB8A94F-9D8A-46A7-922C-52E6EF3ECD71}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleDebugAssert", "..\ConsoleDebugAssert\ConsoleDebugAssert.csproj", "{23BFD37F-7195-4A2F-A653-53514DBECFA7}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NWaves", "..\NWaves\NWaves.csproj", "{663089BD-F1C9-4EEC-A8E8-838AB21DD111}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleDebugAssert", "..\ConsoleDebugAssert\ConsoleDebugAssert.csproj", "{23BFD37F-7195-4A2F-A653-53514DBECFA7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,10 +45,6 @@ Global
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{663089BD-F1C9-4EEC-A8E8-838AB21DD111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{663089BD-F1C9-4EEC-A8E8-838AB21DD111}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{663089BD-F1C9-4EEC-A8E8-838AB21DD111}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{663089BD-F1C9-4EEC-A8E8-838AB21DD111}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

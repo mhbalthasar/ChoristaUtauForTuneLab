@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
+    <ProjectReference Include="..\ChoristaUtauApi\ChoristaApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

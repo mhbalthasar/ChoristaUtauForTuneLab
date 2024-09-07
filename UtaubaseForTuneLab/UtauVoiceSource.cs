@@ -1,8 +1,8 @@
 ﻿using TuneLab.Base.Properties;
 using TuneLab.Base.Structures;
 using TuneLab.Extensions.Voices;
-using UtauSharpApi.UPhonemizer;
-using UtauSharpApi.UVoiceBank;
+using ChoristaUtauApi.UPhonemizer;
+using ChoristaUtauApi.UVoiceBank;
 
 namespace UtaubaseForTuneLab
 {

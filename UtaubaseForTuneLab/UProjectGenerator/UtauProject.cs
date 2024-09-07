@@ -9,16 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 using TuneLab.Base.Science;
 using TuneLab.Extensions.Voices;
-using UtauSharpApi.UNote;
-using UtauSharpApi.UPhonemizer;
-using UtauSharpApi.UTask;
-using UtauSharpApi.UVoiceBank;
+using ChoristaUtauApi.UNote;
+using ChoristaUtauApi.UPhonemizer;
+using ChoristaUtauApi.UTask;
+using ChoristaUtauApi.UVoiceBank;
 using TuneLab.Base.Structures;
 using ProtoBuf.WellKnownTypes;
-using NWaves.FeatureExtractors.Multi;
-using NWaves.Features;
 using TuneLab.Base.Utils;
-using NWaves.FeatureExtractors;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Diagnostics;
 using System.Collections.Concurrent;
@@ -26,7 +23,6 @@ using ProtoBuf.Meta;
 using UtaubaseForTuneLab.AudioEffect;
 using UtaubaseForTuneLab.Utils;
 using static UtaubaseForTuneLab.UtauSynthesisTask;
-using NWaves.Filters.Base;
 
 namespace UtaubaseForTuneLab.UProjectGenerator
 {
@@ -308,7 +304,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 infos.AddRange(rNote.Executors.GetWavtoolArgs("temp.wav"));
             }
             string hash = GetMixedHash(infos);
-            string tmpPath = Path.Combine(Path.GetTempPath(), "UtauSharp", "PartRendered");
+            string tmpPath = Path.Combine(Path.GetTempPath(), "ChoristaUtau", "PartRendered");
             if (!Directory.Exists(tmpPath)) { Directory.CreateDirectory(tmpPath); }
             return Path.Combine(tmpPath, string.Format("{0}.wav", hash));
         }
@@ -482,7 +478,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             var emptyMs = audioData.audio_StartMillsec - partStartTime_second * 1000.0 + UtauProject.HeadPreSequenceMillsectionTime;
             return (int)Math.Round((time_second - emptyMs / 1000.0) * audioData.audio_SampleRate);
         }
-
+        /*
         public static List<List<Point>> WaveAudioDataPitchDetect(TaskAudioData audioInfo)
         {
             List<List<Point>> ret = new List<List<Point>>();
@@ -531,6 +527,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             }
             return wavPitLines;
         }
+        */
         public static void WaitForFileRelease(string filePath)
         {
             bool IsFileLocked(string filePath)

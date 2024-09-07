@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using TuneLab.Base.Science;
 using TuneLab.Extensions.Voices;
 using UtaubaseForTuneLab.UProjectGenerator;
-using UtauSharpApi.UNote;
+using ChoristaUtauApi.UNote;
 
 namespace UtaubaseForTuneLab.Utils
 {

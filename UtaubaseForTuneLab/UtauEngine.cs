@@ -2,8 +2,8 @@
 using TuneLab.Base.Structures;
 using TuneLab.Extensions.Voices;
 using UtaubaseForTuneLab.Utils;
-using UtauSharpApi.UPhonemizer;
-using UtauSharpApi.UVoiceBank;
+using ChoristaUtauApi.UPhonemizer;
+using ChoristaUtauApi.UVoiceBank;
 
 namespace UtaubaseForTuneLab
 {
@@ -123,7 +123,7 @@ namespace UtaubaseForTuneLab
                 Path.Combine(enginePath, "phonemizers"),
                 Path.Combine(UserProfile,".TuneLab","Utau", "phonemizers")
             };
-                foreach (string searchDir in UPhonemizerSearchDir) UtauSharpApi.UPhonemizer.PhonemizerSelector.LoadExtendedPhonemizer(searchDir);
+                foreach (string searchDir in UPhonemizerSearchDir) ChoristaUtauApi.UPhonemizer.PhonemizerSelector.LoadExtendedPhonemizer(searchDir);
             }
             //Load VoiceBanks
             {

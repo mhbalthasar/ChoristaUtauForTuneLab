@@ -1,8 +1,8 @@
 ﻿
 
-using UtauSharpApi.UPhonemizer.Presamp;
-using UtauSharpApi.UTask;
-using UtauSharpApi.UVoiceBank;
+using ChoristaUtauApi.UPhonemizer.Presamp;
+using ChoristaUtauApi.UTask;
+using ChoristaUtauApi.UVoiceBank;
 
 internal class Program
 {
@@ -25,9 +25,9 @@ internal class Program
         var m=new PresampSpliter(p,vb);
         UMidiPart up = new UMidiPart();
         var ap=m.SplitCVVC(
-            new UtauSharpApi.UNote.UMidiNote(up) { Lyric="chang",DurationMSec=120},
-            new UtauSharpApi.UNote.UMidiNote(up) { Lyric = "cheng", DurationMSec = 120 },
-            new UtauSharpApi.UNote.UMidiNote(up) { Lyric="wai",DurationMSec=120}
+            new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric="chang",DurationMSec=120},
+            new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric = "cheng", DurationMSec = 120 },
+            new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric="wai",DurationMSec=120}
 );
         var c = p;
     }
