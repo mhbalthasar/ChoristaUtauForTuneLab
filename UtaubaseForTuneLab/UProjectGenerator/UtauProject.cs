@@ -73,7 +73,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 {
                     Processed = phonemizer.Process(uTask.Part, i);
                 }
-                if(Processed.Count== uTask.Part.Notes[i].PhonemeNotes.Count)
+                if(Processed.Count>0 && Processed.Count== uTask.Part.Notes[i].PhonemeNotes.Count)
                 {
                     var TailFix = (
                         uTask.Part.Notes[i].PhonemeNotes.Count == 1 //只有一个音素，无论如何都不管尾息（因为自己就是）
@@ -134,9 +134,9 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                         string XPrefixKey = note.Properties.GetString(UtauEngine.XTrack_PrefixPairID, "AutoSelect");
                         if (XPrefixKey != "AutoSelect") PrefixKey = XPrefixKey;
                     }
-                    int PrefixOverlayNumber = vbanks.GetPrefixPairNoteNumber(PrefixKey);
+                    var prefixOverlay = vbanks.GetPrefixPairItem(PrefixKey);
                     uNote.NoteNumber = note.Pitch;
-                    uNote.PrefixKey= PrefixOverlayNumber == -1 ? note.Pitch : PrefixOverlayNumber;
+                    uNote.PrefixOverlay = prefixOverlay;
                     uNote.Phonemes = new List<string>();
                     uNote.Flags = renderEngine.GetNoteFlags(data, note,"",loop==RenderPart.SecondTrack);
                     uNote.Velocity=MathUtils.RoundLimit(note.Properties.GetDouble(UtauEngine.VelocityID,1)*100.0,0,200);

@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
-    <ProjectReference Include="..\SyllableG2PApi\SyllableG2PApi.csproj" />
+    <ProjectReference Include="..\ChoristaUtau.Phonemizers\SyllableG2PApi\SyllableG2PApi.csproj" />
   </ItemGroup>
 
 </Project>

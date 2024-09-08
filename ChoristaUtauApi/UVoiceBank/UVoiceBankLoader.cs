@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Ude;
 using ChoristaUtauApi.Utils;
+using System.Security.Cryptography;
 
 namespace ChoristaUtauApi.UVoiceBank
 {
@@ -122,7 +123,7 @@ namespace ChoristaUtauApi.UVoiceBank
             //ReadVBPrefix
             if (File.Exists(Path.Combine(VoiceBankPath, "prefix.map")))
             {
-                Dictionary<string,int> Pairs = new Dictionary<string, int>();
+                Dictionary<string,PrefixItem> Pairs = new Dictionary<string, PrefixItem>();
                 string EncodName = DetectFileEncoding(Path.Combine(VoiceBankPath, "prefix.map"));
                 string[] prefixText = File.ReadAllLines(Path.Combine(VoiceBankPath, "prefix.map"), EncodingUtils.GetEncoding(EncodName));
                 foreach (string line in prefixText)
@@ -138,11 +139,46 @@ namespace ChoristaUtauApi.UVoiceBank
                         string kPair=prefixStr.Trim() + suffixStr.Trim();
                         if(!Pairs.ContainsKey(kPair))
                         {
-                            Pairs.Add(kPair, nn);
+                            Pairs.Add(kPair, vb.GetPrefixItem(nn));
                         }
                     }
                 }
                 vb.SetPrefixPairs(Pairs);
+            }
+
+            //OverlayOU
+            if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
+            {
+                try
+                {
+                    YamlDotNet.Serialization.Deserializer d = new YamlDotNet.Serialization.Deserializer();
+                    Dictionary<object, object> ouMap = (Dictionary<object, object>)d.Deserialize(File.ReadAllText(Path.Combine(VoiceBankPath, "character.yaml")));
+                    if (ouMap.TryGetValue("name", out object nameValue)) vb.Name = (string)nameValue;
+
+                    if (ouMap.TryGetValue("subbanks", out object subPrefix))
+                    {
+                        Dictionary<string, PrefixItem> Pairs = new Dictionary<string, PrefixItem>();
+                        foreach (var obj in (List<object>)subPrefix)
+                        {
+                            Dictionary<object, object> bankMap = (Dictionary<object, object>)obj;
+                            string prefix = "";
+                            string suffix = "";
+                            int pitch = -1;
+                            bool flag = false;
+                            if (bankMap.TryGetValue("prefix", out object oPrefix)) { prefix = (string)oPrefix; flag = true; }
+                            if (bankMap.TryGetValue("suffix", out object oSuffix)) { suffix = (string)oSuffix; flag = true; }
+
+                            if (flag)
+                            {
+                                string kPair = prefix.Trim() + suffix.Trim();
+                                if (kPair.Trim() == "") kPair = "<No Prefix>";
+                                Pairs.Add(kPair, new PrefixItem() { prefix = prefix, suffix = suffix, PitchNumber = pitch });
+                            }
+                        }
+                        if(Pairs.Count>0)vb.SetPrefixPairs(Pairs);
+                    }
+                }
+                catch {; }
             }
 
             //LoadOto

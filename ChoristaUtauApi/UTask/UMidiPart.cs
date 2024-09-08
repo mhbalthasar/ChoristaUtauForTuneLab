@@ -76,7 +76,7 @@ namespace ChoristaUtauApi.UTask
                 foreach (UPhonemeNote ppNote in note.PhonemeNotes)
                 {
                     URenderNote rpNote = new URenderNote(ppNote);
-                    rpNote.RenderOto = VoiceBank.FindSymbol(ppNote.Symbol,note.PrefixKeyNumber);
+                    rpNote.RenderOto = VoiceBank.FindSymbol(ppNote.Symbol,note.GetNotePrefix(VoiceBank));
                     rpNote.VoiceBankPath = VoiceBank.vbBasePath;
                     rpNote.NoteNumber = note.NoteNumber;
                     rpNote.Velocity = note.Velocity;

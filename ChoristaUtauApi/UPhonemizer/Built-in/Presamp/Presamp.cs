@@ -629,8 +629,8 @@ namespace ChoristaUtauApi.UPhonemizer.Presamp
             PresampNote currentNote = new PresampNote(curUNote);
             PresampNote? nextNote = nextUNote == null ? null : new PresampNote(nextUNote);
             PresampNote? nextNextNote = nextNextUNote == null ? null : new PresampNote(nextNextUNote);
-            int nextKeyNumber=nextUNote==null?curUNote.PrefixKeyNumber:nextUNote.PrefixKeyNumber;
-            int currentKeyNumber = curUNote.PrefixKeyNumber;
+            var nextNotePrefix=nextUNote==null?curUNote.GetNotePrefix(vb) : nextUNote.GetNotePrefix(vb);
+            var currentNotePrefix = curUNote.GetNotePrefix(vb);
 
             if (nextNote == null || nextNote.Symbol == "R") return SplitCVVCEndNote(currentNote);
 
@@ -671,7 +671,7 @@ namespace ChoristaUtauApi.UPhonemizer.Presamp
             bool vcLength = sMap.VCLength ? true : nn.bVCLength;
 
             string nextCVSymbol = GetSymbolString("CV", nn, nnn);
-            Oto? nextCVOto = vb.FindSymbol(nextCVSymbol,nextKeyNumber);
+            Oto? nextCVOto = vb.FindSymbol(nextCVSymbol,nextNotePrefix);
 
             //CV
             string cvSymbol = GetSymbolString("CV", cn, nn);
@@ -688,7 +688,7 @@ namespace ChoristaUtauApi.UPhonemizer.Presamp
             double cvLen = currentNote.Duration;
             //VC
             string vcSymbol = GetSymbolString("VC", cn, nn);
-            Oto? vcOto = vb.FindSymbol(vcSymbol, currentKeyNumber);
+            Oto? vcOto = vb.FindSymbol(vcSymbol, currentNotePrefix);
 
             double vcLen = 120;
             if (vcLength)

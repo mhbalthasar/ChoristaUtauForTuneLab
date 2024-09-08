@@ -11,7 +11,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SyllableG2PApi.Syllabler.impl
 {
-    public class EnglishVCCV : BaseSyllabler
+    public class EnglishVCCVSyllabler : BaseSyllabler
     {
         private readonly string[] vowels = "a,@,u,0,8,I,e,3,A,i,E,O,Q,6,o,1ng,9,&,x,1,Y,L,W".Split(",");
         private readonly string[] consonants = "b,ch,d,dh,f,g,h,j,k,l,m,n,ng,p,r,s,sh,t,th,v,w,y,z,zh,dd,hh,sp,st".Split(",");
@@ -166,7 +166,7 @@ namespace SyllableG2PApi.Syllabler.impl
         private readonly string[] stopCs = { "b", "d", "g", "k", "p", "t" };
         private readonly string[] ucvCs = { "r", "l", "w", "y", "f" };
 
-        public EnglishVCCV(Func<string,bool> callbackIsSymbolExists) : base(callbackIsSymbolExists)
+        public EnglishVCCVSyllabler(Func<string,bool> callbackIsSymbolExists) : base(callbackIsSymbolExists)
         {
         }
 

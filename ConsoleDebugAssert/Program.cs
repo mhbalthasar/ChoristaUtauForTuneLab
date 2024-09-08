@@ -31,11 +31,11 @@ internal class Program
             new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric = "cheng", DurationMSec = 120 },
             new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric="wai",DurationMSec=120}
 );*/
-        EnglishVCCV v = new EnglishVCCV(new Func<string, bool>((s) => {
+        EnglishVCCVSyllabler v = new EnglishVCCVSyllabler(new Func<string, bool>((s) => {
             return true;
         }));
-        v.InitDict();
-
+        v.InitDict(true);
+        v.WaitForDictionaryLoaded();
         var ns = new SyllableG2PApi.Syllabler.Syllabler.Note[3]
         {
             new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*0,duration=480,lyric="so" },
@@ -43,7 +43,7 @@ internal class Program
             new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*1,duration=480,lyric="be"  }
         };
 
-        var k = v.SplitSyllable(["don't","be","late","computer"], "so", "", out string error); ;
+        var k = v.SplitSyllable(["oh","dont't","the","computer"], "", "", out string error); ;
 
         var c = "p";
     }

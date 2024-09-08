@@ -12,6 +12,7 @@
     <PackageReference Include="protobuf-net" Version="3.2.30" />
     <PackageReference Include="Tomlyn" Version="0.17.0" />
     <PackageReference Include="Ude.NET" Version="1.0.0" />
+    <PackageReference Include="YamlDotNet" Version="16.1.0" />
   </ItemGroup>
 
 </Project>

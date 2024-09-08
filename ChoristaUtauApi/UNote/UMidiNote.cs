@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ChoristaUtauApi.UTask;
+using ChoristaUtauApi.UVoiceBank;
 
 namespace ChoristaUtauApi.UNote
 {
@@ -16,7 +17,7 @@ namespace ChoristaUtauApi.UNote
         public double StartMSec { get; set; } = 0;
         public double DurationMSec { get; set; } = 0;
         public int NoteNumber { get; set; } = 60;
-        public int PrefixKey { get; set; } = -1;
+        public PrefixItem? PrefixOverlay { get; set; } = null;
         public string Flags { get; set; } = "";
         public int Velocity { get; set; } = 100;
         public object? ObjectTag { get; set; } = null;//BringInformations
@@ -29,6 +30,9 @@ namespace ChoristaUtauApi.UNote
             } 
         }
 
-        public int PrefixKeyNumber { get => PrefixKey <= 12 ? NoteNumber:PrefixKey; }
+        public PrefixItem GetNotePrefix(VoiceBank vb)
+        {
+            return PrefixOverlay == null ? vb.GetPrefixItem(NoteNumber - 12) : PrefixOverlay;
+        }
     }
 }

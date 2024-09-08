@@ -151,7 +151,7 @@ namespace ChoristaUtauApi.UPhonemizer
                         }
                         else
                         {
-                            Oto? nextCVOto = voiceBank.FindSymbol(NextCV, nextNote==null?curNote.PrefixKeyNumber:nextNote.PrefixKeyNumber);
+                            Oto? nextCVOto = voiceBank.FindSymbol(NextCV, nextNote==null?curNote.GetNotePrefix(voiceBank):nextNote.GetNotePrefix(voiceBank));
                             VCLen = 120;
                             {
 

@@ -24,7 +24,7 @@ namespace ChoristaUtauApi.UVoiceBank
         [ProtoMember(1)]
         public string Key { get; set; } = "";
         [ProtoMember(2)]
-        public int PitchNumber { get; set; } = 0;
+        public PrefixItem PrefixItem { get; set; }= new PrefixItem();
     }
 
     [ProtoContract]
@@ -81,12 +81,12 @@ namespace ChoristaUtauApi.UVoiceBank
                 PrefixMap.Add(new PrefixItem() { PitchNumber = NoteNumber, suffix = suffix, prefix = prefix });
             }
         }
-        public void SetPrefixPairs(Dictionary<string,int> Pairs)
+        public void SetPrefixPairs(Dictionary<string, PrefixItem> Pairs)
         {
             PrefixPairs.Clear();
-            foreach(var kv in Pairs)
+            foreach (var kv in Pairs)
             {
-                PrefixPairs.Add(new PrefixPair() { Key = kv.Key, PitchNumber = kv.Value });
+                PrefixPairs.Add(new PrefixPair() { Key = kv.Key, PrefixItem = kv.Value });
             }
         }
 
@@ -94,11 +94,11 @@ namespace ChoristaUtauApi.UVoiceBank
         {
             return PrefixPairs.Select(p => p.Key).ToList();
         }
-        public int GetPrefixPairNoteNumber(string PairKey)
+        public PrefixItem? GetPrefixPairItem(string PairKey)
         {
             PrefixPair? item = PrefixPairs.Where(p => p.Key == PairKey).FirstOrDefault();
-            if (item != null) return item.PitchNumber+12;
-            return -1;
+            if (item != null) return item.PrefixItem;
+            return null;
         }
 
         public void Serialize(string TargetFile)

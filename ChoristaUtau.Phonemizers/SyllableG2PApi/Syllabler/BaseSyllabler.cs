@@ -151,6 +151,11 @@ namespace SyllableG2PApi.Syllabler
             }
         }
 
+        public void WaitForDictionaryLoaded()
+        {
+            if (!hasLoadableDictionaryFile) return;
+            while(!hasDictionary)Task.Delay(50).Wait();
+        }
 
 
 
@@ -466,7 +471,7 @@ namespace SyllableG2PApi.Syllabler
         }
         public virtual List<List<string>> SplitSyllable(List<string>? currentLyrics, List<string>? prevLyrics, List<string>? nextLyrics, out string error)
         {
-            bool noCurrentLyric = (currentLyrics == null || currentLyrics.Count == 0 || (currentLyrics.Count == 1 && (currentLyrics[0] == "R" || prevLyrics[0] == "")));
+            bool noCurrentLyric = (currentLyrics == null || currentLyrics.Count == 0 || (currentLyrics.Count == 1 && (currentLyrics[0] == "R" || currentLyrics[0] == "")));
             bool noPrevLyric = (prevLyrics == null || prevLyrics.Count == 0 || (prevLyrics.Count == 1 && (prevLyrics[0] == "R" || prevLyrics[0] == "")));
             bool noNextLyric = (nextLyrics == null || nextLyrics.Count == 0 || (nextLyrics.Count == 1 && (nextLyrics[0] == "R" || nextLyrics[0]=="")));
             if (noPrevLyric && noCurrentLyric) { error = "NoWords!"; return new List<List<string>>(); }//EMPTY;
