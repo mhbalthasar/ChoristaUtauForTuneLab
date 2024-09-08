@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TuneLab.Base", "..\..\..\Tu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleDebugAssert", "..\ConsoleDebugAssert\ConsoleDebugAssert.csproj", "{23BFD37F-7195-4A2F-A653-53514DBECFA7}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyllableG2PApi", "..\SyllableG2PApi\SyllableG2PApi.csproj", "{55A978F9-CCF3-4BDB-AE6C-FD48D9037F32}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{55A978F9-CCF3-4BDB-AE6C-FD48D9037F32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{55A978F9-CCF3-4BDB-AE6C-FD48D9037F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{55A978F9-CCF3-4BDB-AE6C-FD48D9037F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{55A978F9-CCF3-4BDB-AE6C-FD48D9037F32}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

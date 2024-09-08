@@ -15,10 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Presamp\" />
+    <ProjectReference Include="..\SyllableG2PApi\SyllableG2PApi.csproj" />
   </ItemGroup>
 
 </Project>
