@@ -42,7 +42,9 @@ namespace ChoristaUtauApi.UPhonemizer
                     {
                         if (type.GetCustomAttribute(typeof(PhonemeizerAttribute), false) != null)
                         {
-                            PhonemizerList.Add(PhonemizerKeyPair(type));
+                            var kVP = PhonemizerKeyPair(type);
+                            if (PhonemizerList.Where(p=>p.Key==kVP.Key).Count()>0)continue;//去重
+                            PhonemizerList.Add(kVP);
                         }
                     }
                 }

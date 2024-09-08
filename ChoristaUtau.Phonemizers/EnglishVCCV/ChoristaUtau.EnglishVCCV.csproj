@@ -15,7 +15,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
+    <ProjectReference Include="..\..\ChoristaUtauApi\ChoristaUtauApi.csproj">
+      <Private>False</Private>
+      <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
+    </ProjectReference>
     <ProjectReference Include="..\SyllableG2PApi\SyllableG2PApi.csproj" />
   </ItemGroup>
 
