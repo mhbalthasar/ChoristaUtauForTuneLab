@@ -25,11 +25,6 @@ namespace SyllableG2PApi.Syllabler
             public string phoneme;
 
             /// <summary>
-            /// Music tone of note. C4 = 60.
-            /// </summary>
-            public int pitchNumber;
-
-            /// <summary>
             /// Position of note in project, measured in ticks.
             /// Use timeAxis to convert between ticks and milliseconds .
             /// </summary>
@@ -66,14 +61,6 @@ namespace SyllableG2PApi.Syllabler
             /// previous note duration, i.e. this is container for VC and CC notes
             /// </summary>
             public int duration;
-            /// <summary>
-            /// Tone for VC and CC
-            /// </summary>
-            public int pitchNumber;
-            /// <summary>
-            /// tone for base "vowel" phoneme
-            /// </summary>
-            public int vowelTone;
 
             /// <summary>
             /// 0 if no consonants are taken from previous word;
@@ -128,10 +115,6 @@ namespace SyllableG2PApi.Syllabler
             /// last syllable length, max container for all VC CC C-
             /// </summary>
             public int duration;
-            /// <summary>
-            /// the tone from last syllable, for all ending phonemes
-            /// </summary>
-            public int pitchNumber;
 
             // helpers
             public bool IsEndingV => cc.Length == 0;

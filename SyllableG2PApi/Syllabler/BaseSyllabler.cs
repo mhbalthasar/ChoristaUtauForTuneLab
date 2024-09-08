@@ -5,14 +5,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static SyllableG2PApi.Syllabler.Syllabler;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SyllableG2PApi.Syllabler
 {
-    public abstract class BaseSyllabler(Func<string,int,bool> callbackIsSymbolExists)
+    public abstract class BaseSyllabler(Func<string,bool> callbackIsSymbolExists)
     {
+        public string SingerPath { get; set; } = "";
         protected virtual string GetDictionaryName() => "";
 
         private readonly string[] wordSeparators = new[] { " ", "_" };
@@ -251,8 +253,7 @@ namespace SyllableG2PApi.Syllabler
                 newNotes.Add(new Note()
                 {
                     position = position,
-                    duration = durationFinal,
-                    pitchNumber = lastNote.pitchNumber,
+                    duration = durationFinal
                 });
                 position += durationFinal;
             }
@@ -303,7 +304,6 @@ namespace SyllableG2PApi.Syllabler
             {
                 prevV = symbols[vowelIds.Last()],
                 cc = symbols.Skip(vowelIds.Last() + 1).ToArray(),
-                pitchNumber = notes.Last().pitchNumber,
                 duration = notes.Skip(vowelIds.Length - 1).Sum(n => n.duration),
                 position = notes.Sum(n => n.duration)
             };
@@ -339,10 +339,8 @@ namespace SyllableG2PApi.Syllabler
                     prevV = prevEndingValue.prevV,
                     cc = beginningCc.ToArray(),
                     v = symbols[firstVowelId],
-                    pitchNumber = prevEndingValue.pitchNumber,
                     duration = prevEndingValue.duration,
                     position = 0,
-                    vowelTone = notes[0].pitchNumber,
                     prevWordConsonantsCount = prevEndingValue.cc.Count()
                 };
             }
@@ -354,10 +352,8 @@ namespace SyllableG2PApi.Syllabler
                     prevV = "",
                     cc = symbols.Take(firstVowelId).ToArray(),
                     v = symbols[firstVowelId],
-                    pitchNumber = notes[0].pitchNumber,
                     duration = -1,
-                    position = 0,
-                    vowelTone = notes[0].pitchNumber
+                    position = 0
                 };
             }
 
@@ -380,10 +376,8 @@ namespace SyllableG2PApi.Syllabler
                         prevV = syllables[noteI - 1].v,
                         cc = ccs.ToArray(),
                         v = symbols[lastSymbolI],
-                        pitchNumber = notes[noteI - 1].pitchNumber,
                         duration = notes[noteI - 1].duration,
                         position = position,
-                        vowelTone = notes[noteI].pitchNumber,
                         canAliasBeExtended = true // for all not-first notes is allowed
                     };
                     ccs = new List<string>();
@@ -406,13 +400,13 @@ namespace SyllableG2PApi.Syllabler
         /// </summary>
         protected abstract List<string> ProcessEnding(Ending ending);
 
-        protected bool HasOto(string lyric,int tone) => callbackIsSymbolExists(lyric,tone);
+        protected bool HasOto(string lyric) => callbackIsSymbolExists(lyric);
 
-        protected bool TryAddPhoneme(List<string> sourcePhonemes, int tone, params string[] targetPhonemes)
+        protected bool TryAddPhoneme(List<string> sourcePhonemes, params string[] targetPhonemes)
         {
             foreach (var phoneme in targetPhonemes)
             {
-                if (HasOto(phoneme, tone))
+                if (HasOto(phoneme))
                 {
                     sourcePhonemes.Add(phoneme);
                     return true;
@@ -421,21 +415,45 @@ namespace SyllableG2PApi.Syllabler
             return false;
         }
 
-        private Note[] PRP(List<string>? Lyr)
+        private Note[] LyricPhonemeAnalysis(List<string>? Lyr)
         {
             if (Lyr == null) return new Note[0];
             var nr = new Note[Lyr.Count];
             for (int i = 0; i < Lyr.Count; i++)
             {
+                Match match = Regex.Match(Lyr[i], @"^(.*?)\[(.*?)\]$");
+                string sLyric = Lyr[i];
+                string sPhoneme = "";
+                if (match.Success)
+                {
+                    sLyric = match.Groups[1].Value;
+                    sPhoneme = match.Groups[2].Value;
+                }
                 nr[i] = new Note()
                 {
+                    lyric = sLyric,
+                    phoneme = sPhoneme,
                     position = 480 * i,
-                    duration = 480,
-                    lyric = Lyr[i],
-                    pitchNumber = 60
+                    duration = 480
                 };
             }
             return nr;
+        }
+
+        public List<List<string>> SplitSyllable(List<string> currentLyric, string? prevLyric, string? nextLyric, out string error)
+        {
+            error = "";
+            string? prev = prevLyric;
+            if (currentLyric.Count == 0) return SplitSyllable("", prev, nextLyric, out error);
+            var ret = new List<List<string>>();
+            for(int i = 0; i < currentLyric.Count; i++)
+            {
+                string cur = currentLyric[i];
+                string? next = i + 1 < currentLyric.Count ? currentLyric[i+1]:nextLyric;
+                ret.AddRange(SplitSyllable(cur, prev, next, out error));
+                prev = cur;
+            }
+            return ret;
         }
         public List<List<string>> SplitSyllable(string currentLyric, string? prevLyric, string? nextLyric, out string error)
         {
@@ -457,20 +475,20 @@ namespace SyllableG2PApi.Syllabler
             if (noCurrentLyric)
             { //TAIL
 
-                var ending = MakeEnding(PRP(prevLyrics));
+                var ending = MakeEnding(LyricPhonemeAnalysis(prevLyrics));
                 if (ending == null) return new List<List<string>>();
                 return new List<List<string>>() { ProcessEnding((Ending)ending) };
             }
             else
             {
                 List<List<string>> ret = new List<List<string>>();
-                var syl = MakeSyllables(PRP(currentLyrics), MakeEnding(PRP(prevLyrics)), out error);
+                var syl = MakeSyllables(LyricPhonemeAnalysis(currentLyrics), MakeEnding(LyricPhonemeAnalysis(prevLyrics)), out error);
                 if (syl == null) return ret;
                 foreach (var ly in syl) ret.Add(ProcessSyllable(ly));
                 if (noNextLyric)
                 {
                     //Add Ending
-                    var ending = MakeEnding(PRP(currentLyrics));
+                    var ending = MakeEnding(LyricPhonemeAnalysis(currentLyrics));
                     if(ending!=null) ret.Add(ProcessEnding((Ending)ending));
                 }
                 return ret;

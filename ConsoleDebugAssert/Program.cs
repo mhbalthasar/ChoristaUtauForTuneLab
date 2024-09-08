@@ -31,20 +31,19 @@ internal class Program
             new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric = "cheng", DurationMSec = 120 },
             new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric="wai",DurationMSec=120}
 );*/
-        EnglishVCCV v = new EnglishVCCV(new Func<string, int, bool>((s,t) => {
+        EnglishVCCV v = new EnglishVCCV(new Func<string, bool>((s) => {
             return true;
         }));
         v.InitDict();
 
         var ns = new SyllableG2PApi.Syllabler.Syllabler.Note[3]
         {
-            new SyllableG2PApi.Syllabler.Syllabler.Note(){ pitchNumber=60,position=480*0,duration=480,lyric="so" },
-            new SyllableG2PApi.Syllabler.Syllabler.Note(){ pitchNumber=60,position=480*1,duration=480,lyric="don't"  },
-            new SyllableG2PApi.Syllabler.Syllabler.Note(){ pitchNumber=60,position=480*1,duration=480,lyric="computer"  }
+            new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*0,duration=480,lyric="so" },
+            new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*1,duration=480,lyric="don't"  },
+            new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*1,duration=480,lyric="be"  }
         };
 
-        var k = v.SplitSyllable(["don't","computer"], ["so"], [""], out string error); ;
-
+        var k = v.SplitSyllable(["don't","be","late","computer"], "so", "", out string error); ;
 
         var c = "p";
     }

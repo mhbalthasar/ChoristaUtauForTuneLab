@@ -50,20 +50,16 @@ namespace SyllableG2PApi.Syllabler.impl
         protected override IG2p LoadBaseDictionary()
         {
             var g2ps = new List<IG2p>();
+            var basePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),"Dicts");
 
             // Load dictionary from plugin folder.
-           /* string path = Path.Combine(PluginDir, "envccv.yaml");
-            if (!File.Exists(path))
-            {
-                Directory.CreateDirectory(PluginDir);
-                File.WriteAllBytes(path, Data.Resources.envccv_template);
-            }
+            string path = Path.Combine(basePath, "envccv.yaml");
             g2ps.Add(G2pDictionary.NewBuilder().Load(File.ReadAllText(path)).Build());
-           */
+           
             // Load dictionary from singer folder.
-            /*if (singer != null && singer.Found && singer.Loaded)
+            if (SingerPath!=null && Path.Exists(SingerPath))
             {
-                string file = Path.Combine(singer.Location, "envccv.yaml");
+                string file = Path.Combine(SingerPath, "envccv.yaml");
                 if (File.Exists(file))
                 {
                     try
@@ -72,10 +68,10 @@ namespace SyllableG2PApi.Syllabler.impl
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e, $"Failed to load {file}");
+                        //Log.Error(e, $"Failed to load {file}");
                     }
                 }
-            }*/
+            }
             g2ps.Add(new ArpabetG2p());
             return new G2pFallbacks(g2ps.ToArray());
         }
@@ -170,7 +166,7 @@ namespace SyllableG2PApi.Syllabler.impl
         private readonly string[] stopCs = { "b", "d", "g", "k", "p", "t" };
         private readonly string[] ucvCs = { "r", "l", "w", "y", "f" };
 
-        public EnglishVCCV(Func<string,int, bool> callbackIsSymbolExists) : base(callbackIsSymbolExists)
+        public EnglishVCCV(Func<string,bool> callbackIsSymbolExists) : base(callbackIsSymbolExists)
         {
         }
 
@@ -210,21 +206,21 @@ namespace SyllableG2PApi.Syllabler.impl
                 //you can input multiple instances of the same V with the phonetic hint
                 basePhoneme = $"{prevV}{v}";
 
-                if (!HasOto(basePhoneme, syllable.vowelTone))
+                if (!HasOto(basePhoneme))
                 {
                     basePhoneme = $"{prevV} {v}";
 
                     if (vvExceptions.ContainsKey(prevV) && prevV != v)
                     {
                         var vc = $"{prevV} {vvExceptions[prevV]}";
-                        if (!HasOto(vc, syllable.vowelTone))
+                        if (!HasOto(vc))
                         {
                             vc = $"{prevV}{vvExceptions[prevV]}";
                         }
                         phonemes.Add(vc);
                         basePhoneme = $"{vvExceptions[prevV]}{v}";
                     }
-                    if (!HasOto(basePhoneme, syllable.vowelTone))
+                    if (!HasOto(basePhoneme))
                     {
                         basePhoneme = $"{v}";
                     }
@@ -235,7 +231,7 @@ namespace SyllableG2PApi.Syllabler.impl
             {
                 //if starting CV -> [-CV], fallback to [CV]
                 basePhoneme = $"-{cc[0]}{v}";
-                if (!HasOto(basePhoneme, syllable.pitchNumber))
+                if (!HasOto(basePhoneme))
                 {
                     basePhoneme = $"{cc[0]}{v}";
                 }
@@ -246,7 +242,7 @@ namespace SyllableG2PApi.Syllabler.impl
             {
 
                 basePhoneme = $"_{cc.Last()}{v}";
-                if (!HasOto(basePhoneme, syllable.pitchNumber))
+                if (!HasOto(basePhoneme))
                 {
                     basePhoneme = $"{cc.Last()}{v}";
                 }
@@ -257,14 +253,14 @@ namespace SyllableG2PApi.Syllabler.impl
                 if (cc.Length == 2)
                 {
                     ccv = $"-{cc[0]}{cc[1]}{v}";
-                    if (HasOto(ccv, syllable.pitchNumber))
+                    if (HasOto(ccv))
                     {
                         basePhoneme = ccv;
                     }
                     else if ($"{cc[0]}" == "h")
                     {
                         ccv = $"-hh{cc[1]}{v}";
-                        if (HasOto(ccv, syllable.pitchNumber))
+                        if (HasOto(ccv))
                         {
                             basePhoneme = ccv;
                         }
@@ -274,14 +270,14 @@ namespace SyllableG2PApi.Syllabler.impl
                 if (cc.Length == 3)
                 {
                     ccv = $"-{cc[0]}{cc[1]}{cc[2]}";
-                    if (HasOto(ccv, syllable.pitchNumber))
+                    if (HasOto(ccv))
                     {
                         phonemes.Add(ccv);
                     }
                     else if ($"{cc[0]}" == "h")
                     {
                         ccv = $"-hh{cc[1]}{v}";
-                        if (HasOto(ccv, syllable.pitchNumber))
+                        if (HasOto(ccv))
                         {
                             basePhoneme = ccv;
                         }
@@ -290,17 +286,17 @@ namespace SyllableG2PApi.Syllabler.impl
 
                 // if there still is no match, add [-CC] + [CC] etc.
 
-                if (!HasOto(ccv, syllable.pitchNumber))
+                if (!HasOto(ccv))
                 {
                     // other CCs
                     for (var i = 0; i < lastC; i++)
                     {
                         var currentCc = $"{cc[i]}{cc[i + 1]}";
-                        if (i == 0 && HasOto($"-{cc[i]}{cc[i + 1]}", syllable.pitchNumber))
+                        if (i == 0 && HasOto($"-{cc[i]}{cc[i + 1]}"))
                         {
                             currentCc = $"-{cc[i]}{cc[i + 1]}";
                         }
-                        if (HasOto(currentCc, syllable.pitchNumber))
+                        if (HasOto(currentCc))
                         {
                             phonemes.Add(currentCc);
                         }
@@ -325,7 +321,7 @@ namespace SyllableG2PApi.Syllabler.impl
                         vc = $"1 ng";
                     }
 
-                    if (!HasOto(basePhoneme, syllable.vowelTone))
+                    if (!HasOto(basePhoneme))
                     {
                         if ($"{cc.Last()}" == "ng")
                             basePhoneme = $"_{v}";
@@ -335,7 +331,7 @@ namespace SyllableG2PApi.Syllabler.impl
                     if (lastCPrevWord == 1 && CurrentWordCc.Length == 0)
                         if (($"{PreviousWordCc.Last()}" == "r") || ($"{PreviousWordCc.Last()}" == "l") || ($"{PreviousWordCc.Last()}" == "ng"))
                         {
-                            if (HasOto($"{prevV}{PreviousWordCc.Last()}-", syllable.vowelTone) && HasOto($"{PreviousWordCc.Last()} {v}", syllable.vowelTone))
+                            if (HasOto($"{prevV}{PreviousWordCc.Last()}-") && HasOto($"{PreviousWordCc.Last()} {v}"))
                             {
                                 basePhoneme = $"{PreviousWordCc.Last()} {v}";
                                 vc = $"{prevV}{PreviousWordCc.Last()}-";
@@ -344,7 +340,7 @@ namespace SyllableG2PApi.Syllabler.impl
                                 vc = $"{prevV}{PreviousWordCc.Last()}-";
                         }
 
-                    if (!HasOto(vc, syllable.vowelTone))
+                    if (!HasOto(vc))
                     {
                         if ($"{cc.Last()}" == "ng")
                             vc = $"{prevV}ng";
@@ -384,7 +380,7 @@ namespace SyllableG2PApi.Syllabler.impl
                         if (dontParse)
                         {
                             basePhoneme = $"{ccNoParse}{v}";
-                            if (!HasOto(basePhoneme, syllable.vowelTone))
+                            if (!HasOto(basePhoneme))
                             {
                                 basePhoneme = $"_{v}";
                             }
@@ -413,7 +409,7 @@ namespace SyllableG2PApi.Syllabler.impl
                         }
 
 
-                        if (HasOto(vccExceptions, syllable.vowelTone))
+                        if (HasOto(vccExceptions))
                         {
                             phonemes.Add(vccExceptions);
                         }
@@ -422,7 +418,7 @@ namespace SyllableG2PApi.Syllabler.impl
                         {
                             // opera [9 p] + [pr] + [_ru]
                             parsingCC = $"{cc[0]}{cc[1]}";
-                            if (HasOto(parsingCC, syllable.vowelTone) && lastCPrevWord != 1 && ucvCs.Contains($"{cc[1]}"))
+                            if (HasOto(parsingCC) && lastCPrevWord != 1 && ucvCs.Contains($"{cc[1]}"))
                             {
                                 parsingVCC = $"{prevV} {cc[0]}";
 
@@ -448,19 +444,19 @@ namespace SyllableG2PApi.Syllabler.impl
                             {
                                 // bonehead [On-] + [n h] + [he]
                                 parsingCC = $"{cc[0]} {cc[1]}";
-                                if (!HasOto(parsingCC, syllable.vowelTone))
+                                if (!HasOto(parsingCC))
                                 {
                                     if (ccFallback.ContainsKey(cc[1]))
                                         parsingCC = $"{cc[0]} {ccFallback[cc[1]]}";
                                 }
-                                if (HasOto(parsingCC, syllable.vowelTone))
+                                if (HasOto(parsingCC))
                                 {
-                                    //if (HasOto(parsingCC, syllable.vowelTone) && lastCPrevWord !=2) {
-                                    if (!HasOto(parsingVCC, syllable.vowelTone))
+                                    //if (HasOto(parsingCC) && lastCPrevWord !=2) {
+                                    if (!HasOto(parsingVCC))
                                     {
                                         parsingVCC = CheckVCExceptions(parsingVCC);
                                     }
-                                    if (!HasOto(parsingVCC, syllable.vowelTone))
+                                    if (!HasOto(parsingVCC))
                                     {
                                         parsingVCC = $"{prevV} {cc[0]}";
                                     }
@@ -567,7 +563,7 @@ namespace SyllableG2PApi.Syllabler.impl
                                 basePhoneme = $"{cc[cc.Length - 2]}{cc[cc.Length - 1]}{v}";
                                 vccExceptions = $"1ng {cc[1]}{cc[2]}";
 
-                                if (ing && HasOto(vccExceptions, syllable.vowelTone))
+                                if (ing && HasOto(vccExceptions))
                                 {
                                     vccExceptions = $"1ng {cc[1]}{cc[2]}";
                                     phonemes.Add(vccExceptions);
@@ -583,7 +579,7 @@ namespace SyllableG2PApi.Syllabler.impl
                                         vccExceptions = "1ng-";
                                     }
                                     phonemes.Add(vccExceptions);
-                                    if (HasOto($"{cc[0]} {cc[1]}{cc[2]}", syllable.vowelTone))
+                                    if (HasOto($"{cc[0]} {cc[1]}{cc[2]}"))
                                     {
                                         phonemes.Add($"{cc[0]} {cc[1]}{cc[2]}");
                                         startingC = 2;
@@ -599,7 +595,7 @@ namespace SyllableG2PApi.Syllabler.impl
                             if (phonemes.Count == 0)
                             {
 
-                                if (HasOto(vccExceptions, syllable.vowelTone))
+                                if (HasOto(vccExceptions))
                                 {
                                     phonemes.Add(vccExceptions);
                                 }
@@ -608,10 +604,10 @@ namespace SyllableG2PApi.Syllabler.impl
                                 if (phonemes.Count == 0)
                                 {
                                     parsingVCC = $"{prevV}{cc[0]}-";
-                                    if (!HasOto(parsingVCC, syllable.vowelTone))
+                                    if (!HasOto(parsingVCC))
                                     {
                                         parsingVCC = CheckVCExceptions($"{prevV}{cc[0]}") + "-";
-                                        if (!HasOto(parsingVCC, syllable.vowelTone))
+                                        if (!HasOto(parsingVCC))
                                         {
                                             parsingVCC = $"{prevV} {cc[0]}";
                                         }
@@ -651,16 +647,16 @@ namespace SyllableG2PApi.Syllabler.impl
                             if (i == lastCPrevWord - 2)
                             {
                                 parsingCC = $"{cc[i]}{cc[i + 1]}";
-                                if (!HasOto(parsingCC, syllable.vowelTone))
+                                if (!HasOto(parsingCC))
                                 {
                                     parsingCC = $"{cc[i]}{cc[i + 1]}-";
-                                    if (!HasOto(parsingCC, syllable.vowelTone))
+                                    if (!HasOto(parsingCC))
                                     {
                                         parsingCC = $"{cc[i]} {cc[i + 1]}-";
                                     }
                                 }
                             }
-                            if (!HasOto(parsingCC, syllable.vowelTone) && i != lastCPrevWord - 1)
+                            if (!HasOto(parsingCC) && i != lastCPrevWord - 1)
                             {
 
                                 parsingCC = $"{cc[i]}{cc[i + 1]}";
@@ -680,7 +676,7 @@ namespace SyllableG2PApi.Syllabler.impl
                                 parsingCC = $"nkth";
                             }
 
-                            if (parsingCC != "" && HasOto(parsingCC, syllable.vowelTone))
+                            if (parsingCC != "" && HasOto(parsingCC))
                             {
                                 phonemes.Add(parsingCC);
                             }
@@ -701,11 +697,10 @@ namespace SyllableG2PApi.Syllabler.impl
                 }
             }
 
-            if (!HasOto(basePhoneme, syllable.vowelTone)) { basePhoneme = $"{cc.Last()}{v}"; }
+            if (!HasOto(basePhoneme)) { basePhoneme = $"{cc.Last()}{v}"; }
             phonemes.Add(basePhoneme);
             return phonemes;
         }
-
         protected override List<string> ProcessEnding(Ending ending)
         {
             string[] cc = ending.cc;
@@ -717,7 +712,7 @@ namespace SyllableG2PApi.Syllabler.impl
             if (ending.IsEndingV)
             {
                 // try V- else no ending
-                TryAddPhoneme(phonemes, ending.pitchNumber, $"{v}-");
+                TryAddPhoneme(phonemes, $"{v}-");
 
             }
             else
@@ -754,7 +749,7 @@ namespace SyllableG2PApi.Syllabler.impl
                             vcc = "1nks-";
                         }
 
-                        if (!HasOto(vcc, ending.pitchNumber))
+                        if (!HasOto(vcc))
                         {
                             vcc = $"{cc[0]}{cc[1]}{cc[2]}-";
                             vc = $"{newV}{cc[0]}-";
@@ -763,7 +758,7 @@ namespace SyllableG2PApi.Syllabler.impl
                     }
 
 
-                    if (!HasOto(vcc, ending.pitchNumber) || vcc == "")
+                    if (!HasOto(vcc) || vcc == "")
                     {
                         vcc = $"{newV}{cc[0]}{cc[1]}-";
                         vc = vcc;
@@ -774,7 +769,7 @@ namespace SyllableG2PApi.Syllabler.impl
                         }
                     }
 
-                    if (!HasOto(vcc, ending.pitchNumber))
+                    if (!HasOto(vcc))
                     {
                         vcc = $"{newV}{cc[0]}-";
                         vc = vcc;
@@ -790,9 +785,9 @@ namespace SyllableG2PApi.Syllabler.impl
                         startingC = 1;
                     }
 
-                    if (HasOto(vcc, ending.pitchNumber))
+                    if (HasOto(vcc))
                     {
-                        if (HasOto(vc, ending.pitchNumber))
+                        if (HasOto(vc))
                         {
                             phonemes.Add(vc);
                         }
@@ -809,7 +804,7 @@ namespace SyllableG2PApi.Syllabler.impl
                     for (var i = startingC; i < cc.Length - 1; i++)
                     {
                         var currentCc = $"{cc[i]}{cc[i + 1]}-";
-                        if (!HasOto(currentCc, ending.pitchNumber))
+                        if (!HasOto(currentCc))
                         {
                             currentCc = $"{cc[i]}{cc[i + 1]}";
                         }
@@ -820,12 +815,12 @@ namespace SyllableG2PApi.Syllabler.impl
                             currentCc = $"nkth-";
                         }
 
-                        if (!HasOto(currentCc, ending.pitchNumber))
+                        if (!HasOto(currentCc))
                         {
                             currentCc = $"{cc[i]} {cc[i + 1]}";
 
                         }
-                        if (!HasOto(currentCc, ending.pitchNumber))
+                        if (!HasOto(currentCc))
                         {
                             currentCc = $"{cc[i]}x";
                             if (i == cc.Length - 2)
@@ -836,7 +831,7 @@ namespace SyllableG2PApi.Syllabler.impl
                         }
 
 
-                        if (HasOto(currentCc, ending.pitchNumber))
+                        if (HasOto(currentCc))
                         {
                             phonemes.Add(currentCc);
                         }
