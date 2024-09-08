@@ -79,7 +79,11 @@ namespace UtaubaseForTuneLab
 
             IPhonemizer? phonemizer = null;
             string phonemizerKey=synthesisData.PartProperties.GetString(UtauEngine.PhonemizerSelectorID, "AutoSelect");
-            if (phonemizerKey != "AutoSelect") phonemizer = PhonemizerSelector.BuildPhonemizer(phonemizerKey, voiceBank);
+            if (phonemizerKey != "AutoSelect")
+            {
+                phonemizer = PhonemizerSelector.BuildPhonemizer(phonemizerKey, voiceBank);
+                PhonemizerSelector.SaveLastPhonemizer(phonemizerKey, voiceBank);
+            }
 
             UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop)
                 .ProcessSynthesizedPhonemes()

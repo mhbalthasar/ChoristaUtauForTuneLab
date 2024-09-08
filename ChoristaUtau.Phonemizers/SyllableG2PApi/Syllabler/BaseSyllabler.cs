@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using YamlDotNet.Core;
+using YamlDotNet.Serialization.NodeTypeResolvers;
 using static SyllableG2PApi.Syllabler.Syllabler;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -23,8 +25,8 @@ namespace SyllableG2PApi.Syllabler
         protected IG2p dictionary => dictionaries[GetType()];
 
         private static Dictionary<Type, IG2p> dictionaries = new Dictionary<Type, IG2p>();
-        protected abstract string[] GetVowels();
-        protected abstract string[] GetConsonants();
+        public abstract string[] GetVowels();
+        public abstract string[] GetConsonants();
         protected virtual string[] HandleWordNotFound(string word)
         {
             return null;
@@ -445,32 +447,43 @@ namespace SyllableG2PApi.Syllabler
             return nr;
         }
 
-        public List<List<string>> SplitSyllable(List<string> currentLyric, string? prevLyric, string? nextLyric, out string error)
+        public List<List<string>> SplitSyllable(List<string> currentLyric, string? prevLyric, string? nextLyric,out string nextConnectSymbol, out string error)
         {
             error = "";
+            nextConnectSymbol = "";
             string? prev = prevLyric;
-            if (currentLyric.Count == 0) return SplitSyllable("", prev, nextLyric, out error);
+            if (currentLyric.Count == 0) return SplitSyllable("", prev, nextLyric, out nextConnectSymbol,out error);
             var ret = new List<List<string>>();
             for(int i = 0; i < currentLyric.Count; i++)
             {
                 string cur = currentLyric[i];
                 string? next = i + 1 < currentLyric.Count ? currentLyric[i+1]:nextLyric;
-                ret.AddRange(SplitSyllable(cur, prev, next, out error));
+                ret.AddRange(SplitSyllable(cur, prev, next,out nextConnectSymbol, out error));
                 prev = cur;
             }
             return ret;
         }
-        public List<List<string>> SplitSyllable(string currentLyric, string? prevLyric, string? nextLyric, out string error)
+        public List<List<string>> SplitSyllable(string currentLyric, string? prevLyric, string? nextLyric,out string nextConnectSymbol, out string error)
         {
             return SplitSyllable(
                 [currentLyric],
                 prevLyric == null ? null : [prevLyric],
                 nextLyric == null ? null : [nextLyric],
+                out nextConnectSymbol,
                 out error
                 );
         }
-        public virtual List<List<string>> SplitSyllable(List<string>? currentLyrics, List<string>? prevLyrics, List<string>? nextLyrics, out string error)
+
+        protected virtual int ConnectSplit(Syllable syllable,List<string>? symbols=null, Ending? ending=null)//处理音节第一个音素
         {
+            if (symbols == null) symbols = ProcessSyllable(syllable);
+            var ret=ProcessEnding((Ending)ending).Count;
+            return ret;
+        }
+
+        public virtual List<List<string>> SplitSyllable(List<string>? currentLyrics, List<string>? prevLyrics, List<string>? nextLyrics, out string nextConnectSymbol, out string error)
+        {
+            nextConnectSymbol = "";
             bool noCurrentLyric = (currentLyrics == null || currentLyrics.Count == 0 || (currentLyrics.Count == 1 && (currentLyrics[0] == "R" || currentLyrics[0] == "")));
             bool noPrevLyric = (prevLyrics == null || prevLyrics.Count == 0 || (prevLyrics.Count == 1 && (prevLyrics[0] == "R" || prevLyrics[0] == "")));
             bool noNextLyric = (nextLyrics == null || nextLyrics.Count == 0 || (nextLyrics.Count == 1 && (nextLyrics[0] == "R" || nextLyrics[0]=="")));
@@ -486,15 +499,66 @@ namespace SyllableG2PApi.Syllabler
             }
             else
             {
+                Ending? prevEnding = null;
+                if(!noPrevLyric) prevEnding = MakeEnding(LyricPhonemeAnalysis(prevLyrics));
+                Syllable[]? curSyllable = MakeSyllables(LyricPhonemeAnalysis(currentLyrics), prevEnding, out error);
+                Syllable[]? nextSyllable = null;
+                if(!noNextLyric) nextSyllable=MakeSyllables(LyricPhonemeAnalysis(nextLyrics), MakeEnding(LyricPhonemeAnalysis(currentLyrics)), out error);
+
+                if (curSyllable == null) return new List<List<string>>();//ERRBOUND
+
                 List<List<string>> ret = new List<List<string>>();
-                var syl = MakeSyllables(LyricPhonemeAnalysis(currentLyrics), MakeEnding(LyricPhonemeAnalysis(prevLyrics)), out error);
-                if (syl == null) return ret;
-                foreach (var ly in syl) ret.Add(ProcessSyllable(ly));
-                if (noNextLyric)
+
                 {
-                    //Add Ending
+                    //添加躯体元素
+                    for(int i = 0; i < curSyllable.Length; i++)
+                    {
+                        if (prevEnding != null && i == 0)
+                        {
+                            var curSyl = curSyllable[i];
+                            var cm = ProcessSyllable(curSyl);
+                            int PrevCnt = ConnectSplit(curSyl, cm, prevEnding);
+                            for (int j=0;j< PrevCnt;j++)
+                            {
+                                cm.RemoveAt(0);
+                            }
+                            if(cm.Count>0)
+                            {
+                               ret.Add(cm);
+                            }
+                        }
+                        else
+                        {
+                            ret.Add(ProcessSyllable(curSyllable[i]));
+                        }
+                    }
+                }
+                {
+                    //添加尾部连接
                     var ending = MakeEnding(LyricPhonemeAnalysis(currentLyrics));
-                    if(ending!=null) ret.Add(ProcessEnding((Ending)ending));
+                    if (ending != null)
+                    {
+                        if(noNextLyric || nextSyllable==null) ret.Add(ProcessEnding((Ending)ending));
+                        else
+                        {
+                            var nSyl = nextSyllable[0];
+                            var nextSyl = ProcessSyllable(nSyl);
+                            List<string> tailCC = new List<string>();
+                            int PrevCnt = ConnectSplit(nSyl, nextSyl,ending);
+                            for (int i=0;i<nextSyl.Count;i++)
+                            {
+                                if(i<PrevCnt)
+                                {
+                                    tailCC.Add(nextSyl[i]);
+                                }else
+                                {
+                                    nextConnectSymbol = nextSyl[i];
+                                    break;
+                                }
+                            }
+                            ret.Add(tailCC);
+                        }
+                    }
                 }
                 return ret;
             }

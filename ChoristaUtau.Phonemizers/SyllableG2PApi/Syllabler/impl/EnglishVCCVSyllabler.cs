@@ -22,7 +22,7 @@ namespace SyllableG2PApi.Syllabler.impl
                 .Where(parts => parts.Length == 2)
                 .Where(parts => parts[0] != parts[1])
                 .ToDictionary(parts => parts[0], parts => parts[1]);
-        protected override string[] GetConsonants()
+        public override string[] GetConsonants()
         {
             return consonants;
         }
@@ -41,7 +41,7 @@ namespace SyllableG2PApi.Syllabler.impl
             return "cmudict-0.7b.txt";
         }
 
-        protected override string[] GetVowels()
+        public override string[] GetVowels()
         {
             return vowels;
         }
@@ -177,6 +177,33 @@ namespace SyllableG2PApi.Syllabler.impl
                 vc = vcExceptions[vc];
             }
             return vc;
+        }
+
+        protected override int ConnectSplit(Syllable syllable, List<string>? symbols = null, Ending? ending = null)//处理音节第一个音素
+        {
+            if (symbols == null) symbols = ProcessSyllable(syllable);
+
+            string prevV = syllable.prevV;
+            string[] cc = syllable.cc;
+            string[] PreviousWordCc = syllable.PreviousWordCc;
+            string[] CurrentWordCc = syllable.CurrentWordCc;
+            string v = syllable.v;
+            var lastC = cc.Length - 1;
+            var lastCPrevWord = syllable.prevWordConsonantsCount;
+
+            var ret = ProcessEnding((Ending)ending).Count;
+            if (cc.Length == 0) return ret;
+            int ptr = ret;
+            for(int i=ptr;i<symbols.Count;i++)
+            {
+                var symbol = symbols[i].Replace("-","");
+                if(symbol.EndsWith(cc.Last()+v))
+                {
+                    ret = i;
+                    break;
+                }
+            }
+            return ret;
         }
         protected override List<string> ProcessSyllable(Syllable syllable)
         {

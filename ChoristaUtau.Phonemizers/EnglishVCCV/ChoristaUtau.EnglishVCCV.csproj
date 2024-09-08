@@ -19,7 +19,10 @@
       <Private>False</Private>
       <CopyLocalSatelliteAssemblies>False</CopyLocalSatelliteAssemblies>
     </ProjectReference>
-    <ProjectReference Include="..\SyllableG2PApi\SyllableG2PApi.csproj" />
+    <ProjectReference Include="..\SyllableG2PApi\SyllableG2PApi.csproj">
+      <Private>True</Private>
+      <CopyLocalSatelliteAssemblies>True</CopyLocalSatelliteAssemblies>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

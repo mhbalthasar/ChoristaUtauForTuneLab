@@ -101,19 +101,31 @@ namespace ChoristaUtauApi.UPhonemizer
         {
             try
             {
+                if (savedKey.ContainsKey(vb)) return savedKey[vb];
                 var pth = Path.Combine(vb.vbBasePath, "phonemizer.txt");
                 if (File.Exists(pth))
                 {
-                    return File.ReadAllLines(pth)[0].Trim();
+                    string sk=File.ReadAllLines(pth)[0].Trim();
+                    lock (savedKey)
+                    {
+                        if (!savedKey.ContainsKey(vb)) savedKey.Add(vb, sk);
+                    }
+                    return sk;
                 }
             }
             catch {; }
             return "";
         }
+
+        private static Dictionary<VoiceBank, string> savedKey = new Dictionary<VoiceBank, string>();
         public static void SaveLastPhonemizer(string key, VoiceBank vb)
         {
             try
             {
+                lock (savedKey)
+                {
+                    if (savedKey.ContainsKey(vb) && savedKey[vb] == key) return;
+                }
                 var pth = Path.Combine(vb.vbBasePath, "phonemizer.txt");
                 if (key == "")
                 {
@@ -123,6 +135,10 @@ namespace ChoristaUtauApi.UPhonemizer
                 {
 
                     File.WriteAllLines(pth, new string[1] { key });
+                    lock (savedKey){
+                        if (savedKey.ContainsKey(vb)) savedKey[vb] = key;
+                        else savedKey.Add(vb, key);
+                    }
                 }
             }
             catch {; }

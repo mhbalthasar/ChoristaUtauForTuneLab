@@ -43,7 +43,7 @@ internal class Program
             new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*1,duration=480,lyric="be"  }
         };
 
-        var k = v.SplitSyllable(["oh","dont't","the","computer"], "", "", out string error); ;
+        var k = v.SplitSyllable(["oh","please","don't","be"], "", "", out string error); ;
 
         var c = "p";
     }
