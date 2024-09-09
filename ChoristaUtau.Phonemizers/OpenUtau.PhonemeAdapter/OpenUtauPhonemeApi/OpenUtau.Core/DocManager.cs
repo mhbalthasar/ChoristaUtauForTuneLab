@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using OpenUtau.Api;
 using OpenUtau.Classic;
-using OpenUtau.Core.Lib;
 using OpenUtau.Core.Ustx;
 using OpenUtau.Core.Util;
 using Serilog;

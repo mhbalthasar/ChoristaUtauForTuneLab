@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using OpenUtau.Core;
 using OpenUtau.Core.Ustx;
 
@@ -196,8 +197,8 @@ namespace OpenUtau.Api {
             bpm = timeAxis.GetBpmAtTick(0);
         }
 
-        public string DictionariesPath => PathManager.Inst.DictionariesPath;
-        public string PluginDir => PathManager.Inst.PluginsPath;
+        public string DictionariesPath => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dictionaries");
+        public string PluginDir => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Plugins");
 
         /// <summary>
         /// Utility method to convert tick position to millisecond position.

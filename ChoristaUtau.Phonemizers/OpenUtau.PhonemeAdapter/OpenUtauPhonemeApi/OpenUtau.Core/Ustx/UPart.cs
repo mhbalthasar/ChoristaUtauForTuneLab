@@ -37,8 +37,8 @@ namespace OpenUtau.Core.Ustx {
 
         [YamlMember(Order = 100)]
         public SortedSet<UNote> notes = new SortedSet<UNote>();
-        [YamlMember(Order = 101)]
-        public List<UCurve> curves = new List<UCurve>();
+      //  [YamlMember(Order = 101)]
+      //  public List<UCurve> curves = new List<UCurve>();
 
         [YamlIgnore] public List<UPhoneme> phonemes = new List<UPhoneme>();
         [YamlIgnore] public int phonemesRevision = 0;
@@ -68,11 +68,11 @@ namespace OpenUtau.Core.Ustx {
                 note.AfterLoad(project, track, this);
             }
             Duration = Math.Max(Duration, GetMinDurTick(project));
-            foreach (var curve in curves) {
+          /*  foreach (var curve in curves) {
                 if (project.expressions.TryGetValue(curve.abbr, out var descriptor)) {
                     curve.descriptor = descriptor;
                 }
-            }
+            }*/
         }
 
         public override void Validate(ValidateOptions options, UProject project, UTrack track) {
@@ -172,7 +172,7 @@ namespace OpenUtau.Core.Ustx {
                 trackNo = trackNo,
                 position = position,
                 notes = new SortedSet<UNote>(notes.Select(note => note.Clone())),
-                curves = curves.Select(c => c.Clone()).ToList(),
+                //curves = curves.Select(c => c.Clone()).ToList(),
                 Duration = Duration,
             };
         }
