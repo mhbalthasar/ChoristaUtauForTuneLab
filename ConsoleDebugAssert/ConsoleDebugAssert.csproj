@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
+    <ProjectReference Include="..\ChoristaUtau.Phonemizers\OpenUtau.PhonemeAdapter\OpenUtauBuiltInPhonemizers\OpenUtauBuiltInPhonemizers.csproj" />
   </ItemGroup>
 
 </Project>

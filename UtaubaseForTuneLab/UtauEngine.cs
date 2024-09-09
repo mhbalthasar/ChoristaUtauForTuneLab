@@ -142,8 +142,11 @@ namespace UtaubaseForTuneLab
                     Path.Combine(UserProfile,".TuneLab","Utau", "voicedb"),
                     Path.Combine(UserProfile,"utauvbs")
                 };
-                if(File.Exists(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")))
-                    UVoiceBankSearchPath.AddRange(File.ReadAllLines(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")).Select(p=>p.Trim()).Where(p=>p.Length>0 && Directory.Exists(p)));
+                if (!Directory.Exists(Path.Combine(UserProfile, ".TuneLab", "Utau")))Directory.CreateDirectory(Path.Combine(UserProfile, ".TuneLab", "Utau"));
+                if (File.Exists(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")))
+                    UVoiceBankSearchPath.AddRange(File.ReadAllLines(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")).Select(p => p.Trim()).Where(p => p.Length > 0 && Directory.Exists(p)));
+                else
+                    File.WriteAllText(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt"), "");
 
                 //SearchAllDir
                 List<string> VBPaths = new List<string>();

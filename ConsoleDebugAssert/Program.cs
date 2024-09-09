@@ -3,8 +3,6 @@
 using ChoristaUtauApi.UPhonemizer.Presamp;
 using ChoristaUtauApi.UTask;
 using ChoristaUtauApi.UVoiceBank;
-using SyllableG2PApi.Syllabler.impl;
-using static SyllableG2PApi.Syllabler.Syllabler;
 
 internal class Program
 {
@@ -31,20 +29,6 @@ internal class Program
             new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric = "cheng", DurationMSec = 120 },
             new ChoristaUtauApi.UNote.UMidiNote(up) { Lyric="wai",DurationMSec=120}
 );*/
-        EnglishVCCVSyllabler v = new EnglishVCCVSyllabler(new Func<string, bool>((s) => {
-            return true;
-        }));
-        v.InitDict(true);
-        v.WaitForDictionaryLoaded();
-        var ns = new SyllableG2PApi.Syllabler.Syllabler.Note[3]
-        {
-            new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*0,duration=480,lyric="so" },
-            new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*1,duration=480,lyric="don't"  },
-            new SyllableG2PApi.Syllabler.Syllabler.Note(){ position=480*1,duration=480,lyric="be"  }
-        };
-
-        var k = v.SplitSyllable(["oh","please","don't","be"], "", "", out string error); ;
-
         var c = "p";
     }
 }

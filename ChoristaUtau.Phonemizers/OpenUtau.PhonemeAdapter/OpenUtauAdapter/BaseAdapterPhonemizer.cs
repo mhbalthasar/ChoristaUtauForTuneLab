@@ -35,6 +35,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
                 loadSyllablerCache.Add(voiceBank, adapter);
             }
         }
+        public PhonemizerProcessedAdapter? currentAdapter { get => loadSyllablerCache.ContainsKey(voiceBank)?loadSyllablerCache[voiceBank]:null; }
         #endregion
 
         /// <summary>
@@ -48,7 +49,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
             if (AbleRecord.ContainsKey(voiceBank)) return AbleRecord[voiceBank];
             //看本地有没有自定义字典吧，如果有肯定可以匹配
             string customDict = Path.Combine(voiceBank.vbBasePath, PhonemizerDictFileName);
-            if (File.Exists(customDict))
+            if (PhonemizerDictFileName!="" && File.Exists(customDict))
             {
                 AbleRecord.Add(voiceBank, true);
                 return true;

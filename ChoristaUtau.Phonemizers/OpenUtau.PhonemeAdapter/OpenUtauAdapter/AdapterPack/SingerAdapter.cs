@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
 {
-    public class ChoristaOto(Oto choristaOto,VoiceBank vb) : UOto
+    public class ChoristaOto(Oto choristaOto,VoiceBank vb,string? overrideLyric=null) : UOto
     {
-        public override string Alias => choristaOto.Alias;
+        public override string Alias => overrideLyric == null?choristaOto.Alias:overrideLyric;
         public override string Phonetic => choristaOto.Alias;
         public override string Set => "";
         public override string Color => "";
@@ -130,7 +130,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
             var o=choristaVB.FindSymbol(phoneme, 60);
             oto = null;
             if (o == null) return false;
-            oto = new ChoristaOto(o,choristaVB);
+            oto = new ChoristaOto(o,choristaVB,phoneme);
             return true;
         }
         public override bool TryGetMappedOto(string phoneme, int tone, out UOto oto)
@@ -138,7 +138,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
             var o = choristaVB.FindSymbol(phoneme, tone);
             oto = null;
             if (o == null) return false;
-            oto = new ChoristaOto(o, choristaVB);
+            oto = new ChoristaOto(o, choristaVB, phoneme);
             return true;
         }
         public override bool TryGetMappedOto(string phoneme, int tone, string color, out UOto oto)
@@ -146,7 +146,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
             var o = choristaVB.FindSymbol(phoneme, tone);
             oto = null;
             if (o == null) return false;
-            oto = new ChoristaOto(o, choristaVB);
+            oto = new ChoristaOto(o, choristaVB, phoneme);
             return true;
         }
 

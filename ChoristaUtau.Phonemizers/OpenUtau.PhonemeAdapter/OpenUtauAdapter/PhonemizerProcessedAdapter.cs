@@ -27,6 +27,8 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
     }
     public class PhonemizerProcessedAdapter(Phonemizer openUtauPhonemizer)
     {
+        public bool bNeedPreProcess { get; set; } = false;
+
         private Note? transNote(UMidiNote? note)
         {
             if (note == null) return null;
@@ -48,16 +50,44 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
             }
             return n;
         }
-        private Result? BuildSyllable(UMidiNote?[] grp,out Note? processedNote)
+        
+        private void PreSetupNotes(ref Note? pNote,ref Note? cNote,ref Note? nNote)
+        {
+            if (cNote == null || !bNeedPreProcess) return;
+            //PreProcess
+            List<Note[]> SetupList = new List<Note[]>();
+            if (pNote != null)
+            {
+                if (nNote != null)
+                    SetupList.Add([(Note)pNote, (Note)cNote, (Note)nNote]);
+                else
+                    SetupList.Add([(Note)pNote, (Note)cNote]);
+            }
+            if (nNote != null) SetupList.Add([(Note)cNote, (Note)nNote]); else SetupList.Add([(Note)cNote]);
+            if (nNote != null) SetupList.Add([(Note)nNote]);
+            openUtauPhonemizer.SetUp(SetupList.ToArray(), new OpenUtau.Core.Ustx.UProject(), new OpenUtau.Core.Ustx.UTrack());
+            if (pNote != null)
+            {
+                pNote = SetupList[0][0];
+                cNote = SetupList[1][0];
+            }
+            else cNote = SetupList[0][0];
+            if (nNote != null) nNote = SetupList.Last()[0];
+        }
+        private Result? BuildSyllable(UMidiNote?[] grp, out Note? processedNote)
         {
             var cNote = transNote(grp[1]);
             processedNote = cNote;
             if (cNote == null) return null;
             var pNote = transNote(grp[0]);
             var nNote = transNote(grp[2]);
+
+            PreSetupNotes(ref pNote, ref cNote, ref nNote);
+
             var res = openUtauPhonemizer.Process([(Note)cNote], pNote, nNote, pNote, nNote, pNote == null ? new Note[0] : new Note[1] { (Note)pNote });
             return res;
         }
+        
         public List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
             //Default is Link On NextNote,As Vowel STP;
@@ -77,7 +107,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
                 ];
 
             }
-
+            
             Result? SyllableCurrent = BuildSyllable(GroupCurrent,out Note? ProcessNoteCurrent);
             Result? SyllableNext = BuildSyllable(GroupNext, out Note? ProcessNoteNext);
 

@@ -91,7 +91,7 @@ namespace OpenUtau.Api {
             /// <summary>
             /// Alternate index. The number suffix of duplicate aliases.
             /// </summary>
-            public int? alternate;
+            public int? alternate; 
             /// <summary>
             /// Voice color.
             /// </summary>
@@ -198,7 +198,7 @@ namespace OpenUtau.Api {
         }
 
         public string DictionariesPath => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Dictionaries");
-        public string PluginDir => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Plugins");
+        public string PluginDir => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".TuneLab", "Utau", "phonemizers", "Plugins");
 
         /// <summary>
         /// Utility method to convert tick position to millisecond position.
@@ -255,9 +255,9 @@ namespace OpenUtau.Api {
         /// <param name="singer">The singer.</param>
         /// <returns>Mapped alias.</returns>
         public static string MapPhoneme(string phoneme, int tone, string color, string alt, USinger singer) {
-            if (singer.TryGetMappedOto(phoneme + alt, tone, color, out var otoAlt)) {
+            /*if (singer.TryGetMappedOto(phoneme + alt, tone, color, out var otoAlt)) {
                 return otoAlt.Alias;
-            }
+            }*///注释这个是因为换采样模块不需要它
             if (singer.TryGetMappedOto(phoneme, tone, color, out var oto)) {
                 return oto.Alias;
             }

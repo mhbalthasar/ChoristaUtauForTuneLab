@@ -1,19 +1,17 @@
 ﻿using ChoristaUtauApi.UNote;
-using ChoristaUtauApi.UPhonemizer;
-using ChoristaUtauApi.UPhonemizer.OpenUtauAdapter;
 using ChoristaUtauApi.UPhonemizer.Presamp;
 using ChoristaUtauApi.UTask;
 using ChoristaUtauApi.UVoiceBank;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 
-namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin
+namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.English
 {
 
     [Phonemeizer("[OU]English VCCV")]
-    public class EnglishVCCVPhonemizer : BaseAdapterPhonemizer
+    public class BrazilianPortugueseCVCPhonemizer : BaseAdapterPhonemizer
     {
-        public EnglishVCCVPhonemizer(VoiceBank vb) : base(vb)
+        public BrazilianPortugueseCVCPhonemizer(VoiceBank vb) : base(vb)
         {
         }
 
