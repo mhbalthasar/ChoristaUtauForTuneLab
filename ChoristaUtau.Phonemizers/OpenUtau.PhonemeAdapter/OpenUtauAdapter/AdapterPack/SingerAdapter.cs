@@ -122,34 +122,6 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
 
         private string name;
 
-        public string LocalizedName
-        {
-            get
-            {
-                if (LocalizedNames == null)
-                {
-                    return Found ? Name : $"[Missing] {Name}";
-                }
-                string language = Preferences.Default.SortingOrder;
-                if (language == null)
-                {
-                    language = Preferences.Default.Language;
-                }
-                if (language == string.Empty)
-                { // InvariantCulture
-                    return Found ? Name : $"[Missing] {Name}";
-                }
-                if (LocalizedNames.TryGetValue(language, out var localizedName))
-                {
-                    return Found ? localizedName : $"[Missing] {localizedName}";
-                }
-                else
-                {
-                    return Found ? Name : $"[Missing] {Name}";
-                }
-            }
-        }
-
         public override void EnsureLoaded() { }
         public override void Reload() { }
         public override void Save() { }
@@ -181,7 +153,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
         public override IEnumerable<UOto> GetSuggestions(string text) { return emptyOtos; }
         public override byte[] LoadPortrait() => null;
         public override byte[] LoadSample() => null;
-        public override string ToString() => LocalizedName;
+        public override string ToString() => "";
         public bool Equals(USinger other)
         {
             // Tentative: Since only the singer's Id is recorded in ustx and preferences, singers with the same Id are considered identical.

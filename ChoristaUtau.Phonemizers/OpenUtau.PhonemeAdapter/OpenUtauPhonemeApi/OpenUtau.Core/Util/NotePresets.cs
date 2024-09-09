@@ -14,23 +14,13 @@ namespace OpenUtau.Core.Util {
         }
 
         public static void Save() {
-            try {
-                File.WriteAllText(PathManager.Inst.NotePresetsFilePath,
-                    JsonConvert.SerializeObject(Default, Formatting.Indented),
-                    Encoding.UTF8);
-            } catch (Exception e) {
-                Log.Error(e, "Failed to save note presets.");
-            }
+            ;
         }
 
         private static void Load() {
-            try {
-                if (File.Exists(PathManager.Inst.NotePresetsFilePath)) {
-                    Default = JsonConvert.DeserializeObject<SerializableNotePresets>(
-                        File.ReadAllText(PathManager.Inst.NotePresetsFilePath, Encoding.UTF8));
-                } else {
-                    Reset();
-                }
+            try
+            {
+                Reset();
             } catch (Exception e) {
                 Log.Error(e, "Failed to load prefs.");
                 Default = new SerializableNotePresets();

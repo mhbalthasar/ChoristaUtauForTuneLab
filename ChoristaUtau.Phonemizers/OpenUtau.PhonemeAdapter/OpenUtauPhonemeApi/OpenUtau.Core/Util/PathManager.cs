@@ -14,7 +14,6 @@ namespace OpenUtau.Core {
 
     public class PathManager : SingletonBase<PathManager> {
         public PathManager() {
-            RootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             /*if (OS.IsMacOS()) {
                 string userHome = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
                 DataPath = Path.Combine(userHome, "Library", "OpenUtau");
@@ -62,44 +61,8 @@ namespace OpenUtau.Core {
             }*/
             DataPath=Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         }
-
-        public string RootPath { get; private set; }
         public string DataPath { get; private set; }
-        public string CachePath { get; private set; }
-        public bool HomePathIsAscii { get; private set; }
-        public bool IsInstalled { get; private set; }
-        public string SingersPathOld => Path.Combine(DataPath, "Content", "Singers");
-        public string SingersPath => Path.Combine(DataPath, "Singers");
-        public string AdditionalSingersPath => Preferences.Default.AdditionalSingerPath;
-        public string SingersInstallPath => Preferences.Default.InstallToAdditionalSingersPath
-            && !string.IsNullOrEmpty(Preferences.Default.AdditionalSingerPath)
-                ? AdditionalSingersPath
-                : SingersPath;
-        public string ResamplersPath => Path.Combine(DataPath, "Resamplers");
-        public string WavtoolsPath => Path.Combine(DataPath, "Wavtools");
-        public string DependencyPath => Path.Combine(DataPath, "Dependencies");
         public string PluginsPath => Path.Combine(DataPath, "Plugins");
         public string DictionariesPath => Path.Combine(DataPath, "Dictionaries");
-        public string TemplatesPath => Path.Combine(DataPath, "Templates");
-        public string LogsPath => Path.Combine(DataPath, "Logs");
-        public string LogFilePath => Path.Combine(DataPath, "Logs", "log.txt");
-        public string PrefsFilePath => Path.Combine(DataPath, "prefs.json");
-        public string NotePresetsFilePath => Path.Combine(DataPath, "notepresets.json");
-        public string BackupsPath => Path.Combine(DataPath, "Backups");
-
-        public List<string> SingersPaths {
-            get {
-                var list = new List<string> { SingersPath };
-                if (Directory.Exists(SingersPathOld)) {
-                    list.Add(SingersPathOld);
-                }
-                if (Directory.Exists(AdditionalSingersPath)) {
-                    list.Add(AdditionalSingersPath);
-                }
-                return list.Distinct().ToList();
-            }
-        }
-
-        Regex invalid = new Regex("[\\x00-\\x1f<>:\"/\\\\|?*]|^(CON|PRN|AUX|NUL|COM[0-9]|LPT[0-9]|CLOCK\\$)(\\.|$)|[\\.]$", RegexOptions.IgnoreCase);
     }
 }

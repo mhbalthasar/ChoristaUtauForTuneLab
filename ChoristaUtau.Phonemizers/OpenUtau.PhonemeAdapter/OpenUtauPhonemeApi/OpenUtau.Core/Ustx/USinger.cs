@@ -222,19 +222,6 @@ namespace OpenUtau.Core.Ustx {
                 NotifyPropertyChanged(nameof(OtoDirty));
             }
         }
-        public bool IsFavourite {
-            get => Preferences.Default.FavoriteSingers.Contains(Id);
-            set {
-                if (value) {
-                    if (!Preferences.Default.FavoriteSingers.Contains(Id)) {
-                        Preferences.Default.FavoriteSingers.Add(Id);
-                    }
-                } else {
-                    Preferences.Default.FavoriteSingers.Remove(Id);
-                }
-                Preferences.Save();
-            }
-        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -246,21 +233,7 @@ namespace OpenUtau.Core.Ustx {
 
         public string LocalizedName { 
             get {
-                if(LocalizedNames == null) {
                     return Found ? Name : $"[Missing] {Name}";
-                }
-                string language = Preferences.Default.SortingOrder;
-                if (language == null) {
-                    language = Preferences.Default.Language;
-                }
-                if (language == string.Empty) { // InvariantCulture
-                    return Found ? Name : $"[Missing] {Name}";
-                }
-                if (LocalizedNames.TryGetValue(language, out var localizedName)) {
-                    return Found ? localizedName : $"[Missing] {localizedName}";
-                } else {
-                    return Found ? Name : $"[Missing] {Name}";
-                }
             }
         }
 
