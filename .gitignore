@@ -21,3 +21,10 @@
 /ChoristaUtau.Phonemizers/EnglishVCCV/obj
 /ChoristaUtau.Phonemizers/SyllableG2PApi/bin
 /ChoristaUtau.Phonemizers/SyllableG2PApi/obj
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/.vs
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/OpenUtauAdapter/bin
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/OpenUtauAdapter/obj
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/OpenUtauBuiltInPhonemizers/obj
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/OpenUtauPhonemeApi/.vs
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/OpenUtauPhonemeApi/bin
+/ChoristaUtau.Phonemizers/OpenUtau.PhonemeAdapter/OpenUtauPhonemeApi/obj

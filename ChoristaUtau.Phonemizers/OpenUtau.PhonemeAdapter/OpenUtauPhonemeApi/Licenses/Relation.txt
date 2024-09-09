@@ -1,0 +1,7 @@
+﻿OpenUtauPhonemeApi is a code port from OpenUTAU
+
+Contains the minimal class component code and dependencies that have to exist to make openutau's built-in phonemes work.
+The singer part of the code changed the implementation mode from normal to virtual function in order to adapt the adapter code.
+Above are all references and modification instructions
+
+BALTHASAR

@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UMoresamplerForTuneLab", "UMoresamplerForTuneLab.csproj", "{9F462D86-8617-42AD-BCFB-22F6918031E4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C} = {0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UtaubaseForTuneLab", "..\UtaubaseForTuneLab\UtaubaseForTuneLab.csproj", "{EEE3FE4E-33E9-47B4-9EE6-6A21BFF07BDB}"
 EndProject
@@ -17,9 +20,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleDebugAssert", "..\Co
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtensionPhonemizer", "ExtensionPhonemizer", "{2F22FC0C-77ED-4406-B988-BFD8D962D333}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChoristaUtau.EnglishVCCV", "..\ChoristaUtau.Phonemizers\EnglishVCCV\ChoristaUtau.EnglishVCCV.csproj", "{61882835-11DF-41FD-A5BB-C48547D8DB3D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenUtauPhonemizerAdapter", "OpenUtauPhonemizerAdapter", "{05D3BCF0-CEC7-4111-8C18-03CA41CD169A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyllableG2PApi", "..\ChoristaUtau.Phonemizers\SyllableG2PApi\SyllableG2PApi.csproj", "{5F1AEB38-5267-4BD0-8B93-FC035EA97282}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenUtauPhonemeApi", "..\ChoristaUtau.Phonemizers\OpenUtau.PhonemeAdapter\OpenUtauPhonemeApi\OpenUtauPhonemeApi.csproj", "{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenUtauAdapter", "..\ChoristaUtau.Phonemizers\OpenUtau.PhonemeAdapter\OpenUtauAdapter\OpenUtauAdapter.csproj", "{F374A042-9295-446C-8FAE-F72956C9A473}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenUtauBuiltInPhonemizers", "..\ChoristaUtau.Phonemizers\OpenUtau.PhonemeAdapter\OpenUtauBuiltInPhonemizers\OpenUtauBuiltInPhonemizers.csproj", "{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -77,29 +84,39 @@ Global
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|Any CPU.Build.0 = Release|Any CPU
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|x64.ActiveCfg = Release|Any CPU
 		{23BFD37F-7195-4A2F-A653-53514DBECFA7}.Release|x64.Build.0 = Release|Any CPU
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Debug|x64.ActiveCfg = Debug|x64
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Debug|x64.Build.0 = Debug|x64
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Release|x64.ActiveCfg = Release|x64
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D}.Release|x64.Build.0 = Release|x64
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Debug|x64.Build.0 = Debug|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Release|x64.ActiveCfg = Release|Any CPU
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282}.Release|x64.Build.0 = Release|Any CPU
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Debug|Any CPU.Build.0 = Debug|x64
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Debug|x64.ActiveCfg = Debug|x64
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Debug|x64.Build.0 = Debug|x64
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Release|x64.ActiveCfg = Release|x64
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B}.Release|x64.Build.0 = Release|x64
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Debug|Any CPU.Build.0 = Debug|x64
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Debug|x64.ActiveCfg = Debug|x64
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Debug|x64.Build.0 = Debug|x64
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Release|x64.ActiveCfg = Release|x64
+		{F374A042-9295-446C-8FAE-F72956C9A473}.Release|x64.Build.0 = Release|x64
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Debug|Any CPU.Build.0 = Debug|x64
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Debug|x64.ActiveCfg = Debug|x64
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Debug|x64.Build.0 = Debug|x64
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Release|x64.ActiveCfg = Release|x64
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{61882835-11DF-41FD-A5BB-C48547D8DB3D} = {2F22FC0C-77ED-4406-B988-BFD8D962D333}
-		{5F1AEB38-5267-4BD0-8B93-FC035EA97282} = {2F22FC0C-77ED-4406-B988-BFD8D962D333}
+		{05D3BCF0-CEC7-4111-8C18-03CA41CD169A} = {2F22FC0C-77ED-4406-B988-BFD8D962D333}
+		{65AFA0FD-4EC1-4ED7-BE4E-68ED2D7DC76B} = {05D3BCF0-CEC7-4111-8C18-03CA41CD169A}
+		{F374A042-9295-446C-8FAE-F72956C9A473} = {05D3BCF0-CEC7-4111-8C18-03CA41CD169A}
+		{0C8C94CB-F74D-42EA-BFE4-1B5AD1E0BA9C} = {05D3BCF0-CEC7-4111-8C18-03CA41CD169A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {6E79ACF5-4090-4B56-8045-BA7B6572C07D}

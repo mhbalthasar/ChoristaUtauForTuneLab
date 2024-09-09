@@ -59,6 +59,15 @@ namespace UtaubaseForTuneLab
                 {XTrack_PrefixPairID,new EnumConfig(PrefixPair)}
             };
 
+            List<string> PhonemizerEnumList = new List<string>();
+            {
+                PhonemizerEnumList.Add("AutoSelect");
+                var ok=PhonemizerSelector.GetAllPhonemizerKeys();
+                PhonemizerEnumList.AddRange(ok.Where(p => !p.StartsWith("[OU]")));
+                PhonemizerEnumList.AddRange(ok.Where(p => p.StartsWith("[OU]")));
+            }
+            
+
             return new UtauVoiceSource(
                 RenderEngine,
                 VoiceBanks[id],
@@ -76,7 +85,7 @@ namespace UtaubaseForTuneLab
                 new OrderedMap<string, IPropertyConfig>() {
                     { PitchTransitionTimeID, PitchTransitionTimeConfig},
                     { MinSegmentSpacingID, MinSegmentSpacingConfig},
-                    { PhonemizerSelectorID,new EnumConfig(PhonemizerSelector.GetAllPhonemizerKeys().InsertList("AutoSelect",0))}
+                    { PhonemizerSelectorID,new EnumConfig(PhonemizerEnumList)}
                 }.Combine(RenderEngine.PartProperties)
                  .Combine(AudioEffect.AudioEffectHelper.PartProperties),
                 new OrderedMap<string, IPropertyConfig>() {
