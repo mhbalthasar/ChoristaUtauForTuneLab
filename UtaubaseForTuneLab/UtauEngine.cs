@@ -15,6 +15,8 @@ namespace UtaubaseForTuneLab
         public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
         public const string PhonemizerSelectorID = "Phonemizer";
 
+        public const string EarlyStartID = "EarlyStart";
+        public readonly static NumberConfig EarlyStartConfig = new () { DefaultValue = 0, MinValue = -1000, MaxValue = 1000,IsInterger=true };
         public const string PrefixPairID = "PrefixPair";
         public const string VelocityID = "Velocity";
         public readonly static NumberConfig VelocityConfig = new() { DefaultValue = 1, MinValue = 0, MaxValue = 2};
@@ -90,6 +92,7 @@ namespace UtaubaseForTuneLab
                  .Combine(AudioEffect.AudioEffectHelper.PartProperties),
                 new OrderedMap<string, IPropertyConfig>() {
                     { VelocityID,VelocityConfig },
+                    { EarlyStartID,EarlyStartConfig },
                     { PrefixPairID, new EnumConfig(PrefixPair) }
                 }.Combine(RenderEngine.NoteProperties)
                  .Combine(XTrackNoteProperties)

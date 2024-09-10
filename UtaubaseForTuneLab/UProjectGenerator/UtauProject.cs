@@ -146,6 +146,50 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     if (uNote.DurationMSec > 0) mPart.Notes.Add(uNote);
                 }
             }
+            //时间矫正参数
+            for(int i=0;i<mPart.Notes.Count;i++)
+            {
+                if (mPart.Notes[i].ObjectTag is List<ISynthesisNote>)
+                {
+                    List<ISynthesisNote> notelist = (List<ISynthesisNote>)mPart.Notes[i].ObjectTag;
+                    if (notelist.Count == 0) continue;
+                    ISynthesisNote note = notelist[0];
+                    var el=(double)note.Properties.GetInt(UtauEngine.EarlyStartID, 0);
+                    if (el == 0) continue;
+                    mPart.Notes[i].StartMSec -= el;
+                    mPart.Notes[i].DurationMSec += el;
+                    if (i <= 0) continue;
+                    int minNote = 30;//最小长度
+                    if (el > 0)
+                    {
+                        //向前调整
+                        if (mPart.Notes[i-1].StartMSec + mPart.Notes[i - 1].DurationMSec > mPart.Notes[i].StartMSec)//如果超越了前一音符边界
+                        {
+                            if(mPart.Notes[i - 1].StartMSec + minNote > mPart.Notes[i].StartMSec)
+                            {
+                                mPart.Notes[i - 1].DurationMSec = minNote;
+                                var kel = mPart.Notes[i - 1].StartMSec + minNote - mPart.Notes[i - 1].StartMSec;
+                                mPart.Notes[i].StartMSec += kel;
+                                mPart.Notes[i].DurationMSec -= kel;
+                            }else
+                            {
+                                var kel = mPart.Notes[i - 1].StartMSec + mPart.Notes[i - 1].DurationMSec - mPart.Notes[i].StartMSec;
+                                mPart.Notes[i - 1].DurationMSec -= kel;
+                            }
+                        }
+                    }else
+                    {
+                        if (mPart.Notes[i].DurationMSec < minNote)//如果音符太小
+                        {
+                            var kw = minNote - mPart.Notes[i].DurationMSec;//计算差
+                            mPart.Notes[i].StartMSec -= kw;
+                            mPart.Notes[i].DurationMSec += kw;
+                            el += kw;
+                        }
+                        mPart.Notes[i - 1].DurationMSec -= el;
+                    }
+                }
+            }
             return ret;
         }
         public static SortedDictionary<double, double> PitchPrerender(ISynthesisData mData)

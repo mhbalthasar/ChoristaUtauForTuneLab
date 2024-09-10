@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization.NodeTypeResolvers;
 using static OpenUtau.Api.Phonemizer;
 
 namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
@@ -84,7 +85,18 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
 
             PreSetupNotes(ref pNote, ref cNote, ref nNote);
 
-            var res = openUtauPhonemizer.Process([(Note)cNote], pNote, nNote, pNote, nNote, pNote == null ? new Note[0] : new Note[1] { (Note)pNote });
+            int minR = 30;
+            var immPNote = pNote;
+            var immNNote = nNote;
+            if(immPNote != null && (cNote.Value.position - immPNote.Value.position - immPNote.Value.duration) > minR) {
+                immPNote = null;
+            }
+            if (immNNote != null && (immNNote.Value.position - cNote.Value.position - cNote.Value.duration) > minR)
+            {
+                immNNote = null;
+            }
+
+            var res = openUtauPhonemizer.Process([(Note)cNote], pNote, nNote, immPNote, immNNote, pNote == null ? new Note[0] : new Note[1] { (Note)pNote });
             return res;
         }
         
@@ -117,7 +129,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
             var procNote = (Note)ProcessNoteCurrent;
             foreach(var pi in ((Result)SyllableCurrent).phonemes)
             {
-                if(pi.position>=0)
+                if(pi.position>=0 || GroupCurrent[0]==null)
                 {
                     Phoneme p = new Phoneme()
                     {
