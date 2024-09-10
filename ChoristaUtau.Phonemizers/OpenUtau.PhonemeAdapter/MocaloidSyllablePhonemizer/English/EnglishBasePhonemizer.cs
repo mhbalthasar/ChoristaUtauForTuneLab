@@ -15,7 +15,7 @@ namespace MocaloidSyllablePhonemizer.English
     public class MocaloidEnglishBasePhonemizer : SyllableBasedPhonemizer
     {
 
-        private readonly string[] vowels = "a,@,u,0,8,I,e,3,A,i,E,O,Q,6,o,1ng,9,&,x,1,Y,L,W".Split(",");
+        private readonly string[] vowels = ("a,@,u,0,8,I,e,3,A,i,E,O,Q,6,o,1ng,9,&,x,1,Y,L,W"+ "Q@,V,{,e@,@r,@U,eI,u:,aI,i:,O:,I@,aU").Split(",");
         private readonly string[] consonants = "b,ch,d,dh,f,g,h,j,k,l,m,n,ng,p,r,s,sh,t,th,v,w,y,z,zh,dd,hh,sp,st".Split(",");
 
         private readonly Dictionary<string, string> dictionaryReplacements = ("aa=a;ae=@;ah=u;ao=9;aw=8;ay=I;" +

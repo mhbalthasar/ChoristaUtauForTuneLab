@@ -7,7 +7,6 @@ using OpenUtau.Api;
 using OpenUtau.Classic;
 using OpenUtau.Core.Ustx;
 
-#if DEBUG
 namespace OpenUtau.Plugin.Builtin {
     [Phonemizer("Presamp Sample Phonemizer", "ZH CVVC", language: "ZH")]
     public class PresampSamplePhonemizer : OpenUtau.Api.Phonemizer {
@@ -163,4 +162,3 @@ namespace OpenUtau.Plugin.Builtin {
         //private readonly static Dictionary<string, string> defReplace = new Dictionary<string, string>();
     }
 }
-#endif

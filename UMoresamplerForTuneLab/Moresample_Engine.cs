@@ -3,7 +3,7 @@ using UtaubaseForTuneLab;
 
 namespace UMoresamplerForTuneLab
 {
-    [VoiceEngine("U_Moresampler")]
+    [VoiceEngine("ChoristaUtau-Mores")]
     public class Moresample_Engine : UtauEngine
     {
 

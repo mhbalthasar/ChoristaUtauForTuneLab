@@ -17,6 +17,6 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.Spanish
 
         public override Type PhonemizerType => typeof(OpenUtau.Plugin.Builtin.SpanishSyllableBasedPhonemizer);
 
-        public override string PhonemizerDictFileName => "";
+        public override string PhonemizerDictFileName => "es-syl.yaml";
     }
 }

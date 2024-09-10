@@ -1,5 +1,5 @@
 {
-  "name": "U_Moresampler",
+  "name": "ChoristaUtau_Mores",
   "assemblies": [ "UMoresamplerForTuneLab.dll" ],
   "platforms": [ "win-x64" ],
   "version": "1.0.1"

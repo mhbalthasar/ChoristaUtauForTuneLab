@@ -46,6 +46,21 @@
     <None Update="Dictionaries\cmudict-0_7b.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Dictionaries\cmudict_de.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Dictionaries\cmudict_es.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Dictionaries\cmudict_fr.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Dictionaries\cmudict_it.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Dictionaries\cmudict_ptbr.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Licenses\MITLicenses.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

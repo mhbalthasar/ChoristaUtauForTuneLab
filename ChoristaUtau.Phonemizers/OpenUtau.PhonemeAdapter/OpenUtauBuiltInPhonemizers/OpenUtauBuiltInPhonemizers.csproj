@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin</RootNamespace>
-	  <OutputPath>$(AppData)\TuneLab\Extensions\UTAU\phonemizers\OpenUtauBuiltinAdapter</OutputPath>
+	  <OutputPath>$(AppData)\TuneLab\Extensions\ChoristaUtau_Mores\phonemizers\OpenUtauBuiltinAdapter</OutputPath>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	  <StartAction>Program</StartAction>

@@ -18,7 +18,7 @@ namespace UMoresamplerForTuneLab
         public string ResamplerPath { get { return Path.Combine(enginePath,"enginebin","moresampler.exe"); } }
         public string WavtoolPath { get {return Path.Combine(enginePath, "enginebin", "moresampler.exe");} }
 
-        public string EngineUniqueString => "UMoresampler";
+        public string EngineUniqueString => "ChoristaUtau_Mores";
 
         public bool WindowsOnly => true;
 
