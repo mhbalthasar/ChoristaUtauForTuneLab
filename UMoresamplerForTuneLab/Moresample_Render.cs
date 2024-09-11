@@ -21,6 +21,7 @@ namespace UMoresamplerForTuneLab
         public string EngineUniqueString => "ChoristaUtau_Mores";
 
         public bool WindowsOnly => true;
+        public bool SupportUltraTempo => true;
 
 
 

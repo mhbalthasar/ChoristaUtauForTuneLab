@@ -15,6 +15,7 @@ namespace UtaubaseForTuneLab
         public string WavtoolPath { get; }
         public bool WindowsOnly { get; }
         public string EngineUniqueString { get; }
+        public bool SupportUltraTempo { get; }
 
 
         public IReadOnlyOrderedMap<string, AutomationConfig> AutomationConfigs { get; }

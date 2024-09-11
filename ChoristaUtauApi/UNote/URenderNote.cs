@@ -28,6 +28,7 @@ namespace ChoristaUtauApi.UNote
         public double EnvFadeIn { get; set; } = 0;
         public double EnvFadeOut { get => TailOverlap; }
         public string PitchLineString { get; set; } = "";
+        public bool UltraPitchLine { get; set; } = false;
         private void GenerateFixedSTPs()
         {
             double OtoPreutter, OtoOverlap;
@@ -167,13 +168,14 @@ namespace ChoristaUtauApi.UNote
         }
 
 
-        public void SetPitchLine(Func<double[], double[]> PitchGetter)
+        public void SetPitchLine(Func<double[], double[]> PitchGetter, bool ultraMode = false)
         {
             if (IsRest) return;
             List<double> millsec_times = new List<double>();
             double t = (pNote.StartMSec - EnvFadeIn - SkipOver);
             double end = DurRequired + t;
-            while (t < end) { millsec_times.Add(t); t += 5.0; }
+            UltraPitchLine = ultraMode;
+            while (t < end) { millsec_times.Add(t); t += ultraMode ? 1.0: 5.0; }
             var pitcharray = PitchGetter(millsec_times.ToArray());
             //PitToStr
             List<string> encodedPit = new List<string>();
@@ -267,7 +269,7 @@ namespace ChoristaUtauApi.UNote
             Attr_SynthesisArgs.Add(pNote.Attributes.Cutoff.ToString("F3"));
             Attr_SynthesisArgs.Add("100");//Volume
             Attr_SynthesisArgs.Add(pNote.Attributes.Modulation.ToString("F3"));
-            Attr_SynthesisArgs.Add("!125");//Tempo
+            Attr_SynthesisArgs.Add(pNote.Attributes.UltraPitchLine?"!625":"!125");//Tempo
             Attr_SynthesisArgs.Add(pNote.Attributes.PitchLineString);
         }
         private void UpdateEnvlope()

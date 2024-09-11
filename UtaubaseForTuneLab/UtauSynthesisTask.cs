@@ -18,6 +18,7 @@ using TuneLab.Base.Structures;
 using System.Formats.Tar;
 using System.Xml.Linq;
 using UtaubaseForTuneLab.Utils;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace UtaubaseForTuneLab
 {
@@ -132,6 +133,14 @@ namespace UtaubaseForTuneLab
 
             //set pitchs
             var pitchtable = UtauProject.PitchPrerender(synthesisData);
+            var pitResolution = synthesisData.PartProperties.GetString(UtauEngine.PitchResolutionID, "Ultra");
+            int pitResolKey;
+            switch (pitResolution)
+            {
+                case "Normal":pitResolKey = 1; break;
+                case "Electronic":pitResolKey = 2;break;
+                default:pitResolKey = renderEngine.SupportUltraTempo?0:1;break;
+            }
             foreach (URenderNote rNote in rPart)
             {
                 rNote.Attributes.SetPitchLine((ms_times) =>
@@ -142,19 +151,19 @@ namespace UtaubaseForTuneLab
                         double timeKey = ms_times[i];
                         var nextP = pitchtable.Where(x => x.Key >= timeKey).FirstOrDefault(new KeyValuePair<double, double>(-1, -1));
                         var prevP = pitchtable.Where(x => x.Key <= timeKey).LastOrDefault(new KeyValuePair<double, double>(-1, -1));
+                        if (pitResolKey == 2)
                         { //ROBOT
-                          //
                             prevP = new KeyValuePair<double, double>(prevP.Key, Math.Round(prevP.Value));
                             nextP = new KeyValuePair<double, double>(nextP.Key, Math.Round(nextP.Value));
                         }
                         if (nextP.Key == -1 && prevP.Key == -1) ret[i] = 0;
-                        else if (nextP.Key == -1) ret[i] = prevP.Value;
-                        else if (prevP.Key == -1) ret[i] = nextP.Value;
+                        else if (nextP.Key == -1) ret[i] = pitchtable[prevP.Key];
+                        else if (prevP.Key == -1) ret[i] = pitchtable[nextP.Key];
                         else if (nextP.Key == prevP.Key) ret[i] = prevP.Value;
                         else ret[i] = MathUtility.LineValue(prevP.Key, prevP.Value, nextP.Key, nextP.Value, timeKey);
                     }
                     return ret;
-                });
+                },pitResolKey==0 );
             }
 
             //Generate All Args

@@ -14,6 +14,7 @@ namespace UtaubaseForTuneLab
         public const string PitchTransitionTimeID = "PitchTransitionTime";
         public readonly static NumberConfig PitchTransitionTimeConfig = new() { DefaultValue = 0.12, MinValue = 0, MaxValue = 0.2 };
         public const string PhonemizerSelectorID = "Phonemizer";
+        public const string PitchResolutionID = "PitchResolution";
 
         public const string EarlyStartID = "EarlyStart";
         public readonly static NumberConfig EarlyStartConfig = new () { DefaultValue = 0, MinValue = -1000, MaxValue = 1000,IsInterger=true };
@@ -87,7 +88,8 @@ namespace UtaubaseForTuneLab
                 new OrderedMap<string, IPropertyConfig>() {
                     { PitchTransitionTimeID, PitchTransitionTimeConfig},
                     { MinSegmentSpacingID, MinSegmentSpacingConfig},
-                    { PhonemizerSelectorID,new EnumConfig(PhonemizerEnumList)}
+                    { PhonemizerSelectorID,new EnumConfig(PhonemizerEnumList)},
+                    { PitchResolutionID, new EnumConfig(new List<string>() { "Ultra", "Normal","Electronic" }, 0) }
                 }.Combine(RenderEngine.PartProperties)
                  .Combine(AudioEffect.AudioEffectHelper.PartProperties),
                 new OrderedMap<string, IPropertyConfig>() {
