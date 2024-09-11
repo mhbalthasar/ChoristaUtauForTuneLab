@@ -4,11 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	  <OutputPath>$(AppData)\TuneLab\Extensions\ChoristaUtau_Mores</OutputPath>
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-	  <StartAction>Program</StartAction>
-	  <StartProgram>E:\UserDirectory\Downloads\TuneLab\TuneLab.exe</StartProgram>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	  <Platforms>AnyCPU;x64</Platforms>
 	  <PlatformTarget>x64</PlatformTarget>
@@ -19,22 +14,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="description.json">
+    <None Update="enginebin\moresampler\how-to-use.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="enginebin\how-to-use.txt">
+    <None Update="enginebin\moresampler\license.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="enginebin\license.txt">
+    <None Update="enginebin\moresampler\moreconfig.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="enginebin\moreconfig.txt">
+    <None Update="enginebin\moresampler\moresampler.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="enginebin\moresampler.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="enginebin\readme.txt">
+    <None Update="enginebin\moresampler\readme.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

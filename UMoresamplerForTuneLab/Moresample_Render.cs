@@ -15,8 +15,8 @@ namespace UMoresamplerForTuneLab
 {
     internal class Moresample_Render(string enginePath) : IRenderEngine
     {
-        public string ResamplerPath { get { return Path.Combine(enginePath,"enginebin","moresampler.exe"); } }
-        public string WavtoolPath { get {return Path.Combine(enginePath, "enginebin", "moresampler.exe");} }
+        public string ResamplerPath { get { return Path.Combine(enginePath,"enginebin","moresampler","moresampler.exe"); } }
+        public string WavtoolPath { get {return Path.Combine(enginePath, "enginebin", "moresampler", "moresampler.exe");} }
 
         public string EngineUniqueString => "ChoristaUtau_Mores";
 

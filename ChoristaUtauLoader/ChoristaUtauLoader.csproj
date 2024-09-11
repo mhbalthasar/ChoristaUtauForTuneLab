@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <OutputPath>$(AppData)\TuneLab\Extensions\ChoristaUtau</OutputPath>
+	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+	  <StartAction>Program</StartAction>
+	  <StartProgram>E:\UserDirectory\Downloads\TuneLab\TuneLab.exe</StartProgram>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UMoresamplerForTuneLab\UMoresamplerForTuneLab.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="description.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

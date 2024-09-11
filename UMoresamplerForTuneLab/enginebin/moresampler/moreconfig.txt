@@ -1,0 +1,31 @@
+# Configuration file for Moresampler 0.8.3
+
+# === Output settings ===
+output-sampling-rate 44100
+output-bit-depth 16
+resampler-compatibility off
+
+# === Synthesis settings ===
+synthesis-utau-style-normalization full
+synthesis-loudness-preservation off
+synthesis-duration-extension-method auto
+
+# == Miscellaneous ===
+dump-log-file off
+multithread-synthesis on
+auto-update-llsm-mrq on
+
+# === Analysis settings ===
+analysis-anti-distortion off
+analysis-noise-reduction off
+analysis-biased-f0-estimation off
+analysis-suppress-subharmonics off
+analysis-f0-range-from-path on
+analysis-f0-min 70.0
+analysis-f0-max 800.0
+load-frq off
+
+# === User settings ===
+# The following is an example of defining meta flag "M1"; uncomment by removing "#"
+#  to put it into effect. You may edit or remove it if you want.
+#meta-flag-1 Mo20Mt30

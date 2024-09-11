@@ -133,7 +133,7 @@ namespace UtaubaseForTuneLab
             {
                 List<string> UPhonemizerSearchDir = new List<string>(){
                 Path.Combine(enginePath, "phonemizers"),
-                Path.Combine(UserProfile,".TuneLab","Utau", "phonemizers")
+                Path.Combine(UserProfile,".TuneLab","ChoristaUtau", "phonemizers")
             };
                 foreach (string searchDir in UPhonemizerSearchDir) ChoristaUtauApi.UPhonemizer.PhonemizerSelector.LoadExtendedPhonemizer(searchDir);
             }
@@ -142,14 +142,14 @@ namespace UtaubaseForTuneLab
                 List<string> UVoiceBankSearchPath = new List<string>()
                 {
                     Path.Combine(enginePath, "voicedb"),
-                    Path.Combine(UserProfile,".TuneLab","Utau", "voicedb"),
+                    Path.Combine(UserProfile,".TuneLab","ChoristaUtau", "voicedb"),
                     Path.Combine(UserProfile,"utauvbs")
                 };
-                if (!Directory.Exists(Path.Combine(UserProfile, ".TuneLab", "Utau")))Directory.CreateDirectory(Path.Combine(UserProfile, ".TuneLab", "Utau"));
-                if (File.Exists(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")))
-                    UVoiceBankSearchPath.AddRange(File.ReadAllLines(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt")).Select(p => p.Trim()).Where(p => p.Length > 0 && Directory.Exists(p)));
+                if (!Directory.Exists(Path.Combine(UserProfile, ".TuneLab", "ChoristaUtau")))Directory.CreateDirectory(Path.Combine(UserProfile, ".TuneLab", "ChoristaUtau"));
+                if (File.Exists(Path.Combine(UserProfile, ".TuneLab", "ChoristaUtau", "voicedirs.txt")))
+                    UVoiceBankSearchPath.AddRange(File.ReadAllLines(Path.Combine(UserProfile, ".TuneLab", "ChoristaUtau", "voicedirs.txt")).Select(p => p.Trim()).Where(p => p.Length > 0 && Directory.Exists(p)));
                 else
-                    File.WriteAllText(Path.Combine(UserProfile, ".TuneLab", "Utau", "voicedirs.txt"), "");
+                    File.WriteAllText(Path.Combine(UserProfile, ".TuneLab", "ChoristaUtau", "voicedirs.txt"), "");
 
                 //SearchAllDir
                 List<string> VBPaths = new List<string>();
@@ -159,8 +159,8 @@ namespace UtaubaseForTuneLab
                 foreach (string vbp in VBPaths)
                 {
                     VoiceBank vb = UVoiceBankLoader.LoadVoiceBank(vbp);
-                    ((OrderedMap<string, VoiceSourceInfo>)VoiceInfos).Add("UTAU_" + vb.Name, new VoiceSourceInfo() { Name = vb.Name });
-                    VoiceBanks.Add("UTAU_" + vb.Name, vb);
+                    ((OrderedMap<string, VoiceSourceInfo>)VoiceInfos).Add(RenderEngine.EngineUniqueString+"_" + vb.Name, new VoiceSourceInfo() { Name = vb.Name });
+                    VoiceBanks.Add(RenderEngine.EngineUniqueString+"_" + vb.Name, vb);
                 }
             }
             return true;

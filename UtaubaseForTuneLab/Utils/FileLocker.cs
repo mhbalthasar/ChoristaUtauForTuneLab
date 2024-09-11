@@ -26,8 +26,16 @@ namespace UtaubaseForTuneLab.Utils
 
         public static void WaitforLock(string TargetFile)
         {
-            while (IsLockFile(TargetFile)) { Task.Delay(100).Wait();  }
-            LockFile(TargetFile);
+            //while (TryLockFile(TargetFile)) { Task.Delay(100).Wait();  }
+            //LockFile(TargetFile);
+            while (true)
+            {
+                if(!IsLockFile(TargetFile)) { 
+                    LockFile(TargetFile);
+                    break;
+                }
+                Task.Delay(100).Wait();
+            }
         }
 
         public static void UnlockFile(string TargetFile)

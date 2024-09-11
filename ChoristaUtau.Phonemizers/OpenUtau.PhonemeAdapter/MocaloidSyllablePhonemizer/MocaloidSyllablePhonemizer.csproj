@@ -4,7 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	  <OutputPath>$(AppData)\TuneLab\Extensions\ChoristaUtau_Mores\phonemizers\OpenUtauBuiltinAdapter</OutputPath>
+	  <OutputPath>$(AppData)\TuneLab\Extensions\ChoristaUtau\phonemizers\OpenUtauBuiltinAdapter</OutputPath>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	  <StartAction>Program</StartAction>
