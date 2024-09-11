@@ -65,16 +65,21 @@ namespace ChoristaUtauApi.UPhonemizer
             IPhonemizer curIP;
             foreach (var pPair in PhonemizerList)
             {
-                var cp = pPair.Value;
-                object? cObj = null;
-                lock (mObjectLocker)
+                try
                 {
-                    cObj = Activator.CreateInstance(cp, new object[1] { vb });
+                    var cp = pPair.Value;
+                    object? cObj = null;
+                    lock (mObjectLocker)
+                    {
+                        cObj = Activator.CreateInstance(cp, new object[1] { vb });
+                    }
+                    if (cObj == null) continue;
+                    if (cObj is DefaultPhonemizer) continue;
+                    curIP = (IPhonemizer)cObj;
+                    if (curIP.ProcessAble())
+                        return curIP;
                 }
-                if (cObj == null) continue;
-                curIP = (IPhonemizer)cObj;
-                if (curIP.ProcessAble()) 
-                    return curIP;
+                catch {; }
             }
             return new DefaultPhonemizer();
         }
@@ -86,15 +91,19 @@ namespace ChoristaUtauApi.UPhonemizer
 
         public static IPhonemizer? BuildPhonemizer(string Key,VoiceBank vb)
         {
-            var phonType =  PhonemizerList.Where(p=>p.Key==Key).Select(p => p.Value).FirstOrDefault();
-            if (phonType == null) return null;
-            object? cObj = null;
-            lock (mObjectLocker)
+            try
             {
-                cObj = Activator.CreateInstance(phonType, new object[1] { vb });
+                var phonType = PhonemizerList.Where(p => p.Key == Key).Select(p => p.Value).FirstOrDefault();
+                if (phonType == null) return null;
+                object? cObj = null;
+                lock (mObjectLocker)
+                {
+                    cObj = Activator.CreateInstance(phonType, new object[1] { vb });
+                }
+                if (cObj == null) return null;
+                return (IPhonemizer)cObj;
             }
-            if (cObj == null) return null;
-            return (IPhonemizer)cObj;
+            catch { return null; }
         }
 
         private static string GetLastPhonemizer(VoiceBank vb)

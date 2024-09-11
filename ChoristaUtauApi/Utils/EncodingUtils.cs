@@ -17,15 +17,25 @@ namespace ChoristaUtauApi.Utils
         }
         public static Encoding GetEncoding(int CodePage)
         {
-            return System.Text.CodePagesEncodingProvider.Instance.GetEncoding(CodePage);
+            try
+            {
+                return System.Text.CodePagesEncodingProvider.Instance.GetEncoding(CodePage);
+            }
+            catch
+            {
+                return Encoding.Default;
+            }
         }
         public static string GetEncodingName(Encoding EncodingItem)
         {
-            if (EncodingItem == Encoding.UTF8) return "UTF8";
-            else if (EncodingItem == Encoding.ASCII) return "ASCII";
-            else if (EncodingItem == Encoding.Unicode) return "Unicode";
-            else if (EncodingItem == System.Text.CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS")) return "Shift-JIS";
-            else return EncodingItem.WebName;
+            try{
+                if (EncodingItem == Encoding.UTF8) return "UTF8";
+                else if (EncodingItem == Encoding.ASCII) return "ASCII";
+                else if (EncodingItem == Encoding.Unicode) return "Unicode";
+                else if (EncodingItem == System.Text.CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS")) return "Shift-JIS";
+                else return EncodingItem.WebName;
+            }
+            catch { return EncodingItem.WebName; }
         }
     }
 }

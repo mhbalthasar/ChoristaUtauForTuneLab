@@ -21,7 +21,16 @@ namespace UtaubaseForTuneLab.Utils
         public static void LockFile(string TargetFile)
         {
             string LockFile = string.Format("{0}.{1}.filelock", TargetFile, Process.GetCurrentProcess().Id);
-            File.WriteAllText(LockFile, Process.GetCurrentProcess().Id.ToString());
+            while (true)
+            {
+                try
+                {
+                    File.WriteAllText(LockFile, Process.GetCurrentProcess().Id.ToString());
+                    break;
+                    Task.Delay(10).Wait();
+                }
+                catch {; }
+            }
         }
 
         public static void WaitforLock(string TargetFile)

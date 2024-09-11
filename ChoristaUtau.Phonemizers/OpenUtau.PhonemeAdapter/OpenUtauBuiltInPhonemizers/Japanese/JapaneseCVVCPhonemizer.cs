@@ -23,7 +23,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.Japanese
 
         protected override bool IsProcessAble(bool defaultValue = false)
         {
-            return true;
+            return base.IsProcessAble(defaultValue);
         }
     }
 }

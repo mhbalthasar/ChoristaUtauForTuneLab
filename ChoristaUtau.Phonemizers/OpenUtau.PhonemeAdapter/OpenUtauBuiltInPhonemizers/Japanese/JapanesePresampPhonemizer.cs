@@ -28,7 +28,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.Japanese
                 voiceBank.FindSymbol("- あ", 60) == null
                 )
                 return defaultValue;
-            return true;
+            return base.IsProcessAble(defaultValue);
         }
     }
 }

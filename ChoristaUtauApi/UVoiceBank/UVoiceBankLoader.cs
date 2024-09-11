@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Ude;
 using ChoristaUtauApi.Utils;
 using System.Security.Cryptography;
+using System.Linq.Expressions;
 
 namespace ChoristaUtauApi.UVoiceBank
 {
@@ -73,19 +74,24 @@ namespace ChoristaUtauApi.UVoiceBank
         {
             using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                var detector = new CharsetDetector();
-                detector.Feed(fileStream);
-                detector.DataEnd();
+                try
+                {
+                    var detector = new CharsetDetector();
+                    detector.Feed(fileStream);
+                    detector.DataEnd();
 
-                if (detector.Charset != null)
-                {
-                    if (detector.Charset == "KOI8-R") return "GBK";
-                    return detector.Charset;
+                    if (detector.Charset != null)
+                    {
+                        if (detector.Charset == "KOI8-R") return "GBK";
+                        if (detector.Charset == "windows-1252") return "Shift-JIS";//DEFAULT ERROR
+                        return detector.Charset;
+                    }
+                    else
+                    {
+                        return "Shift-JIS";
+                    }
                 }
-                else
-                {
-                    return "Shift-JIS";
-                }
+                catch { return "Shift-JIS"; }
             }
         }
         public static VoiceBank LoadVoiceBank(string VoiceBankPath)
@@ -95,57 +101,25 @@ namespace ChoristaUtauApi.UVoiceBank
             string cache = Path.Combine(VoiceBankPath, "uvoicebank.protobuf");
             if (File.Exists(cache))
             {
-                var vbc = VoiceBank.Deserialize(cache);
-                vbc.vbBasePath = VoiceBankPath;
-                if (vbc.CacheHash == hash) 
-                    return vbc;
+                try
+                {
+                    var vbc = VoiceBank.Deserialize(cache);
+                    vbc.vbBasePath = VoiceBankPath;
+                    if (vbc.CacheHash == hash)
+                        return vbc;
+                }
+                catch { }
             }
 
             VoiceBank vb = new VoiceBank();
             vb.CacheHash = hash;
 
-            //ReadVBName
-            vb.Name = Path.GetFileNameWithoutExtension(VoiceBankPath);
-            if (File.Exists(Path.Combine(VoiceBankPath, "character.txt")))
-            {
-                string EncodName = DetectFileEncoding(Path.Combine(VoiceBankPath, "character.txt"));
-                string[] characterText = File.ReadAllLines(Path.Combine(VoiceBankPath, "character.txt"), EncodingUtils.GetEncoding(EncodName));// Path.Combine(VoiceBankPath, "character.txt"));
-                foreach (string line in characterText)
-                {
-                    if (line.ToLower().StartsWith("name="))
-                    {
-                        vb.Name = line.Substring(5);
-                        break;
-                    }
-                }
-            }
 
-            //ReadVBPrefix
-            if (File.Exists(Path.Combine(VoiceBankPath, "prefix.map")))
-            {
-                Dictionary<string,PrefixItem> Pairs = new Dictionary<string, PrefixItem>();
-                string EncodName = DetectFileEncoding(Path.Combine(VoiceBankPath, "prefix.map"));
-                string[] prefixText = File.ReadAllLines(Path.Combine(VoiceBankPath, "prefix.map"), EncodingUtils.GetEncoding(EncodName));
-                foreach (string line in prefixText)
-                {
-                    string[] pfx = line.Split('\t');
-                    string noteStr = pfx[0];
-                    int nn = OctaveUtils.Str2NoteNumber(noteStr);
-                    if (nn < 128 && nn > -1)
-                    {
-                        string prefixStr = pfx[1];
-                        string suffixStr = pfx[2];
-                        vb.SetPrefixItem(nn,prefixStr, suffixStr);
-                        string kPair=prefixStr.Trim() + suffixStr.Trim();
-                        if(!Pairs.ContainsKey(kPair))
-                        {
-                            Pairs.Add(kPair, vb.GetPrefixItem(nn));
-                        }
-                    }
-                }
-                vb.SetPrefixPairs(Pairs);
-            }
+            bool bOUOverlay_Name = false;
+            bool bOUOverlay_Prefix = false;
 
+
+            string ou_detected_encoding = "";
             //OverlayOU
             if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
             {
@@ -153,7 +127,13 @@ namespace ChoristaUtauApi.UVoiceBank
                 {
                     YamlDotNet.Serialization.Deserializer d = new YamlDotNet.Serialization.Deserializer();
                     Dictionary<object, object> ouMap = (Dictionary<object, object>)d.Deserialize(File.ReadAllText(Path.Combine(VoiceBankPath, "character.yaml")));
-                    if (ouMap.TryGetValue("name", out object nameValue)) vb.Name = (string)nameValue;
+                    if (ouMap.TryGetValue("name", out object nameValue))
+                    {
+                        vb.Name = (string)nameValue;
+                        bOUOverlay_Name = true;
+                    }
+
+                    if (ouMap.TryGetValue("text_file_encoding", out object encodingValue)) ou_detected_encoding = (string)encodingValue;
 
                     if (ouMap.TryGetValue("subbanks", out object subPrefix))
                     {
@@ -175,11 +155,72 @@ namespace ChoristaUtauApi.UVoiceBank
                                 Pairs.Add(kPair, new PrefixItem() { prefix = prefix, suffix = suffix, PitchNumber = pitch });
                             }
                         }
-                        if(Pairs.Count>0)vb.SetPrefixPairs(Pairs);
+                        if (Pairs.Count > 0)
+                        {
+                            vb.SetPrefixPairs(Pairs);
+                            bOUOverlay_Prefix = true;
+                        }
                     }
                 }
                 catch {; }
             }
+
+            //ReadVBName
+            if (!bOUOverlay_Name)
+            {
+                vb.Name = Path.GetFileNameWithoutExtension(VoiceBankPath);
+                try{
+                    if (File.Exists(Path.Combine(VoiceBankPath, "character.txt")))
+                    {
+                        string EncodName = ou_detected_encoding.Length > 0 ? ou_detected_encoding : DetectFileEncoding(Path.Combine(VoiceBankPath, "character.txt"));
+                        string[] characterText = File.ReadAllLines(Path.Combine(VoiceBankPath, "character.txt"), EncodingUtils.GetEncoding(EncodName));// Path.Combine(VoiceBankPath, "character.txt"));
+                        foreach (string line in characterText)
+                        {
+                            if (line.ToLower().StartsWith("name="))
+                            {
+                                vb.Name = line.Substring(5);
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch {; }
+            }
+
+            //ReadVBPrefix
+            if (File.Exists(Path.Combine(VoiceBankPath, "prefix.map")))
+            {
+                try
+                {
+                    Dictionary<string, PrefixItem> Pairs = new Dictionary<string, PrefixItem>();
+                    string EncodName = ou_detected_encoding.Length > 0 ? ou_detected_encoding : DetectFileEncoding(Path.Combine(VoiceBankPath, "prefix.map"));
+                    string[] prefixText = File.ReadAllLines(Path.Combine(VoiceBankPath, "prefix.map"), EncodingUtils.GetEncoding(EncodName));
+                    foreach (string line in prefixText)
+                    {
+                        string[] pfx = line.Split('\t');
+                        string noteStr = pfx[0];
+                        int nn = OctaveUtils.Str2NoteNumber(noteStr);
+                        if (nn < 128 && nn > -1)
+                        {
+                            string prefixStr = pfx[1];
+                            string suffixStr = pfx[2];
+                            vb.SetPrefixItem(nn, prefixStr, suffixStr);
+                            string kPair = prefixStr.Trim() + suffixStr.Trim();
+                            if (!Pairs.ContainsKey(kPair))
+                            {
+                                Pairs.Add(kPair, vb.GetPrefixItem(nn));
+                            }
+                        }
+                    }
+                    if (!bOUOverlay_Prefix)
+                    {
+                        vb.SetPrefixPairs(Pairs);
+                    }
+                }
+                catch {; }
+            }
+
+           
 
             //LoadOto
             List<string> otoDirList = new List<string>();
@@ -189,39 +230,54 @@ namespace ChoristaUtauApi.UVoiceBank
                 string curPath = Path.Combine(VoiceBankPath, otoPath);
                 if (File.Exists(curPath))
                 {
-                    string EncodName = DetectFileEncoding(curPath);
-                    string[] otoText = File.ReadAllLines(curPath, EncodingUtils.GetEncoding(EncodName));
-                    foreach (string otoLine in otoText)
+                    try
                     {
-                        if (otoLine.Trim().StartsWith("#")) continue;
-                        Oto oto = new Oto();
-                        oto.BaseDirs.AddRange(otoPathMap[0..(otoPathMap.Length - 1)]);
-                        string[] spL1 = otoLine.Split('=');
-                        if (spL1.Length < 2) continue;
-                        oto.Wav = spL1[0];
-                        string otoLabel = spL1[1];
-                        string[] spL2 = otoLabel.Split(',');
-                        if (spL2.Length < 6) continue;
+                        string EncodName = ou_detected_encoding.Length > 0 ? ou_detected_encoding : DetectFileEncoding(curPath);
+                        string[] otoText = File.ReadAllLines(curPath, EncodingUtils.GetEncoding(EncodName));
+                        foreach (string otoLine in otoText)
+                        {
+                            if (otoLine.Trim().StartsWith("#")) continue;
+                            Oto oto = new Oto();
+                            oto.BaseDirs.AddRange(otoPathMap[0..(otoPathMap.Length - 1)]);
+                            string[] spL1 = otoLine.Split('=');
+                            if (spL1.Length < 2) continue;
+                            oto.Wav = spL1[0];
+                            string otoLabel = spL1[1];
+                            string[] spL2 = otoLabel.Split(',');
+                            if (spL2.Length < 6) continue;
 
-                        //LP,FL,RP,PR,OV
-                        oto.Alias = spL2[0];
-                        oto.Offset = double.Parse(spL2[1]);
-                        oto.Consonant = double.Parse(spL2[2]);
-                        oto.Cutoff = double.Parse(spL2[3]);
-                        oto.Preutter = double.Parse(spL2[4]);
-                        oto.Overlap = double.Parse(spL2[5]);
+                            //LP,FL,RP,PR,OV
+                            oto.Alias = spL2[0].Trim();
+                            if (oto.Alias.Length == 0)
+                            {
+                                oto.Alias = Path.GetFileNameWithoutExtension(oto.Wav);
+                            }
+                            oto.Offset = double.Parse(spL2[1]);
+                            oto.Consonant = double.Parse(spL2[2]);
+                            oto.Cutoff = double.Parse(spL2[3]);
+                            oto.Preutter = double.Parse(spL2[4]);
+                            oto.Overlap = double.Parse(spL2[5]);
 
-                        oto.FileEncoding = EncodName;
+                            oto.FileEncoding = "";
+                            if (!oto.isVaild(VoiceBankPath))
+                            {
+                                oto.FileEncoding = EncodName;
+                            }
 
-                        vb.Otos.Add(oto);
+                            vb.Otos.Add(oto);
+                        }
                     }
+                    catch {; }
                 }
             }
 
             vb.DefaultLyric = "a";
             if (vb.FindSymbol("あ") != null || vb.FindSymbol("あ",60) != null || vb.FindSymbol("- あ", 60) != null) vb.DefaultLyric = "あ";
-
-            vb.Serialize(cache);
+            try
+            {
+                vb.Serialize(cache);
+            }
+            catch { }
             vb.vbBasePath = VoiceBankPath;
             return vb;
         }

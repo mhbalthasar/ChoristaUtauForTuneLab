@@ -2,5 +2,5 @@
   "name": "ChoristaUtau",
   "assemblies": [ "ChoristaUtauLoader.dll" ],
   "platforms": [ "win-x64" ],
-  "version": "1.0.1"
+  "version": "1.0.1b"
 }

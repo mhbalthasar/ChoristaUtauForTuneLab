@@ -110,7 +110,7 @@ namespace MocaloidSyllablePhonemizer.English
                     string symbol = (v1 + " " + v2).Trim();
                     if (HasOto(symbol, 60))
                     {
-                        cache.Add(key, symbol);
+                        if(!cache.ContainsKey(key))cache.Add(key, symbol);
                         return symbol;
                     }
                 }

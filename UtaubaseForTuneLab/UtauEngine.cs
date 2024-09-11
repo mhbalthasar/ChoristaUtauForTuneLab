@@ -158,9 +158,21 @@ namespace UtaubaseForTuneLab
                 //LoadEachVoiceBank
                 foreach (string vbp in VBPaths)
                 {
-                    VoiceBank vb = UVoiceBankLoader.LoadVoiceBank(vbp);
-                    ((OrderedMap<string, VoiceSourceInfo>)VoiceInfos).Add(RenderEngine.EngineUniqueString+"_" + vb.Name, new VoiceSourceInfo() { Name = vb.Name });
-                    VoiceBanks.Add(RenderEngine.EngineUniqueString+"_" + vb.Name, vb);
+                    try
+                    {
+                        VoiceBank vb = UVoiceBankLoader.LoadVoiceBank(vbp);
+                        string VBName = vb.Name;
+                        int ord = 0;
+                        while (true)
+                        {
+                            if (!(VoiceBanks.ContainsKey(RenderEngine.EngineUniqueString + "_" + VBName))) break;
+                            ord++;
+                            VBName = string.Format("{0} #{1}", vb.Name, ord);
+                        }
+                        ((OrderedMap<string, VoiceSourceInfo>)VoiceInfos).Add(RenderEngine.EngineUniqueString + "_" + VBName, new VoiceSourceInfo() { Name = vb.Name });
+                        VoiceBanks.Add(RenderEngine.EngineUniqueString + "_" + VBName, vb);
+                    }
+                    catch {; }
                 }
             }
             return true;

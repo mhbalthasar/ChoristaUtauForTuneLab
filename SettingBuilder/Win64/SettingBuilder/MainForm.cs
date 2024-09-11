@@ -124,7 +124,7 @@ namespace SettingBuilder
                     size = GetFolderSize(tmpPath);
                 }
                 catch {; }
-                long sizeMB=size / 1024 / 1024;
+                long sizeMB = size / 1024 / 1024;
                 this.Invoke(() =>
                 {
                     lab_size.Text = string.Format("{0} MB", sizeMB);
@@ -137,7 +137,8 @@ namespace SettingBuilder
             string tmpPath = Path.Combine(Path.GetTempPath(), "ChoristaUtau");
             Task.Run(() =>
             {
-                this.Invoke(() => {
+                this.Invoke(() =>
+                {
                     button4.Enabled = false;
                 });
                 try
@@ -146,7 +147,8 @@ namespace SettingBuilder
                 }
                 catch {; }
                 CalcSize();
-                this.Invoke(() => {
+                this.Invoke(() =>
+                {
                     button4.Enabled = true;
                 });
             });
@@ -179,6 +181,73 @@ namespace SettingBuilder
 
             // и╬ЁЩ©уд©б╪
             Directory.Delete(targetDir, false);
+        }
+
+        private List<string> FindVB(string DirPath, int SearchDeeply = 10)
+        {
+            List<string> ret = new List<string>();
+            if (!Directory.Exists(DirPath)) return ret;
+            if (File.Exists(Path.Combine(DirPath, "character.txt")))
+            {
+                ret.Add(DirPath);
+                return ret;
+            }
+            if (SearchDeeply == 0) return ret;
+            foreach (string subDir in Directory.GetDirectories(DirPath))
+            {
+                ret.AddRange(FindVB(subDir, SearchDeeply - 1));
+            }
+            return ret;
+        }
+        private void button5_Click(object sender, EventArgs e)
+        {
+            Task.Run(() =>
+            {
+                this.Invoke(() => { button5.Enabled = false; button6.Enabled = false; });
+                List<string> allPath = new List<string>();
+                allPath.AddRange(l_staticDirs);
+                allPath.AddRange(l_searchDirs);
+
+                List<string> VBPaths = new List<string>();
+                foreach (string path in allPath) VBPaths.AddRange(FindVB(path, 10));
+
+                foreach (string str in VBPaths)
+                {
+                    string tmpFile = Path.Combine(str, "uvoicebank.protobuf");
+                    if (File.Exists(tmpFile)) try
+                        {
+                            File.Delete(tmpFile);
+                        }
+                        catch { }
+                }
+                this.Invoke(() => { button5.Enabled = true; button6.Enabled = true; });
+            });
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+
+            Task.Run(() =>
+            {
+                this.Invoke(() => { button5.Enabled = false; button6.Enabled = false; });
+                List<string> allPath = new List<string>();
+                allPath.AddRange(l_staticDirs);
+                allPath.AddRange(l_searchDirs);
+
+                List<string> VBPaths = new List<string>();
+                foreach (string path in allPath) VBPaths.AddRange(FindVB(path, 10));
+
+                foreach (string str in VBPaths)
+                {
+                    string tmpFile = Path.Combine(str, "phonemizer.txt");
+                    if (File.Exists(tmpFile)) try
+                        {
+                            File.Delete(tmpFile);
+                        }
+                        catch { }
+                }
+                this.Invoke(() => { button5.Enabled = true; button6.Enabled = true; });
+            });
         }
     }
 }

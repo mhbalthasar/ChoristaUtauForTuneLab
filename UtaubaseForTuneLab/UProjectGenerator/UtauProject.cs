@@ -56,9 +56,10 @@ namespace UtaubaseForTuneLab.UProjectGenerator
         public static UTaskProject ProcessPhonemizer(this UTaskProject uTask,IPhonemizer? PerferPhonemizer=null)
         {
             double minR = 120;//Hardcode As same as GenerateRenderPart
+            IPhonemizer callbackPhoneme = new DefaultPhonemizer();
             IPhonemizer? phonemizer = PerferPhonemizer;
             if (phonemizer == null) phonemizer = uTask.Part.Phonemizer;
-            if (phonemizer == null) phonemizer = new DefaultPhonemizer();
+            if (phonemizer == null) phonemizer = callbackPhoneme;
             for (int i = 0; i < uTask.Part.Notes.Count; i++)
             {
                 List<UPhonemeNote> Processed;
@@ -71,7 +72,11 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                     };
                 }else
                 {
-                    Processed = phonemizer.Process(uTask.Part, i);
+                    try
+                    {
+                        Processed = phonemizer.Process(uTask.Part, i);
+                    }
+                    catch { Processed = callbackPhoneme.Process(uTask.Part, i); }
                 }
                 if(Processed.Count>0 && Processed.Count== uTask.Part.Notes[i].PhonemeNotes.Count)
                 {

@@ -9,9 +9,9 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.English
 {
 
     [Phonemeizer("[OU]English VCCV")]
-    public class BrazilianPortugueseCVCPhonemizer : BaseAdapterPhonemizer
+    public class EnglishVCCVPhonemizer : BaseAdapterPhonemizer
     {
-        public BrazilianPortugueseCVCPhonemizer(VoiceBank vb) : base(vb)
+        public EnglishVCCVPhonemizer(VoiceBank vb) : base(vb)
         {
         }
 

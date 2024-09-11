@@ -146,6 +146,7 @@ namespace ChoristaUtauApi.UVoiceBank
 
         public string LocalWav { get
             {
+                if (FileEncoding=="")return Wav;
                 var SrcEncoding = EncodingUtils.GetEncoding(FileEncoding);
                 var DstEncoding = EncodingUtils.GetEncoding(System.Globalization.CultureInfo.CurrentCulture.TextInfo.ANSICodePage);
                 byte[] orgWav=SrcEncoding.GetBytes(Wav);
