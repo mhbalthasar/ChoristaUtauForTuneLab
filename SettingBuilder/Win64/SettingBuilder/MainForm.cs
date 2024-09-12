@@ -1,4 +1,8 @@
+using SettingBuilder_win64;
 using System.ComponentModel.Design.Serialization;
+using System.Text;
+using System.Xml.Linq;
+using Ude;
 
 namespace SettingBuilder
 {
@@ -248,6 +252,162 @@ namespace SettingBuilder
                 }
                 this.Invoke(() => { button5.Enabled = true; button6.Enabled = true; });
             });
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            Task.Run(() =>
+            {
+                this.Invoke(() => { button7.Enabled = false; });
+                var tpk=GetVoiceBanks(); this.Invoke(() =>
+                {
+                    EncodingSetting setWin = new EncodingSetting(tpk,this);
+                    setWin.ShowDialog();
+                });
+
+                this.Invoke(() => { button7.Enabled = true; });
+            });
+        }
+
+
+        private string GetVBName(string VoiceBankPath,out string EncodingName)
+        {
+            string DetectFileEncoding(string filePath)
+            {
+                using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    try
+                    {
+                        var detector = new CharsetDetector();
+                        detector.Feed(fileStream);
+                        detector.DataEnd();
+
+                        if (detector.Charset != null)
+                        {
+                            if (detector.Charset == "KOI8-R") return "GBK";
+                            if (detector.Charset == "windows-1252") return "Shift-JIS";//DEFAULT ERROR
+                            return detector.Charset;
+                        }
+                        else
+                        {
+                            return "Shift-JIS";
+                        }
+                    }
+                    catch { return "Shift-JIS"; }
+                }
+            }
+
+            EncodingName = "";
+            string vbName = "";
+            bool bOUOverlay_Name = false;
+            string ou_detected_encoding = "";
+
+            //OverlayOU
+            if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
+            {
+                try
+                {
+                    YamlDotNet.Serialization.Deserializer d = new YamlDotNet.Serialization.Deserializer();
+                    Dictionary<object, object> ouMap = (Dictionary<object, object>)d.Deserialize(File.ReadAllText(Path.Combine(VoiceBankPath, "character.yaml")));
+                    if (ouMap.TryGetValue("name", out object nameValue))
+                    {
+                        vbName = (string)nameValue;
+                        bOUOverlay_Name = true;
+                    }
+
+                    if (ouMap.TryGetValue("text_file_encoding", out object encodingValue)) ou_detected_encoding = (string)encodingValue;
+                    EncodingName = ou_detected_encoding;
+                }
+                catch {; }
+            }
+
+            //ReadVBName
+            if (!bOUOverlay_Name)
+            {
+                vbName = Path.GetFileNameWithoutExtension(VoiceBankPath);
+                string EncodName = ou_detected_encoding.Length > 0 ? ou_detected_encoding : DetectFileEncoding(Path.Combine(VoiceBankPath, "character.txt"));
+                GetVBNameWithEncoding(VoiceBankPath, EncodName, out string? enName, out string? vN);
+                if (enName != null) EncodingName = enName;
+                if (vN != null) vbName = vN;
+            }
+            return vbName;
+        }
+
+        public void GetVBNameWithEncoding(string VoiceBankPath,string EncodingInput, out string? EncodingName,out string? vbName)
+        {
+            Encoding GetEncoding(string EncodingName)
+            {
+                if (EncodingName == "UTF8") return Encoding.UTF8;
+                if (EncodingName == "ASCII") return Encoding.ASCII;
+                if (EncodingName == "Unicode") return Encoding.Unicode;
+                return CodePagesEncodingProvider.Instance.GetEncoding(EncodingName);
+            }
+            EncodingName = null;
+            vbName = null;
+            try
+            {
+                if (File.Exists(Path.Combine(VoiceBankPath, "character.txt")))
+                {
+                    string[] characterText = File.ReadAllLines(Path.Combine(VoiceBankPath, "character.txt"), GetEncoding(EncodingInput));// Path.Combine(VoiceBankPath, "character.txt"));
+                    foreach (string line in characterText)
+                    {
+                        if (line.ToLower().StartsWith("name="))
+                        {
+                            vbName = line.Substring(5);
+                            EncodingName = EncodingInput;
+                            break;
+                        }
+                    }
+                }
+            }
+            catch {; }
+        }
+        public void GetVBOverlayName(string VoiceBankPath,out string? vbName)
+        {
+            vbName = null;
+            if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
+            {
+                try
+                {
+                    YamlDotNet.Serialization.Deserializer d = new YamlDotNet.Serialization.Deserializer();
+                    Dictionary<object, object> ouMap = (Dictionary<object, object>)d.Deserialize(File.ReadAllText(Path.Combine(VoiceBankPath, "character.yaml")));
+                    if (ouMap.TryGetValue("name", out object nameValue))
+                    {
+                        vbName = (string)nameValue;
+                    }
+                }
+                catch {; }
+            }
+        }
+        public Dictionary<string,Tuple<string,string>> GetVoiceBanks()
+        {
+            List<string> allPath = new List<string>();
+            allPath.AddRange(l_staticDirs);
+            allPath.AddRange(l_searchDirs);
+            List<string> VBPaths = new List<string>();
+            foreach (string path in allPath) VBPaths.AddRange(FindVB(path, 10));
+
+            Dictionary<string, Tuple<string, string>> VBL = new Dictionary<string, Tuple<string, string>>();
+
+            //LoadEachVoiceBank
+            foreach (string vbp in VBPaths)
+            {
+                try
+                {
+                    string VBName = GetVBName(vbp,out string enc);
+                    int ord = 0;
+                    while (true)
+                    {
+                        if (!(VBL.ContainsKey(VBName))) break;
+                        ord++;
+                        VBName = string.Format("{0} #{1}", VBName, ord);
+                    }
+                    VBL.Add(vbp, new Tuple<string, string>(VBName,enc));
+                }
+                catch {; }
+            }
+
+            return VBL;
         }
     }
 }

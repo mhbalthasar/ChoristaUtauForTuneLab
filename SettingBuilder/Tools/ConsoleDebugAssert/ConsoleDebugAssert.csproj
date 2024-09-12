@@ -13,8 +13,4 @@
     <PackageReference Include="Ude.NET" Version="1.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\ChoristaUtau.Phonemizers\OpenUtau.PhonemeAdapter\OpenUtauBuiltInPhonemizers\OpenUtauBuiltInPhonemizers.csproj" />
-  </ItemGroup>
-
 </Project>

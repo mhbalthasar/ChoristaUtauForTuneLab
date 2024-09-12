@@ -261,7 +261,11 @@ namespace ChoristaUtauApi.UVoiceBank
                             oto.FileEncoding = "";
                             if (!oto.isVaild(VoiceBankPath))
                             {
-                                oto.FileEncoding = EncodName;
+                                oto.FileEncoding = EncodName; 
+                                if (!oto.isVaild(VoiceBankPath))
+                                {
+                                    oto.FileEncoding = "Shift-JIS";
+                                }
                             }
 
                             vb.Otos.Add(oto);

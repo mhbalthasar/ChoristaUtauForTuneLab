@@ -38,6 +38,8 @@
             lab_size = new Label();
             button5 = new Button();
             button6 = new Button();
+            label3 = new Label();
+            button7 = new Button();
             SuspendLayout();
             // 
             // searchDirs
@@ -61,7 +63,7 @@
             // 
             // button1
             // 
-            button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button1.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             button1.Location = new Point(12, 340);
             button1.Name = "button1";
             button1.Size = new Size(102, 28);
@@ -72,7 +74,7 @@
             // 
             // button2
             // 
-            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             button2.Location = new Point(120, 340);
             button2.Name = "button2";
             button2.Size = new Size(114, 28);
@@ -83,7 +85,7 @@
             // 
             // button3
             // 
-            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             button3.Location = new Point(240, 340);
             button3.Name = "button3";
             button3.Size = new Size(114, 28);
@@ -94,7 +96,7 @@
             // 
             // label2
             // 
-            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            label2.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             label2.AutoSize = true;
             label2.Location = new Point(12, 385);
             label2.Name = "label2";
@@ -104,7 +106,7 @@
             // 
             // button4
             // 
-            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             button4.Location = new Point(12, 405);
             button4.Name = "button4";
             button4.Size = new Size(102, 28);
@@ -115,7 +117,7 @@
             // 
             // lab_size
             // 
-            lab_size.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lab_size.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             lab_size.AutoSize = true;
             lab_size.Location = new Point(167, 385);
             lab_size.Name = "lab_size";
@@ -125,7 +127,7 @@
             // 
             // button5
             // 
-            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button5.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             button5.Location = new Point(360, 340);
             button5.Name = "button5";
             button5.Size = new Size(212, 28);
@@ -136,7 +138,7 @@
             // 
             // button6
             // 
-            button6.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            button6.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             button6.Location = new Point(578, 340);
             button6.Name = "button6";
             button6.Size = new Size(212, 28);
@@ -144,6 +146,27 @@
             button6.Text = "Clean Phonemizer.txt";
             button6.UseVisualStyleBackColor = true;
             button6.Click += button6_Click;
+            // 
+            // label3
+            // 
+            label3.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            label3.AutoSize = true;
+            label3.Location = new Point(423, 385);
+            label3.Name = "label3";
+            label3.Size = new Size(174, 17);
+            label3.TabIndex = 1;
+            label3.Text = "VoiceBank Encoding Setting:";
+            // 
+            // button7
+            // 
+            button7.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            button7.Location = new Point(423, 405);
+            button7.Name = "button7";
+            button7.Size = new Size(102, 28);
+            button7.TabIndex = 2;
+            button7.Text = "Setting";
+            button7.UseVisualStyleBackColor = true;
+            button7.Click += button7_Click;
             // 
             // MainForm
             // 
@@ -154,9 +177,11 @@
             Controls.Add(button5);
             Controls.Add(button3);
             Controls.Add(button2);
+            Controls.Add(button7);
             Controls.Add(button4);
             Controls.Add(button1);
             Controls.Add(lab_size);
+            Controls.Add(label3);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(searchDirs);
@@ -179,5 +204,7 @@
         private Label lab_size;
         private Button button5;
         private Button button6;
+        private Label label3;
+        private Button button7;
     }
 }
