@@ -10,10 +10,18 @@ namespace ChoristaUtauApi.Utils
     {
         public static Encoding GetEncoding(string EncodingName)
         {
-            if (EncodingName == "UTF8") return Encoding.UTF8;
-            if (EncodingName == "ASCII") return Encoding.ASCII;
-            if (EncodingName == "Unicode") return Encoding.Unicode;
-            return CodePagesEncodingProvider.Instance.GetEncoding(EncodingName);
+            try
+            {
+                if (EncodingName.ToUpper() == "UTF8") return Encoding.UTF8;
+                if (EncodingName.ToUpper() == "UTF-8") return Encoding.UTF8;
+                if (EncodingName.ToUpper() == "ASCII") return Encoding.ASCII;
+                if (EncodingName.ToUpper() == "UNICODE") return Encoding.Unicode;
+                var det = CodePagesEncodingProvider.Instance.GetEncoding(EncodingName);
+                if (det == null) det = CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS");
+                if (det == null) return Encoding.Default;
+                return det;
+            }
+            catch { return Encoding.Default; }
         }
         public static Encoding GetEncoding(int CodePage)
         {
@@ -29,7 +37,7 @@ namespace ChoristaUtauApi.Utils
         public static string GetEncodingName(Encoding EncodingItem)
         {
             try{
-                if (EncodingItem == Encoding.UTF8) return "UTF8";
+                if (EncodingItem == Encoding.UTF8) return "UTF-8";
                 else if (EncodingItem == Encoding.ASCII) return "ASCII";
                 else if (EncodingItem == Encoding.Unicode) return "Unicode";
                 else if (EncodingItem == System.Text.CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS")) return "Shift-JIS";

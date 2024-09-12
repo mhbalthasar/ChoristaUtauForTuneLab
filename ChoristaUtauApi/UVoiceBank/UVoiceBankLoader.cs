@@ -120,6 +120,7 @@ namespace ChoristaUtauApi.UVoiceBank
 
 
             string ou_detected_encoding = "";
+            List<KeyValuePair<PrefixItem, Tuple<int, int>>> ou_prefix_callback = new List<KeyValuePair<PrefixItem, Tuple<int, int>>>();
             //OverlayOU
             if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
             {
@@ -148,11 +149,32 @@ namespace ChoristaUtauApi.UVoiceBank
                             if (bankMap.TryGetValue("prefix", out object oPrefix)) { prefix = (string)oPrefix; flag = true; }
                             if (bankMap.TryGetValue("suffix", out object oSuffix)) { suffix = (string)oSuffix; flag = true; }
 
+                            var Pfx = new PrefixItem() { prefix = prefix, suffix = suffix, PitchNumber = pitch };
                             if (flag)
                             {
                                 string kPair = prefix.Trim() + suffix.Trim();
                                 if (kPair.Trim() == "") kPair = "<No Prefix>";
-                                Pairs.Add(kPair, new PrefixItem() { prefix = prefix, suffix = suffix, PitchNumber = pitch });
+                                Pairs.Add(kPair, Pfx);
+                            }
+
+                            if(bankMap.TryGetValue("tone_ranges",out object oToneRanges))
+                            {
+                                try
+                                {
+                                    if (oToneRanges is List<object>)
+                                    {
+                                        var lToneRange = (List<object>)oToneRanges;
+                                        foreach (var t in lToneRange)
+                                        {
+                                            string[] tr = ((string)t).Split("-");
+                                            Tuple<int, int> vr = new Tuple<int, int>(OctaveUtils.Str2NoteNumber(tr[0]), OctaveUtils.Str2NoteNumber(tr[1]));
+                                            ou_prefix_callback.Add(new KeyValuePair<PrefixItem, Tuple<int, int>>(
+                                                Pfx,vr
+                                            ));
+                                        }
+                                    }
+                                }
+                                catch {; }
                             }
                         }
                         if (Pairs.Count > 0)
@@ -218,6 +240,21 @@ namespace ChoristaUtauApi.UVoiceBank
                     }
                 }
                 catch {; }
+            }else if(ou_prefix_callback.Count>0)
+            {
+                foreach(var kvp in ou_prefix_callback)
+                {
+                    try
+                    {
+                        var Pfx = kvp.Key;
+                        var oRange = kvp.Value;
+                        for (int i = oRange.Item1; i <= oRange.Item2; i++)
+                        {
+                            vb.SetPrefixItem(i, Pfx.prefix, Pfx.suffix);
+                        }
+                    }
+                    catch {; }
+                }
             }
 
            

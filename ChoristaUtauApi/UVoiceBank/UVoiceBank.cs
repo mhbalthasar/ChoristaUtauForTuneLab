@@ -54,6 +54,14 @@ namespace ChoristaUtauApi.UVoiceBank
             if (prefix == null) prefix = new PrefixItem();
             Oto? ret = Otos.Find(p=>p.Alias==prefix.prefix+symbol+prefix.suffix);
             if (ret == null) ret = Otos.Find(p => p.Alias == symbol);
+            if (ret == null)
+            {//CALLBACK
+                foreach(var pr in PrefixPairs)
+                {
+                    ret = Otos.Find(p => p.Alias == pr.PrefixItem.prefix + symbol + pr.PrefixItem.suffix);
+                    if (ret != null) break;
+                }
+            }
             return ret;
         }
         public Oto? FindSymbol(string symbol, int PrefixKeyNumber)
