@@ -19,6 +19,7 @@ using System.Formats.Tar;
 using System.Xml.Linq;
 using UtaubaseForTuneLab.Utils;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.ComponentModel.DataAnnotations;
 
 namespace UtaubaseForTuneLab
 {
@@ -74,7 +75,7 @@ namespace UtaubaseForTuneLab
                 return false;
             } 
         }
-        private void StartRenderTask(RenderPart loop = RenderPart.FirstTrack, string? firstTrackAudioFile = null)
+        private async void StartRenderTask(RenderPart loop = RenderPart.FirstTrack, string? firstTrackAudioFile = null)
         {
             WineHelper wine = new WineHelper();
 
@@ -171,52 +172,63 @@ namespace UtaubaseForTuneLab
 
             //PrepareHash
             string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine,synthesisData.PartProperties.GetString(UtauEngine.PhonemizerSelectorID));
-            using(var plock= new ProcessQueueLocker(OutputFile))
-            {
-                if (!File.Exists(OutputFile))
-                {
-                    //PrepareWorkDir
-                    string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile, uTask, rPart);
 
-                    //resamplers
-                    var ProcessResamplerFiles=rPart.Select(p=>p.Executors.TempFilePath).ToArray();
-                    using (var resLock = new ProcessQueueLocker(ProcessResamplerFiles))
-                    {
-                        {//OTO ERROR CHECK
+            if (!File.Exists(OutputFile))
+            {
+                //PrepareWorkDir
+                string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile, uTask, rPart);
+
+                //resamplers
+                var ProcessResamplerFiles = rPart.Select(p => p.Executors.TempFilePath).ToArray();
+
+                using (var resLock = new ProcessQueueLocker(ProcessResamplerFiles))
+                {
+                    {//OTO ERROR CHECK
+                        {
+                            var OtoRendAble = rPart.Where(p => p.RenderOto != null && p.RenderOto.Alias != "R").Count();
+                            if (OtoRendAble == 0)
                             {
-                                var OtoRendAble = rPart.Where(p => p.RenderOto != null && p.RenderOto.Alias != "R").Count();
-                                if (OtoRendAble == 0)
+                                if (voiceBank.Otos.Count == 0)
                                 {
-                                    if(voiceBank.Otos.Count==0)
-                                    {
-                                        Error?.Invoke("oto.ini is empty,check the oto file encoding first!");
-                                    }else if(voiceBank.PrefixPairs.Count==0)
-                                    {
-                                        Error?.Invoke("cannot find the sample wav file,Please check if the polyphonic VB is configured with prefix.map");
-                                    }else
-                                    {
-                                        Error?.Invoke("cannot find the sample wav file,Please check if the Phonemizer is right");
-                                    }
-                                    return;
+                                    Error?.Invoke("oto.ini is empty,check the oto file encoding first!");
                                 }
-                            }
-                            {
-                                bool isAllMissing = false;
-                                var OtoFiles = rPart.Where(p => p.RenderOto != null && !p.Attributes.IsRest).Select(p => p.RenderOto.GetWavfilePath(voiceBank.vbBasePath));
-                                Parallel.ForEach(OtoFiles, (Oto) => { isAllMissing = isAllMissing || !File.Exists(Oto); });
-                                if (isAllMissing)
+                                else if (voiceBank.PrefixPairs.Count == 0)
                                 {
-                                    Error?.Invoke("sample wav files in oto.ini was cannot be open");
-                                    return;
+                                    Error?.Invoke("cannot find the sample wav file,Please check if the polyphonic VB is configured with prefix.map");
                                 }
+                                else
+                                {
+                                    Error?.Invoke("cannot find the sample wav file,Please check if the Phonemizer is right");
+                                }
+                                return;
                             }
                         }
+                        {
+                            bool isAllMissing = false;
+                            var OtoFiles = rPart.Where(p => p.RenderOto != null && !p.Attributes.IsRest).Select(p => p.RenderOto.GetWavfilePath(voiceBank.vbBasePath));
+                            Parallel.ForEach(OtoFiles, (Oto) => { isAllMissing = isAllMissing || !File.Exists(Oto); });
+                            if (isAllMissing)
+                            {
+                                Error?.Invoke("sample wav files in oto.ini was cannot be open");
+                                return;
+                            }
+                        }
+                    }
+
+                    //MultiProcess Render
+                    var QueueSize = 10;
+                    var uniqueRPart = rPart.GroupBy(r => r.Executors.TempFilePath).Select(r => r.First()).ToList();
+                    var dividedRQueue = uniqueRPart.DivideList(QueueSize);
+                    QueueSize = Math.Min(QueueSize, dividedRQueue.Count);
+                    Task[] taskQueue = new Task[QueueSize];
+                    for (int queueIndex = 0; queueIndex < QueueSize; queueIndex++)
+                    {
                         if (WineHelper.UnderWine)
                         {
                             StringBuilder resampleBatContent = new StringBuilder();
-                            string resampleBatFile = Path.Combine(WorkDir, "resampler.bat");
+                            string resampleBatFile = Path.Combine(WorkDir, string.Format("resampler-{0}.bat", queueIndex));
                             resampleBatContent.AppendLine("chcp 932");//CodePage:Shift-JIS
-                            foreach (URenderNote rNote in rPart)
+                            foreach (URenderNote rNote in dividedRQueue[queueIndex])
                             {
                                 string resampler_exe = renderEngine.ResamplerPath;
                                 List<string> args = rNote.Executors.GetResamplerArgs(true);
@@ -228,27 +240,39 @@ namespace UtaubaseForTuneLab
                             File.WriteAllText(resampleBatFile, resampleBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
                             if (File.Exists(resampleBatFile))
                             {
-                                Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", resampleBatFile]));
-                                wavP.Start();
-                                wavP.WaitForExit();
-                                File.Delete(resampleBatFile);
+                                Task task = Task.Run(() =>
+                                {
+                                    Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", resampleBatFile]));
+                                    wavP.Start();
+                                    wavP.WaitForExit();
+                                    File.Delete(resampleBatFile);
+                                });
+                                taskQueue[queueIndex] = task;
                             }
                         }
                         else
                         {
-                            foreach (URenderNote rNote in rPart)
-                            {
-                                string resampler_exe = renderEngine.ResamplerPath;
-                                List<string> args = rNote.Executors.GetResamplerArgs(true);
-                                if (args.Count == 0) continue;
-                                if (File.Exists(rNote.Executors.TempFilePath)) continue;
-                                Process p = wine.CreateWineProcess(resampler_exe, args);
-                                p.Start();
-                                p.WaitForExit();
-                            }
+                            var Qi = dividedRQueue[queueIndex];
+                            Task task = Task.Run(() =>
+                                {
+                                    foreach (URenderNote rNote in Qi)
+                                    {
+                                        string resampler_exe = renderEngine.ResamplerPath;
+                                        List<string> args = rNote.Executors.GetResamplerArgs(true);
+                                        if (args.Count == 0) continue;
+                                        if (File.Exists(rNote.Executors.TempFilePath)) continue;
+                                        Process p = wine.CreateWineProcess(resampler_exe, args);
+                                        p.Start();
+                                        p.WaitForExit();
+                                    }
+                                });
+                            taskQueue[queueIndex] = task;
                         }
                     }
-
+                    await Task.WhenAll(taskQueue);
+                }
+                using (var plock = new ProcessQueueLocker(OutputFile))
+                {
                     //wavtool
                     if (WineHelper.UnderWine)
                     {

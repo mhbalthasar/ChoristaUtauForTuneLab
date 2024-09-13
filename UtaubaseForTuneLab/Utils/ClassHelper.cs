@@ -34,5 +34,23 @@ namespace UtaubaseForTuneLab.Utils
             list.Append(item);
             return list;
         }
+
+        public static List <List <T>> DivideList<T>(this List <T> list, int count)
+        {
+            List<List<T>> ret= new List<List<T>>();
+            for (int i = 0; i < list.Count; i++)
+            {
+                if(i<count)
+                {
+                    ret.Add(new List<T> { list[i] });
+                }
+                else
+                {
+                    var gi = i % count;
+                    ret[gi].Add(list[i]);
+                }
+            }
+            return ret;
+        }
     }
 }
