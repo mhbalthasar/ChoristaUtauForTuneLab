@@ -12,6 +12,10 @@ Extension included a Interface witch is ported from OpenUTAU. the Phonemizer whi
 TODO: A IPhonemizer document for develop the phonemizer in TuneLab/ChoristaUtau,and another document for how to port OpenUTAU phonemizer code to Tunelab in a easy way.
 PS: the phonemizer code now is the example
 
+# Resampler Engines (Finished)
+ - Moresampler
+ - **
+
 # Releases
 <a href="https://github.com/mhbalthasar/ChoristaUtauForTunelab_manuals/releases"> Update Page </a>
 
