@@ -166,8 +166,8 @@ namespace ChoristaUtauApi.UVoiceBank
                                         var lToneRange = (List<object>)oToneRanges;
                                         foreach (var t in lToneRange)
                                         {
-                                            string[] tr = ((string)t).Split("-");
-                                            Tuple<int, int> vr = new Tuple<int, int>(OctaveUtils.Str2NoteNumber(tr[0]), OctaveUtils.Str2NoteNumber(tr[1]));
+                                            string[] tr = ((string)t).Trim().Split("-");
+                                            Tuple<int, int> vr = new Tuple<int, int>(OctaveUtils.Str2NoteNumber(tr[0].Trim()), OctaveUtils.Str2NoteNumber(tr[1].Trim()));
                                             ou_prefix_callback.Add(new KeyValuePair<PrefixItem, Tuple<int, int>>(
                                                 Pfx,vr
                                             ));

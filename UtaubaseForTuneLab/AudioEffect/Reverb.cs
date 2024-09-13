@@ -10,15 +10,15 @@ namespace UtaubaseForTuneLab.AudioEffect
 {
     internal class Reverb
     {
-        public static float[] Mofidy(float[] data, int delayinMilliSeconds, float decayFactor, float mixPercent, int sampleRate=44100)
+        public static float[] Mofidy(float[] data, int delayinMilliSeconds,float roomFactor, float decayFactor, float mixPercent, int sampleRate=44100)
         {
             float[] ret = new float[data.Length];
             data.CopyTo(ret, 0);
 
             float[] combFilterSamples1 = CombFilter(ret, delayinMilliSeconds, decayFactor, sampleRate);
-            float[] combFilterSamples2 = CombFilter(ret, delayinMilliSeconds - 11.73f, decayFactor - 0.1313f, sampleRate);
-            float[] combFilterSamples3 = CombFilter(ret, delayinMilliSeconds + 19.31f, decayFactor - 0.2743f, sampleRate);
-            float[] combFilterSamples4 = CombFilter(ret, delayinMilliSeconds - 7.97f, decayFactor - 0.31f, sampleRate);
+            float[] combFilterSamples2 = CombFilter(ret, delayinMilliSeconds - 11.73f * roomFactor, decayFactor - 0.1313f, sampleRate);
+            float[] combFilterSamples3 = CombFilter(ret, delayinMilliSeconds + 19.31f * roomFactor, decayFactor - 0.2743f, sampleRate);
+            float[] combFilterSamples4 = CombFilter(ret, delayinMilliSeconds - 7.97f * roomFactor, decayFactor - 0.31f, sampleRate);
 
             float[] comb = new float[data.Length];
             for (int i = 0; i < comb.Length; i++)

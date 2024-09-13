@@ -8,11 +8,11 @@ using System.Reflection.Metadata.Ecma335;
 namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.Japanese
 {
 
-    [Phonemeizer("[OU]Japanese (Presamp)")]
-    public class JapanesePresampPhonemizer : BaseAdapterPhonemizer
+    [Phonemeizer("[OU]Japanese (Presamp) Hiragana")]
+    public class JapanesePresampPhonemizerHiragana : BaseAdapterPhonemizer
     {
         VoiceBank voiceBank;
-        public JapanesePresampPhonemizer(VoiceBank vb) : base(vb)
+        public JapanesePresampPhonemizerHiragana(VoiceBank vb) : base(vb)
         {
             voiceBank = vb;
         }

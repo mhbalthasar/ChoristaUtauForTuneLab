@@ -8,16 +8,16 @@ using System.Reflection.Metadata.Ecma335;
 namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.Japanese
 {
 
-    [Phonemeizer("[OU]Japanese CVVC")]
-    public class JapaneseCVVCPhonemizer : BaseAdapterPhonemizer
+    [Phonemeizer("[OU]Japanese VCV Hiragana")]
+    public class JapaneseVCVPhonemizerHiragana : BaseAdapterPhonemizer
     {
         VoiceBank voiceBank;
-        public JapaneseCVVCPhonemizer(VoiceBank vb) : base(vb)
+        public JapaneseVCVPhonemizerHiragana(VoiceBank vb) : base(vb)
         {
             voiceBank = vb;
         }
 
-        public override Type PhonemizerType => typeof(OpenUtau.Plugin.Builtin.JapaneseCVVCPhonemizer);
+        public override Type PhonemizerType => typeof(OpenUtau.Plugin.Builtin.JapaneseVCVPhonemizer);
 
         public override string PhonemizerDictFileName => "";
 

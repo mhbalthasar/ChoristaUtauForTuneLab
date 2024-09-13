@@ -30,6 +30,8 @@ namespace UtaubaseForTuneLab.AudioEffect
         public readonly static NumberConfig Afx_Reverb_Mix_Config = new() { DefaultValue = 0.0, MinValue = 0, MaxValue = 1 };
         public const string Afx_Reverb_Delay_ID = "AFX:Reverb Delay";
         public readonly static NumberConfig Afx_Reverb_Delay_Config = new() { DefaultValue = 0.2, MinValue = 0, MaxValue = 5 };
+        public const string Afx_Reverb_Room_ID = "AFX:Reverb RoomFactor";
+        public readonly static NumberConfig Afx_Reverb_Room_Config = new() { DefaultValue = 0.3, MinValue = 0, MaxValue = 1 };
         public const string Afx_Reverb_Decay_ID = "AFX:Reverb DecayFactor";
         public readonly static NumberConfig Afx_Reverb_Decay_Config = new() { DefaultValue = 0.3, MinValue = 0, MaxValue = 1 };
 
@@ -56,6 +58,7 @@ namespace UtaubaseForTuneLab.AudioEffect
 
                     {Afx_Reverb_Mix_ID,Afx_Reverb_Mix_Config},
                     {Afx_Reverb_Delay_ID,Afx_Reverb_Delay_Config},
+                    {Afx_Reverb_Room_ID,Afx_Reverb_Room_Config},
                     {Afx_Reverb_Decay_ID,Afx_Reverb_Decay_Config}
         };
         public static void DoProcess(ISynthesisData pData,ref TaskAudioData audioData)
@@ -92,8 +95,9 @@ namespace UtaubaseForTuneLab.AudioEffect
             {
                 double mix = pData.PartProperties.GetDouble(Afx_Reverb_Mix_ID, 0.0);
                 double delay = pData.PartProperties.GetDouble(Afx_Reverb_Delay_ID, 0.2);
+                double room = pData.PartProperties.GetDouble(Afx_Reverb_Room_ID, 0.3);
                 double decay = pData.PartProperties.GetDouble(Afx_Reverb_Decay_ID, 0.3);
-                if (mix > 0) audioData.audio_Data = Reverb.Mofidy(audioData.audio_Data, (int)Math.Round(delay * 100.0), (float)decay, (float)mix, (int)audioData.audio_SampleRate);
+                if (mix > 0) audioData.audio_Data = Reverb.Mofidy(audioData.audio_Data, (int)Math.Round(delay * 100.0), (float)room ,(float)decay, (float)mix, (int)audioData.audio_SampleRate);
             }
         }
         public static TaskAudioData MixSynthesis(ISynthesisData synthesisData, TaskAudioData audioInfo, TaskAudioData xAudioInfo)
