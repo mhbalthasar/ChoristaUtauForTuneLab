@@ -208,6 +208,10 @@ namespace ChoristaUtauApi.UVoiceBank
                 }
                 catch {; }
             }
+            if(vb.Name.Trim().Length == 0)
+            {
+                vb.Name = Path.GetFileNameWithoutExtension(VoiceBankPath);
+            }
 
             //ReadVBPrefix
             if (File.Exists(Path.Combine(VoiceBankPath, "prefix.map")))
@@ -228,6 +232,7 @@ namespace ChoristaUtauApi.UVoiceBank
                             string suffixStr = pfx[2];
                             vb.SetPrefixItem(nn, prefixStr, suffixStr);
                             string kPair = prefixStr.Trim() + suffixStr.Trim();
+                            if (kPair.Trim() == "") kPair = "<No Prefix>";
                             if (!Pairs.ContainsKey(kPair))
                             {
                                 Pairs.Add(kPair, vb.GetPrefixItem(nn));
@@ -261,6 +266,7 @@ namespace ChoristaUtauApi.UVoiceBank
 
             //LoadOto
             List<string> otoDirList = new List<string>();
+            List<PrefixItem> otoFindedPrefix=new List<PrefixItem>();
             foreach (string[] otoPathMap in otoFiles)
             {
                 string otoPath = Path.Combine(otoPathMap);
@@ -271,6 +277,7 @@ namespace ChoristaUtauApi.UVoiceBank
                     {
                         string EncodName = ou_detected_encoding.Length > 0 ? ou_detected_encoding : DetectFileEncoding(curPath);
                         string[] otoText = File.ReadAllLines(curPath, EncodingUtils.GetEncoding(EncodName));
+                        List<string> otoAliases= new List<string>();
                         foreach (string otoLine in otoText)
                         {
                             if (otoLine.Trim().StartsWith("#")) continue;
@@ -305,7 +312,15 @@ namespace ChoristaUtauApi.UVoiceBank
                                 }
                             }
 
+                            if (oto.Alias.Length > 0) otoAliases.Add(oto.Alias);
                             vb.Otos.Add(oto);
+                        }
+                        {
+                            try
+                            {
+                                vb.PrefixPairs = UVoiceBankPrefixAnalysiser.AddPair(vb.PrefixPairs, UVoiceBankPrefixAnalysiser.AnalysisPrefixFromAlias(otoAliases),"[*]");
+                            }
+                            catch { }
                         }
                     }
                     catch {; }

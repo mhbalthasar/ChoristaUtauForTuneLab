@@ -40,6 +40,7 @@
             button6 = new Button();
             label3 = new Label();
             button7 = new Button();
+            button8 = new Button();
             SuspendLayout();
             // 
             // searchDirs
@@ -139,12 +140,13 @@
             // button6
             // 
             button6.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            button6.Location = new Point(578, 340);
+            button6.Location = new Point(576, 374);
             button6.Name = "button6";
-            button6.Size = new Size(212, 28);
-            button6.TabIndex = 2;
+            button6.Size = new Size(212, 10);
+            button6.TabIndex = 0;
             button6.Text = "Clean Phonemizer.txt";
             button6.UseVisualStyleBackColor = true;
+            button6.Visible = false;
             button6.Click += button6_Click;
             // 
             // label3
@@ -168,11 +170,23 @@
             button7.UseVisualStyleBackColor = true;
             button7.Click += button7_Click;
             // 
+            // button8
+            // 
+            button8.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            button8.Location = new Point(576, 340);
+            button8.Name = "button8";
+            button8.Size = new Size(212, 28);
+            button8.TabIndex = 0;
+            button8.Text = "Kill Processing Resampler";
+            button8.UseVisualStyleBackColor = true;
+            button8.Click += button8_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 446);
+            Controls.Add(button8);
             Controls.Add(button6);
             Controls.Add(button5);
             Controls.Add(button3);
@@ -206,5 +220,6 @@
         private Button button6;
         private Label label3;
         private Button button7;
+        private Button button8;
     }
 }

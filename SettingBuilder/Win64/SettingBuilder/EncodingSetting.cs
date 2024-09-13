@@ -17,7 +17,12 @@ namespace SettingBuilder_win64
         Dictionary<string, Tuple<string, string>> TPK;
         MainForm parent;
         List<string> EncodingNames = new List<string>();
-        public EncodingSetting(Dictionary<string, Tuple<string, string>> tpk,MainForm parent)
+        List<string> PhonemizerList = new List<string>()
+        {
+            //Export From UtauList
+            "AutoSelect","Auto CVVC(Presamp.ini)","Auto Mocaloid","Japanese Romaji","Japanese VCV","Mocaloid English (Alpha)","Whole Word (CV)","[OU]Chinese (Presamp)","[OU]Chinese CVV Extend","[OU]Chinese CVVC","[OU]Chinese Syo Cantonese","[OU]English Arpasing","[OU]English Arpasing+","[OU]English VCCV","[OU]English via JPN VB","[OU]English XSampa","[OU]French CVVC","[OU]French Diphone","[OU]French VCCV","[OU]German Diphone","[OU]German VCCV","[OU]Italian CVVC","[OU]Italian Syllable","[OU]Japanese (Presamp) Hiragana","[OU]Japanese (Presamp) Romaji","[OU]Japanese CVVC Hiragana","[OU]Japanese CVVC Romaji","[OU]Japanese VCV Hiragana","[OU]Japanese VCV Romaji","[OU]Korean CBNN","[OU]Korean CV","[OU]Korean CVC","[OU]Korean CVCCV","[OU]Korean CVVC","[OU]Korean VCV","[OU]Korean via JPN VB","[OU]Polish CVC","[OU]Protuguese CVC Brazilian","[OU]Russian CVC","[OU]Russian VCCV","[OU]Spanish Makkusan","[OU]Spanish Syllable","[OU]Spanish VCCV","[OU]Spanish via JPN VB","[OU]Thai VCCV","[OU]Vietnamese CVVC","[OU]Vietnamese VCV","[OU]Vietnamese VINA"
+        };
+        public EncodingSetting(Dictionary<string, Tuple<string, string>> tpk, MainForm parent)
         {
             this.parent = parent;
             TPK = tpk;
@@ -25,6 +30,7 @@ namespace SettingBuilder_win64
             //txtEncoding.
             EncodingNames = CodePagesEncodingProvider.Instance.GetEncodings().Select(p => p.Name.ToUpper()).Order().ToList();
             EncodingNames.InsertRange(0, ["AutoDetect", "UTF8", "UTF16", "Unicode"]);
+            listPhonemizer.Items.AddRange(PhonemizerList.Select(p => (object)p).ToArray());
         }
 
         private void EncodingSetting_Load(object sender, EventArgs e)
@@ -45,7 +51,7 @@ namespace SettingBuilder_win64
                 KeyValuePair<string, Tuple<string, string>>? cr = null;
                 try
                 {
-                    cr=TPK.Where(p => p.Value.Item1 == cstr).First();
+                    cr = TPK.Where(p => p.Value.Item1 == cstr).First();
                 }
                 catch {; }
                 if (cr.HasValue)
@@ -65,15 +71,60 @@ namespace SettingBuilder_win64
                     {
                         var cp = txtEncoding.Items.IndexOf(enc.ToUpper());
                         if (cp == -1) txtEncoding.Text = enc.ToUpper();
-                        else 
+                        else
                             txtEncoding.SelectedIndex = cp;
                     }
                     parent.GetVBOverlayName(txtPath.Text, out string? VN);
                     if (VN != null) overlayName.Text = VN; else overlayName.Text = "";
+                    updatePhonemizer();
                     txtEncoding_SelectedIndexChanged(null, null);
                 }
             }
         }
+
+        void updatePhonemizer()
+        {
+            try
+            {
+                var pth = Path.Combine(txtPath.Text, "phonemizer.txt");
+                if (File.Exists(pth))
+                {
+                    string sk = File.ReadAllLines(pth)[0].Trim();
+                    int id = listPhonemizer.Items.IndexOf(sk);
+                    if (id < 1)
+                    {
+                        listPhonemizer.Text = sk;
+                        return;
+                    }
+                    else
+                    {
+                        listPhonemizer.SelectedIndex = id;
+                        listPhonemizer.Text = sk;
+                        return;
+                    }
+                }
+            }
+            catch {; }
+            listPhonemizer.SelectedIndex = 0;
+        }
+        public void savePhonemizer(string key)
+        {
+            try
+            {
+                var pth = Path.Combine(txtPath.Text, "phonemizer.txt");
+                if (key.Trim() == "" || key.ToLower().Trim() == "autoselect")
+                {
+                    if (File.Exists(pth)) File.Delete(pth);
+                }
+                else
+                {
+
+                    File.WriteAllLines(pth, new string[1] { key.Trim() });
+                }
+            }
+            catch {; }
+        }
+
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -84,7 +135,7 @@ namespace SettingBuilder_win64
                 {
                     SaveItem();
                     int curIndex = singerList.SelectedIndex;
-                    TPK = parent.GetVoiceBanks(); 
+                    TPK = parent.GetVoiceBanks();
                     singerList.Items.Clear();
                     singerList.Items.AddRange(TPK.Values.Select(p => (object)p.Item1).ToArray());
                     singerList.SelectedIndex = curIndex < TPK.Count ? curIndex : 0;
@@ -100,7 +151,8 @@ namespace SettingBuilder_win64
             if (VN != null)
             {
                 txtName.Text = VN;
-            }else
+            }
+            else
             {
                 txtName.Text = "";
             }
@@ -108,6 +160,7 @@ namespace SettingBuilder_win64
 
         void SaveItem()
         {
+            savePhonemizer(listPhonemizer.Text);
             string VoiceBankPath = txtPath.Text;
             Dictionary<object, object> ouMap = new Dictionary<object, object>();
             if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
@@ -148,7 +201,7 @@ namespace SettingBuilder_win64
             {
                 if (ouMap.Count == 0)
                 {
-                    if(File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))
+                    if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))
                     {
                         File.Delete(Path.Combine(VoiceBankPath, "character.yaml"));
                     }
@@ -166,6 +219,16 @@ namespace SettingBuilder_win64
                 }
             }
             catch {; }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            string tmpFile = Path.Combine(txtPath.Text, "uvoicebank.protobuf");
+            if (File.Exists(tmpFile)) try
+                {
+                    File.Delete(tmpFile);
+                }
+                catch { }
         }
     }
 }

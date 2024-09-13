@@ -17,7 +17,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter.Builtin.Chinese
             this.voiceBank = vb;
         }
 
-        public override Type PhonemizerType => typeof(OpenUtau.Plugin.Builtin.ChineseCVVCPhonemizer);
+        public override Type PhonemizerType => typeof(OpenUtau.Plugin.Builtin.PresampSamplePhonemizer);
 
         public override string PhonemizerDictFileName => "presamp.ini";
 

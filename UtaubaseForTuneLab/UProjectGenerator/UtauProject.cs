@@ -331,7 +331,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             foreach (var rNote in rPart) { rNote.Executors.UpdateExecutor(); }
         }
 
-        public static string GetPartRenderedFilePath(List<URenderNote> rPart, IRenderEngine renderEngine)
+        public static string GetPartRenderedFilePath(List<URenderNote> rPart, IRenderEngine renderEngine,string salt="")
         {
             string GetMixedHash(List<string> hashes, string appendSalt = "")
             {
@@ -352,7 +352,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
                 infos.AddRange(resamplerArgs);
                 infos.AddRange(rNote.Executors.GetWavtoolArgs("temp.wav"));
             }
-            string hash = GetMixedHash(infos);
+            string hash = GetMixedHash(infos,salt);
             string tmpPath = Path.Combine(Path.GetTempPath(), "ChoristaUtau", "PartRendered");
             if (!Directory.Exists(tmpPath)) { Directory.CreateDirectory(tmpPath); }
             return Path.Combine(tmpPath, string.Format("{0}.wav", hash));

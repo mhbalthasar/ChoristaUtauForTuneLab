@@ -83,7 +83,7 @@ namespace UtaubaseForTuneLab
             if (phonemizerKey != "AutoSelect")
             {
                 phonemizer = PhonemizerSelector.BuildPhonemizer(phonemizerKey, voiceBank);
-                PhonemizerSelector.SaveLastPhonemizer(phonemizerKey, voiceBank);
+                //PhonemizerSelector.SaveLastPhonemizer(phonemizerKey, voiceBank);//暂时屏蔽保存历史记录功能……因为切换歌手这里会导致异常覆盖
             }
 
             UTaskProject uTask = UtauProject.GenerateFrom(synthesisData, voiceBank, renderEngine, loop)
@@ -170,7 +170,7 @@ namespace UtaubaseForTuneLab
             TaskHelper.UpdateExecutors(rPart);
 
             //PrepareHash
-            string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine);
+            string OutputFile = TaskHelper.GetPartRenderedFilePath(rPart, renderEngine,synthesisData.PartProperties.GetString(UtauEngine.PhonemizerSelectorID));
             using(var plock= new ProcessQueueLocker(OutputFile))
             {
                 if (!File.Exists(OutputFile))

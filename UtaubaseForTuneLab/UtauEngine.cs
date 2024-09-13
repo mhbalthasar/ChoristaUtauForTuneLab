@@ -69,7 +69,9 @@ namespace UtaubaseForTuneLab
                 PhonemizerEnumList.AddRange(ok.Where(p => !p.StartsWith("[OU]")));
                 PhonemizerEnumList.AddRange(ok.Where(p => p.StartsWith("[OU]")));
             }
-            
+#if DEBUG
+            string ExportPhonemizer_Debug = "\"" + String.Join("\",\"", PhonemizerEnumList) + "\"";
+#endif
 
             return new UtauVoiceSource(
                 RenderEngine,

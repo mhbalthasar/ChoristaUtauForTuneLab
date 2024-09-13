@@ -38,6 +38,9 @@
             button1 = new Button();
             label4 = new Label();
             overlayName = new TextBox();
+            listPhonemizer = new ComboBox();
+            label5 = new Label();
+            button2 = new Button();
             SuspendLayout();
             // 
             // singerList
@@ -111,7 +114,7 @@
             // button1
             // 
             button1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            button1.Location = new Point(475, 333);
+            button1.Location = new Point(475, 387);
             button1.Name = "button1";
             button1.Size = new Size(125, 25);
             button1.TabIndex = 6;
@@ -137,12 +140,46 @@
             overlayName.Size = new Size(313, 23);
             overlayName.TabIndex = 4;
             // 
+            // listPhonemizer
+            // 
+            listPhonemizer.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            listPhonemizer.FormattingEnabled = true;
+            listPhonemizer.Location = new Point(475, 345);
+            listPhonemizer.Name = "listPhonemizer";
+            listPhonemizer.Size = new Size(313, 25);
+            listPhonemizer.TabIndex = 5;
+            listPhonemizer.SelectedIndexChanged += txtEncoding_SelectedIndexChanged;
+            // 
+            // label5
+            // 
+            label5.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label5.AutoSize = true;
+            label5.Location = new Point(475, 326);
+            label5.Name = "label5";
+            label5.Size = new Size(79, 17);
+            label5.TabIndex = 7;
+            label5.Text = "Phonemizer:";
+            // 
+            // button2
+            // 
+            button2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            button2.Location = new Point(606, 387);
+            button2.Name = "button2";
+            button2.Size = new Size(125, 25);
+            button2.TabIndex = 6;
+            button2.Text = "Rebuild OtoCache";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
             // EncodingSetting
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(label5);
+            Controls.Add(button2);
             Controls.Add(button1);
+            Controls.Add(listPhonemizer);
             Controls.Add(txtEncoding);
             Controls.Add(overlayName);
             Controls.Add(txtName);
@@ -175,5 +212,8 @@
         private Button button1;
         private Label label4;
         private TextBox overlayName;
+        private ComboBox listPhonemizer;
+        private Label label5;
+        private Button button2;
     }
 }

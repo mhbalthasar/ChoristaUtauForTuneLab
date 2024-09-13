@@ -1,5 +1,6 @@
 using SettingBuilder_win64;
 using System.ComponentModel.Design.Serialization;
+using System.Diagnostics;
 using System.Text;
 using System.Xml.Linq;
 using Ude;
@@ -259,9 +260,9 @@ namespace SettingBuilder
             Task.Run(() =>
             {
                 this.Invoke(() => { button7.Enabled = false; });
-                var tpk=GetVoiceBanks(); this.Invoke(() =>
+                var tpk = GetVoiceBanks(); this.Invoke(() =>
                 {
-                    EncodingSetting setWin = new EncodingSetting(tpk,this);
+                    EncodingSetting setWin = new EncodingSetting(tpk, this);
                     setWin.ShowDialog();
                 });
 
@@ -270,7 +271,7 @@ namespace SettingBuilder
         }
 
 
-        private string GetVBName(string VoiceBankPath,out string EncodingName)
+        private string GetVBName(string VoiceBankPath, out string EncodingName)
         {
             string DetectFileEncoding(string filePath)
             {
@@ -333,7 +334,7 @@ namespace SettingBuilder
             return vbName;
         }
 
-        public void GetVBNameWithEncoding(string VoiceBankPath,string EncodingInput, out string? EncodingName,out string? vbName)
+        public void GetVBNameWithEncoding(string VoiceBankPath, string EncodingInput, out string? EncodingName, out string? vbName)
         {
             Encoding GetEncoding(string EncodingName)
             {
@@ -362,7 +363,7 @@ namespace SettingBuilder
             }
             catch {; }
         }
-        public void GetVBOverlayName(string VoiceBankPath,out string? vbName)
+        public void GetVBOverlayName(string VoiceBankPath, out string? vbName)
         {
             vbName = null;
             if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml")))//openutau
@@ -379,7 +380,7 @@ namespace SettingBuilder
                 catch {; }
             }
         }
-        public Dictionary<string,Tuple<string,string>> GetVoiceBanks()
+        public Dictionary<string, Tuple<string, string>> GetVoiceBanks()
         {
             List<string> allPath = new List<string>();
             allPath.AddRange(l_staticDirs);
@@ -394,7 +395,7 @@ namespace SettingBuilder
             {
                 try
                 {
-                    string VBName = GetVBName(vbp,out string enc);
+                    string VBName = GetVBName(vbp, out string enc);
                     int ord = 0;
                     while (true)
                     {
@@ -402,12 +403,29 @@ namespace SettingBuilder
                         ord++;
                         VBName = string.Format("{0} #{1}", VBName, ord);
                     }
-                    VBL.Add(vbp, new Tuple<string, string>(VBName,enc));
+                    VBL.Add(vbp, new Tuple<string, string>(VBName, enc));
                 }
                 catch {; }
             }
 
             return VBL;
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            void killOne(string exeName)
+            {
+                Process p = new Process();
+                p.StartInfo.FileName = "cmd.exe";
+                p.StartInfo.ArgumentList.Add("/c");
+                p.StartInfo.ArgumentList.Add("taskkill");
+                p.StartInfo.ArgumentList.Add("/f");
+                p.StartInfo.ArgumentList.Add("/im");
+                p.StartInfo.ArgumentList.Add(exeName);
+                p.Start();
+                p.WaitForExit();
+            }
+            killOne("moresampler.exe");
         }
     }
 }
