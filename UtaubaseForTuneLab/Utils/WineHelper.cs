@@ -25,15 +25,22 @@ namespace UtaubaseForTuneLab.Utils
         static string? strBox86Path = null;
         public static string winePath { get {
                 if (strWinePath != null) return strWinePath;
+                string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string userWine= Path.Combine(UserProfile, "containers", "wine", "bin", "wine"); 
+                if (Path.Exists(userWine))
+                {
+                    strWinePath = userWine;
+                    return strWinePath;
+                }
                 string localWine = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "linux", "wine", "bin", "wine");
-                if (Path.Exists("/usr/local/bin/wine32on64")) return "/usr/local/bin/wine32on64";
-                if (Path.Exists("/usr/local/bin/wine")) return "/usr/local/bin/wine";
-                if (Path.Exists("/usr/bin/wine")) return "/usr/bin/wine";
                 if(Path.Exists(localWine))
                 {
                     strWinePath = localWine;
                     return strWinePath;
                 }
+                if (Path.Exists("/usr/local/bin/wine32on64")) return "/usr/local/bin/wine32on64";
+                if (Path.Exists("/usr/local/bin/wine")) return "/usr/local/bin/wine";
+                if (Path.Exists("/usr/bin/wine")) return "/usr/bin/wine";
                 string FindWineByWhichCommand(string fileName)
                 {
                     ProcessStartInfo startInfo = new ProcessStartInfo
@@ -75,14 +82,21 @@ namespace UtaubaseForTuneLab.Utils
             get
             {
                 if (strBox86Path != null) return strBox86Path;
+                string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string userBox86 = Path.Combine(UserProfile, "containers", "box86", "box86");
+                if (Path.Exists(userBox86))
+                {
+                    strBox86Path = userBox86;
+                    return strBox86Path;
+                }
                 string localBox86 = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", RuntimeInformation.IsOSPlatform(OSPlatform.OSX)?"osx":"linux", "box86", "box86");
-                if (Path.Exists("/usr/local/bin/box86")) return "/usr/local/bin/box86";
-                if (Path.Exists("/usr/bin/box86")) return "/usr/bin/box86";
                 if (Path.Exists(localBox86))
                 {
-                    strWinePath = localBox86;
-                    return strWinePath;
+                    strBox86Path = localBox86;
+                    return strBox86Path;
                 }
+                if (Path.Exists("/usr/local/bin/box86")) return "/usr/local/bin/box86";
+                if (Path.Exists("/usr/bin/box86")) return "/usr/bin/box86";
                 string FindWineByWhichCommand(string fileName)
                 {
                     ProcessStartInfo startInfo = new ProcessStartInfo
