@@ -395,51 +395,6 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             return WorkDir;
         }
 
-        public static string CreateCommandLine(string ExePath,List<string> Args,string WorkDir="",string UniqueFile="")
-        {
-            bool ContainsSpecialChars(string arg) { return arg.IndexOfAny(new char[] { '&', '|', '<', '>', ';', '^' }) != -1; }
-            string EscapeSpecialChars(string arg)
-            {
-                StringBuilder sb = new StringBuilder();
-
-                foreach (char c in arg)
-                {
-                    if (c == '&' || c == '|' || c == '<' || c == '>' || c == ';' || c == '^')
-                    {
-                        sb.Append('^');
-                    }
-                    sb.Append(c);
-                }
-
-                return sb.ToString();
-            }
-            string fmtArg(string p)
-            {
-                if (p.Length == 0) return "\"\"";
-                if (p.Length > 1 && p.StartsWith("\"") && p.EndsWith("\"")) { return p; }
-                if (p.Contains(' ') || p.Contains('\t') || ContainsSpecialChars(p)) return string.Format("\"{0}\"", p);
-                if (p.Length>3 && p.ToUpper()[0]>='A' && p.ToUpper()[0]<='Z' && p[1]==':' && p[2]=='\\') return string.Format("\"{0}\"", EscapeSpecialChars(p));
-                return p;
-            }
-            Args.Insert(0, ExePath);
-            List<string> newArgs=Args.Select(p=>fmtArg(p.Trim())).ToList();
-            string CommandLine = string.Join(" ", newArgs);
-            if (WorkDir.Trim().Length <4) return CommandLine;
-            StringBuilder sb = new StringBuilder();
-            if (UniqueFile != "")
-            {
-                sb.AppendLine(string.Format("if not exist \"{0}\" (",UniqueFile));
-            }
-            sb.AppendLine(WorkDir.Substring(0, 2));
-            sb.AppendLine(string.Format("cd \"{0}\"", WorkDir));
-            sb.AppendLine(CommandLine);
-            if (UniqueFile != "")
-            {
-                sb.AppendLine(")");
-            }
-            return sb.ToString();
-        }
-
         public static void FinishWavTool(string OutputFile,string WorkDir="")
         {
             string ParentDir = Path.GetDirectoryName(OutputFile);

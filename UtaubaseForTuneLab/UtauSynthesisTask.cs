@@ -245,40 +245,6 @@ namespace UtaubaseForTuneLab
                     Task[] taskQueue = new Task[QueueSize];
                     for (int queueIndex = 0; queueIndex < QueueSize; queueIndex++)
                     {
-                        if (WineHelper.UnderWine)
-                        {
-                            StringBuilder resampleBatContent = new StringBuilder();
-                            string resampleBatFile = Path.Combine(WorkDir, string.Format("resampler-{0}.bat", queueIndex));
-                            resampleBatContent.AppendLine("chcp 932");//CodePage:Shift-JIS
-                            foreach (URenderNote rNote in dividedRQueue[queueIndex])
-                            {
-                                string resampler_exe = renderEngine.ResamplerPath;
-                                List<string> args = rNote.Executors.GetResamplerArgs(true);
-                                if (args.Count == 0) continue;
-                                if (File.Exists(rNote.Executors.TempFilePath)) continue;
-                                resampleBatContent.AppendLine(TaskHelper.CreateCommandLine(
-                                    renderEngine.WindowsOnly?CrossPlatformUtils.KeepWindows(resampler_exe):resampler_exe, 
-                                    args,
-                                    renderEngine.WindowsOnly ? CrossPlatformUtils.KeepWindows(WorkDir) : WorkDir,
-                                    args[1]
-                                    ));
-                            }
-
-                            File.WriteAllText(resampleBatFile, resampleBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
-                            if (File.Exists(resampleBatFile))
-                            {
-                                Task task = Task.Run(() =>
-                                {
-                                    Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", resampleBatFile]),"",true,renderEngine.IsX64bit);
-                                    wavP.Start();
-                                    wavP.WaitForExit();
-                                    File.Delete(resampleBatFile);
-                                });
-                                taskQueue[queueIndex] = task;
-                            }
-                        }
-                        else
-                        {
                             var Qi = dividedRQueue[queueIndex];
                             Task task = Task.Run(() =>
                                 {
@@ -294,47 +260,20 @@ namespace UtaubaseForTuneLab
                                     }
                                 });
                             taskQueue[queueIndex] = task;
-                        }
                     }
                     await Task.WhenAll(taskQueue);
                 }
                 using (var plock = new ProcessQueueLocker(OutputFile))
                 {
                     //wavtool
-                    if (WineHelper.UnderWine)
+
+                    foreach (URenderNote rNote in rPart)
                     {
-                        StringBuilder wavtoolBatContent = new StringBuilder();
-                        string wavtoolBatFile = Path.Combine(WorkDir, "wavtool.bat");
-                        wavtoolBatContent.AppendLine("chcp 932");//CodePage:Shift-JIS
-                        foreach (URenderNote rNote in rPart)
-                        {
-                            string wavtool_exe = renderEngine.WavtoolPath;
-                            List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile, true);
-                            wavtoolBatContent.AppendLine(TaskHelper.CreateCommandLine(
-                                renderEngine.WindowsOnly ? CrossPlatformUtils.KeepWindows(wavtool_exe):wavtool_exe,
-                                args,
-                                renderEngine.WindowsOnly ? CrossPlatformUtils.KeepWindows(WorkDir) : WorkDir
-                            ));
-                        }
-                        File.WriteAllText(wavtoolBatFile, wavtoolBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
-                        if (File.Exists(wavtoolBatFile))
-                        {
-                            Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", wavtoolBatFile]), "", true, renderEngine.IsX64bit);
-                            wavP.Start();
-                            wavP.WaitForExit();
-                            File.Delete(wavtoolBatFile);
-                        }
-                    }
-                    else
-                    {
-                        foreach (URenderNote rNote in rPart)
-                        {
-                            string wavtool_exe = renderEngine.WavtoolPath;
-                            List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile, true);
-                            Process p = wine.CreateWineProcess(wavtool_exe, args, WorkDir);
-                            p.Start();
-                            p.WaitForExit();
-                        }
+                        string wavtool_exe = renderEngine.WavtoolPath;
+                        List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile, true);
+                        Process p = wine.CreateWineProcess(wavtool_exe, args, WorkDir);
+                        p.Start();
+                        p.WaitForExit();
                     }
 
                     TaskHelper.FinishWavTool(OutputFile, WorkDir);

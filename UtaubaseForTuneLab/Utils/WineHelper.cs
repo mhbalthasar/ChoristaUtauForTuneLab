@@ -134,6 +134,10 @@ namespace UtaubaseForTuneLab.Utils
             WineProcessInfo ret = new WineProcessInfo();
             ret.exePath = winePath;
             ret.args.Add(exePath);
+            
+            ret.envs.Add("LC_ALL", "ja_JP.UTF8");//匹配传统日语声库
+            ret.envs.Add("WINEPREFIX", "~/.TuneLab/WinePrefixs/"+(b64bit?"x64":"x86"));//专用容器
+            ret.envs.Add("WINEARCH", b64bit ? "win64" : "win32");
             return ret;
         }
 
