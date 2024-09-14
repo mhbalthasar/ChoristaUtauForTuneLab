@@ -371,7 +371,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
 
             return new string(result);
         }
-        public static string CreateWorkdirWithBatchBat(string RenderWavPath, UTaskProject uTask, List<URenderNote> rPart)
+        public static string CreateWorkdirWithBatchBat(string RenderWavPath, UTaskProject uTask, List<URenderNote> rPart,bool isWindowsRender=true)
         {
             string WorkDir = "";
             string ParentDir = Path.GetDirectoryName(RenderWavPath);
@@ -383,7 +383,7 @@ namespace UtaubaseForTuneLab.UProjectGenerator
             {
                 using (TextWriter tw = new StreamWriter(fs))
                 {
-                    tw.WriteLine(uTask.Part.GetBatchBat());
+                    tw.WriteLine(uTask.Part.GetBatchBat(isWindowsRender));
                     int index = 0;
                     foreach (URenderNote rNote in rPart)
                     {

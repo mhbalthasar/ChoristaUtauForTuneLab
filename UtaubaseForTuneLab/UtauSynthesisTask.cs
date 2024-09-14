@@ -20,6 +20,7 @@ using System.Xml.Linq;
 using UtaubaseForTuneLab.Utils;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel.DataAnnotations;
+using ChoristaUtauApi.Utils;
 
 namespace UtaubaseForTuneLab
 {
@@ -177,7 +178,7 @@ namespace UtaubaseForTuneLab
             if (!File.Exists(OutputFile))
             {
                 //PrepareWorkDir
-                string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile, uTask, rPart);
+                string WorkDir = TaskHelper.CreateWorkdirWithBatchBat(OutputFile, uTask, rPart,renderEngine.WindowsOnly);
 
                 //resamplers
                 var ProcessResamplerFiles = rPart.Select(p => p.Executors.TempFilePath).ToArray();
@@ -240,7 +241,12 @@ namespace UtaubaseForTuneLab
                                 List<string> args = rNote.Executors.GetResamplerArgs(true);
                                 if (args.Count == 0) continue;
                                 if (File.Exists(rNote.Executors.TempFilePath)) continue;
-                                resampleBatContent.AppendLine(TaskHelper.CreateCommandLine(resampler_exe, args, WorkDir, args[1]));
+                                resampleBatContent.AppendLine(TaskHelper.CreateCommandLine(
+                                    renderEngine.WindowsOnly?CrossPlatformUtils.KeepWindows(resampler_exe):resampler_exe, 
+                                    args,
+                                    renderEngine.WindowsOnly ? CrossPlatformUtils.KeepWindows(WorkDir) : WorkDir,
+                                    args[1]
+                                    ));
                             }
 
                             File.WriteAllText(resampleBatFile, resampleBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
@@ -248,7 +254,7 @@ namespace UtaubaseForTuneLab
                             {
                                 Task task = Task.Run(() =>
                                 {
-                                    Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", resampleBatFile]));
+                                    Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", resampleBatFile]),"",true,renderEngine.IsX64bit);
                                     wavP.Start();
                                     wavP.WaitForExit();
                                     File.Delete(resampleBatFile);
@@ -289,12 +295,16 @@ namespace UtaubaseForTuneLab
                         {
                             string wavtool_exe = renderEngine.WavtoolPath;
                             List<string> args = rNote.Executors.GetWavtoolArgs(OutputFile, true);
-                            wavtoolBatContent.AppendLine(TaskHelper.CreateCommandLine(wavtool_exe, args, WorkDir));
+                            wavtoolBatContent.AppendLine(TaskHelper.CreateCommandLine(
+                                renderEngine.WindowsOnly ? CrossPlatformUtils.KeepWindows(wavtool_exe):wavtool_exe,
+                                args,
+                                renderEngine.WindowsOnly ? CrossPlatformUtils.KeepWindows(WorkDir) : WorkDir
+                            ));
                         }
                         File.WriteAllText(wavtoolBatFile, wavtoolBatContent.ToString(), CodePagesEncodingProvider.Instance.GetEncoding("Shift-JIS"));
                         if (File.Exists(wavtoolBatFile))
                         {
-                            Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", wavtoolBatFile]));
+                            Process wavP = wine.CreateWineProcess("cmd.exe", new List<string>(["/c", wavtoolBatFile]), "", true, renderEngine.IsX64bit);
                             wavP.Start();
                             wavP.WaitForExit();
                             File.Delete(wavtoolBatFile);

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using ChoristaUtauApi.UNote;
 using ChoristaUtauApi.UPhonemizer;
+using ChoristaUtauApi.Utils;
 using ChoristaUtauApi.UVoiceBank;
 
 namespace ChoristaUtauApi.UTask
@@ -101,14 +102,14 @@ namespace ChoristaUtauApi.UTask
             return ret;
         }
 
-        public string GetBatchBat()
+        public string GetBatchBat(bool isWindowsTool = true)
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("@rem project=TunelabRender");
             sb.AppendLine("@set loadmodule=");
             sb.AppendLine("@set tempo=125");//MAX TEMPO:500,1tick=0.2ms
             sb.AppendLine("@set samples=44100");
-            sb.AppendLine("@set oto="+VoiceBank.vbBasePath);
+            sb.AppendLine("@set oto="+ (isWindowsTool ? CrossPlatformUtils.KeepWindows(VoiceBank.vbBasePath): VoiceBank.vbBasePath));
             sb.AppendLine("@set flag=\"\"");
             sb.AppendLine("@set env=0 5 35 0 100 100 0");
             sb.AppendLine("@set stp=0");
