@@ -21,7 +21,7 @@ namespace UDoppeltlerForTuneLab
         public override string EngineUniqueString => "ChoristaUtau_Doppe";
         public override int GetQueueSize(int defaultQueueSize)
         {
-            return Math.Max(1, defaultQueueSize);
+            return Math.Max(5, defaultQueueSize);
         }
 
 
