@@ -15,16 +15,16 @@ namespace UMoresamplerForTuneLab
 {
     internal class Moresample_Render(string enginePath) : IRenderEngine
     {
-        public string ResamplerPath { get { return Path.Combine(enginePath,"enginebin","moresampler","moresampler.exe"); } }
-        public string WavtoolPath { get {return Path.Combine(enginePath, "enginebin", "moresampler", "moresampler.exe");} }
+        public override string ResamplerPath { get { return Path.Combine(enginePath,"enginebin","moresampler","moresampler.exe"); } }
+        public override string WavtoolPath { get {return Path.Combine(enginePath, "enginebin", "moresampler", "moresampler.exe");} }
+        public override string EngineUniqueString => "ChoristaUtau_Mores";
+        public override bool SupportUltraTempo => true;
 
-        public string EngineUniqueString => "ChoristaUtau_Mores";
-
-        public bool WindowsOnly => true;
-        public bool SupportUltraTempo => true;
-
-
-
+        public override int GetQueueSize(int defaultQueueSize)
+        {
+            return Math.Max(10, defaultQueueSize);
+        }
+        public override bool IsMuteTailOffset => true;
 
 
         public const string OpeningID = "Flags:Opening";
@@ -67,7 +67,7 @@ namespace UMoresamplerForTuneLab
         public const string EnhanceID = "Flags:MEnhance";
         public readonly static AutomationConfig EnhanceConfig = new("ME", 0, 0, 1, "#86E573");
 
-        public IReadOnlyOrderedMap<string, AutomationConfig> AutomationConfigs { get; set; } = new OrderedMap<string, AutomationConfig>()
+        public override IReadOnlyOrderedMap<string, AutomationConfig> AutomationConfigs { get; } = new OrderedMap<string, AutomationConfig>()
         {
             {BreathnessID,BreathnessConfig },
             {GrowlID,GrowlConfig },
@@ -80,13 +80,13 @@ namespace UMoresamplerForTuneLab
             {EnhanceID, EnhanceConfig }
         };
 
-        public IReadOnlyOrderedMap<string, IPropertyConfig> PartProperties { get; set; } = new OrderedMap<string, IPropertyConfig>()
+        public override IReadOnlyOrderedMap<string, IPropertyConfig> PartProperties { get;} = new OrderedMap<string, IPropertyConfig>()
         {
             {PeakcompressorID,CompressConfig },
             {StretchModeID,StretchModeConfig}
         };
 
-        public IReadOnlyOrderedMap<string, IPropertyConfig> NoteProperties { get; set; } = new OrderedMap<string, IPropertyConfig>()
+        public override IReadOnlyOrderedMap<string, IPropertyConfig> NoteProperties { get; } = new OrderedMap<string, IPropertyConfig>()
         {
             {OpeningID,OpeningConfig },
             {ConsonantBreathID,ConsonantBreathConfig },
@@ -98,7 +98,7 @@ namespace UMoresamplerForTuneLab
             {XTenseID,XTenseConfig }
         };
 
-        public string GetNoteFlags(ISynthesisData data, ISynthesisNote note, string baseFlag = "", bool isXTrackFlag = false)
+        public override string GetNoteFlags(ISynthesisData data, ISynthesisNote note, string baseFlag = "", bool isXTrackFlag = false)
         {
             Moresample_Flags flags = new Moresample_Flags();
             if (baseFlag != "") flags.Parse(baseFlag);
@@ -158,7 +158,7 @@ namespace UMoresamplerForTuneLab
             return flags.ToString();
         }
 
-        public string GetTimeFlags(ISynthesisData data, double time, string baseFlag = "", double areaDuration = 0, bool isXTrackFlag=false)
+        public override string GetTimeFlags(ISynthesisData data, double time, string baseFlag = "", double areaDuration = 0, bool isXTrackFlag=false)
         {
             void SetProperyType1(string key, string ID, ref Moresample_Flags flags, int defVal = 0, bool isXTrackFlag = false, string XID = "")
             {

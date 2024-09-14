@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UtaubaseForTuneLab\UtaubaseForTuneLab.csproj" />
+    <ProjectReference Include="..\..\UtaubaseForTuneLab\UtaubaseForTuneLab.csproj" />
   </ItemGroup>
 
   <ItemGroup>

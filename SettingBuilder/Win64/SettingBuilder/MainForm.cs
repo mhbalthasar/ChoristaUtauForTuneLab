@@ -145,6 +145,7 @@ namespace SettingBuilder
                 this.Invoke(() =>
                 {
                     button4.Enabled = false;
+                    lab_size.Enabled = false;
                 });
                 try
                 {
@@ -155,6 +156,7 @@ namespace SettingBuilder
                 this.Invoke(() =>
                 {
                     button4.Enabled = true;
+                    lab_size.Enabled = true;
                 });
             });
         }
@@ -426,6 +428,22 @@ namespace SettingBuilder
                 p.WaitForExit();
             }
             killOne("moresampler.exe");
+        }
+
+        private void lab_size_Click(object sender, EventArgs e)
+        {
+            Task.Run(() =>
+            {
+                this.Invoke(() =>
+                {
+                    lab_size.Enabled = false;
+                });
+                CalcSize();
+                this.Invoke(() =>
+                {
+                    lab_size.Enabled = true;
+                });
+            });
         }
     }
 }

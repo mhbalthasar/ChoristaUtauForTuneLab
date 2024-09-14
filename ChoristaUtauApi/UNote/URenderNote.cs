@@ -93,7 +93,7 @@ namespace ChoristaUtauApi.UNote
             {
                 Prev.Attributes.TailIntrude = overlapped ? Math.Max(Preutter, Preutter - Overlap) : 0;
                 Prev.Attributes.TailOverlap = overlapped ? Math.Max(Overlap, 0) : 0;
-                Prev.Attributes.TailOffset = overlapped ? Math.Max(0, Preutter - Overlap) : 0;
+                Prev.Attributes.TailOffset = pNote.bMuteTail? ( overlapped ? Math.Max(0, Preutter - Overlap) : 0 ): 0;
             }
         }
         public void UpdateAttributes(
@@ -115,6 +115,7 @@ namespace ChoristaUtauApi.UNote
                     if (pNote.OtoCutoffCorrected != nNote.OtoCutoffCorrected) pNote.OtoCutoffCorrected = nNote.OtoCutoffCorrected;
 
                     if (pNote.Flags != nNote.Flags) pNote.Flags = nNote.Flags;
+                    pNote.bMuteTail = nNote.bMuteTail;
                 }
             }
             if (pNote.RenderOto != null)
@@ -163,6 +164,7 @@ namespace ChoristaUtauApi.UNote
                     pNote.AttrackVolume = nNote.AttrackVolume;
                     pNote.ReleaseVolume = nNote.ReleaseVolume;
                     if (pNote.Flags != nNote.Flags) pNote.Flags = nNote.Flags;
+                    pNote.bMuteTail = nNote.bMuteTail;
                 }
             }
         }
@@ -392,7 +394,7 @@ namespace ChoristaUtauApi.UNote
         public double OtoOffsetCorrected { get; set; } = 0;
         public double OtoCutoffCorrected { get; set; } = 0;
         public double OtoConsonantCorrected { get; set; } = 0;
-
+        public bool bMuteTail { get; set; } = false;//Special for MoresLike
         public UPhonemeNote? Parent { get; set; } = null;
     }
 }

@@ -17,12 +17,13 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
 
         //初始化复杂需要缓存的Phonemizer
         #region
-        internal static Dictionary<VoiceBank, PhonemizerProcessedAdapter> loadSyllablerCache = new Dictionary<VoiceBank, PhonemizerProcessedAdapter>();
+        internal static Dictionary<VoiceBank, Dictionary<Type,PhonemizerProcessedAdapter>> loadSyllablerCache = new Dictionary<VoiceBank, Dictionary<Type, PhonemizerProcessedAdapter>>();
         private VoiceBank voiceBank;
         public BaseAdapterPhonemizer(VoiceBank vb)
         {
             voiceBank = vb;//缓存vb信息
-            if (!loadSyllablerCache.ContainsKey(vb)) { InitAdapter(); }//尝试初始化
+            if (!loadSyllablerCache.ContainsKey(vb)) loadSyllablerCache.Add(voiceBank, new Dictionary<Type, PhonemizerProcessedAdapter>());
+            if (!loadSyllablerCache[vb].ContainsKey(this.PhonemizerType)) { InitAdapter(); }//尝试初始化
         }
         PhonemizerProcessedAdapter? InitAdapter()
         {
@@ -32,13 +33,14 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
                 OpenUtau.Api.Phonemizer OUPhonemizer = (OpenUtau.Api.Phonemizer)obj;
                 OUPhonemizer.InitPhonemizer(voiceBank);
                 PhonemizerProcessedAdapter adapter = new PhonemizerProcessedAdapter(OUPhonemizer);
-                if (loadSyllablerCache.ContainsKey(voiceBank))loadSyllablerCache[voiceBank]=adapter;
-                else loadSyllablerCache.Add(voiceBank, adapter);
+                if (!loadSyllablerCache.ContainsKey(voiceBank)) loadSyllablerCache.Add(voiceBank, new Dictionary<Type, PhonemizerProcessedAdapter>());
+                if (loadSyllablerCache[voiceBank].ContainsKey(PhonemizerType)) loadSyllablerCache[voiceBank][PhonemizerType] =adapter;
+                else loadSyllablerCache[voiceBank].Add(PhonemizerType, adapter);
                 return adapter;
             }
             return null;
         }
-        public PhonemizerProcessedAdapter? currentAdapter { get => loadSyllablerCache.ContainsKey(voiceBank)?loadSyllablerCache[voiceBank]:null; }
+        public PhonemizerProcessedAdapter? currentAdapter { get => loadSyllablerCache.ContainsKey(voiceBank)?(loadSyllablerCache[voiceBank].ContainsKey(PhonemizerType)? loadSyllablerCache[voiceBank][PhonemizerType] : null):null; }
         #endregion
 
         /// <summary>
@@ -92,12 +94,8 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
         #region
         public virtual List<UPhonemeNote> Process(UMidiPart MidiPart, int NoteIndex)
         {
-            var adapter = loadSyllablerCache[voiceBank];
-            if(adapter.OUPhonemizerClassType!=this.PhonemizerType)
-            {
-                var nextAdapter = InitAdapter();
-                if (nextAdapter != null) adapter = nextAdapter;
-            }
+            var adapter = currentAdapter;
+            if (adapter == null || adapter.OUPhonemizerClassType!=PhonemizerType) adapter = InitAdapter();
             return adapter.Process(MidiPart, NoteIndex);
         }
         #endregion

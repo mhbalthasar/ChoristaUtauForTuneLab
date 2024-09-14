@@ -143,7 +143,7 @@ namespace UtaubaseForTuneLab.Utils
             }
             //进程内解锁定
             {
-                lock (WorkingFile)
+               // lock (WorkingFile)
                 {
                     foreach(var lFile in fileBeLock)
                     {

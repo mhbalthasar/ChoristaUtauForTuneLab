@@ -128,6 +128,7 @@ namespace UtaubaseForTuneLab
                         var area = bar.GetTimeArea(AutoPropertyGetter.PropertyType.FullBar);
                         iNote.Flags = renderEngine.GetTimeFlags(synthesisData, area.Item1, iNote.Flags, area.Item2 - area.Item1,loop == RenderPart.SecondTrack);
                     }
+                    iNote.bMuteTail = renderEngine.IsMuteTailOffset;
                     return iNote;
                 })
             );
@@ -216,7 +217,12 @@ namespace UtaubaseForTuneLab
                     }
 
                     //MultiProcess Render
-                    var QueueSize = 10;
+                    var QueueSize = Math.Max(2,Environment.ProcessorCount);
+                    try
+                    {
+                        QueueSize = Math.Max(1, renderEngine.GetQueueSize(QueueSize));
+                    }
+                    catch {; }
                     var uniqueRPart = rPart.GroupBy(r => r.Executors.TempFilePath).Select(r => r.First()).ToList();
                     var dividedRQueue = uniqueRPart.DivideList(QueueSize);
                     QueueSize = Math.Min(QueueSize, dividedRQueue.Count);

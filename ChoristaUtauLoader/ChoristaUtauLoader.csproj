@@ -12,7 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\UMoresamplerForTuneLab\UMoresamplerForTuneLab.csproj" />
+    <ProjectReference Include="..\RenderEngines\UDoppeltlerForTuneLab\UDoppeltlerForTuneLab.csproj" />
+    <ProjectReference Include="..\RenderEngines\UMoresamplerForTuneLab\UMoresamplerForTuneLab.csproj" />
   </ItemGroup>
 
   <ItemGroup>

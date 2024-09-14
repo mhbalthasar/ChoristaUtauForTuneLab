@@ -125,6 +125,7 @@
             lab_size.Size = new Size(77, 17);
             lab_size.TabIndex = 1;
             lab_size.Text = "Size Calcing";
+            lab_size.Click += lab_size_Click;
             // 
             // button5
             // 

@@ -61,12 +61,12 @@ namespace SettingBuilder_win64
                     txtPath.ReadOnly = true;
                     txtName.ReadOnly = true;
                     string rln = cr.Value.Value.Item1;
-                    string enc = cr.Value.Value.Item2
+                    string enc = cr.Value.Value.Item2.ToLower()
                         .Replace("shift-jis", "shift_jis");
                     if (enc.Length == 0) txtEncoding.SelectedIndex = 0;
-                    else if (enc.ToLower() == "utf8" || enc.ToLower() == "utf-8") txtEncoding.SelectedIndex = 1;
-                    else if (enc.ToLower() == "ascii") txtEncoding.SelectedIndex = 0;
-                    else if (enc.ToLower() == "unicode") txtEncoding.SelectedIndex = 3;
+                    else if (enc == "utf8" || enc == "utf-8") txtEncoding.SelectedIndex = 1;
+                    else if (enc == "ascii") txtEncoding.SelectedIndex = 0;
+                    else if (enc == "unicode") txtEncoding.SelectedIndex = 3;
                     else
                     {
                         var cp = txtEncoding.Items.IndexOf(enc.ToUpper());
@@ -209,13 +209,8 @@ namespace SettingBuilder_win64
                 else
                 {
                     YamlDotNet.Serialization.Serializer s = new YamlDotNet.Serialization.Serializer();
-                    using (FileStream fs = new FileStream(Path.Combine(VoiceBankPath, "character.yaml"), FileMode.OpenOrCreate, FileAccess.ReadWrite))
-                    {
-                        using (TextWriter tw = new StreamWriter(fs))
-                        {
-                            s.Serialize(tw, ouMap);
-                        }
-                    };
+                    string content = s.Serialize(ouMap);
+                    File.WriteAllText(Path.Combine(VoiceBankPath, "character.yaml"),content);
                 }
             }
             catch {; }
