@@ -20,6 +20,7 @@ namespace UtaubaseForTuneLab.Utils
     {
         public static bool UnderWine { get => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows); }
 
+
         public WineProcessInfo GetWineInfo(string exePath)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return new WineProcessInfo() { exePath = exePath };

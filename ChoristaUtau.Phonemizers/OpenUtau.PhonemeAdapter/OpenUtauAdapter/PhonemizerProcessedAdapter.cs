@@ -28,6 +28,7 @@ namespace ChoristaUtauApi.UPhonemizer.OpenUtauAdapter
     }
     public class PhonemizerProcessedAdapter(Phonemizer openUtauPhonemizer)
     {
+        public Type OUPhonemizerClassType { get => openUtauPhonemizer.GetType(); }
         public bool bNeedPreProcess { get; set; } = false;
 
         private Note? transNote(UMidiNote? note)

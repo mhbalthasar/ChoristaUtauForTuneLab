@@ -34,11 +34,12 @@ namespace ChoristaUtauApi.UVoiceBank
                 return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
         }
-        private static string GetVBHash(string VoiceBankPath, List<string[]> OtoFiles)
+        private static string GetVBHash(string VoiceBankPath, List<string[]> OtoFiles,string Salt="")
         {
             List<string> subHash = new List<string>();
             if (File.Exists(Path.Combine(VoiceBankPath, "prefix.map"))) { subHash.Add(GetFileHash(Path.Combine(VoiceBankPath, "prefix.map"))); }
             if (File.Exists(Path.Combine(VoiceBankPath, "character.txt"))) { subHash.Add(GetFileHash(Path.Combine(VoiceBankPath, "character.txt"))); }
+            if (File.Exists(Path.Combine(VoiceBankPath, "character.yaml"))) { subHash.Add(GetFileHash(Path.Combine(VoiceBankPath, "character.yaml"))); }
             foreach (string[] otoPathMap in OtoFiles)
             {
                 string otoPath = Path.Combine(otoPathMap);
@@ -48,6 +49,7 @@ namespace ChoristaUtauApi.UVoiceBank
                     subHash.Add(GetFileHash(curPath));
                 }
             }
+            subHash.Insert(0,Salt);
             return GetMixedHash(subHash);
         }
         private static List<string[]> SearchOto(string basePath, int deeply = 0)
@@ -96,8 +98,9 @@ namespace ChoristaUtauApi.UVoiceBank
         }
         public static VoiceBank LoadVoiceBank(string VoiceBankPath)
         {
+            string fmtVersion = "0.0.1";
             List<string[]> otoFiles = SearchOto(VoiceBankPath);
-            string hash = GetVBHash(VoiceBankPath, otoFiles);
+            string hash = GetVBHash(VoiceBankPath, otoFiles,fmtVersion);
             string cache = Path.Combine(VoiceBankPath, "uvoicebank.protobuf");
             if (File.Exists(cache))
             {
@@ -265,6 +268,10 @@ namespace ChoristaUtauApi.UVoiceBank
            
 
             //LoadOto
+            string otofmt (string sin)
+            {
+                return sin.Trim();
+            }
             List<string> otoDirList = new List<string>();
             List<PrefixItem> otoFindedPrefix=new List<PrefixItem>();
             foreach (string[] otoPathMap in otoFiles)
@@ -296,11 +303,11 @@ namespace ChoristaUtauApi.UVoiceBank
                             {
                                 oto.Alias = Path.GetFileNameWithoutExtension(oto.Wav);
                             }
-                            oto.Offset = double.Parse(spL2[1]);
-                            oto.Consonant = double.Parse(spL2[2]);
-                            oto.Cutoff = double.Parse(spL2[3]);
-                            oto.Preutter = double.Parse(spL2[4]);
-                            oto.Overlap = double.Parse(spL2[5]);
+                            oto.Offset = double.Parse(otofmt(spL2[1]));
+                            oto.Consonant = double.Parse(otofmt(spL2[2]));
+                            oto.Cutoff = double.Parse(otofmt(spL2[3]));
+                            oto.Preutter = double.Parse(otofmt(spL2[4]));
+                            oto.Overlap = double.Parse(otofmt(spL2[5]));
 
                             oto.FileEncoding = "";
                             if (!oto.isVaild(VoiceBankPath))

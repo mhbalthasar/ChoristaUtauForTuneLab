@@ -72,7 +72,7 @@ namespace ChoristaUtauApi.UTask
                     if (ppNote.SymbolMSec > 0) staticLength += ppNote.SymbolMSec;
                     else dynmaticPartCount=dynmaticPartCount+1;
                 }
-                double dynmaticLength = (note.DurationMSec - staticLength) / dynmaticPartCount;
+                double dynmaticLength = dynmaticPartCount==0?0:(note.DurationMSec - staticLength) / dynmaticPartCount;
                 foreach (UPhonemeNote ppNote in note.PhonemeNotes)
                 {
                     URenderNote rpNote = new URenderNote(ppNote);

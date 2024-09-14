@@ -332,7 +332,8 @@ namespace ChoristaUtauApi.UNote
             }
 
             StringBuilder Lines = new StringBuilder();
-            Lines.AppendLine("@set params=" + string.Format("100 {0} !125 {1}", pNote.Attributes.Modulation.ToString("F3"), pNote.Attributes.PitchLineString));
+            
+            Lines.AppendLine("@set params=" + string.Format("100 {0} !{1} {2}", pNote.Attributes.Modulation.ToString("F3"),pNote.Attributes.UltraPitchLine ? "625" : "125" ,pNote.Attributes.PitchLineString));
             Lines.AppendLine("@set env=" + string.Join(" ", Attr_EnvlopeArgs));
             Lines.AppendLine("@set vel=" + pNote.Attributes.Velocity.ToString("F3"));
             Lines.AppendLine("@set temp=" + string.Format("\"{0}\"", CPath(TempFilePath, true)));

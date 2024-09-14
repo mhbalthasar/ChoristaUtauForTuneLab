@@ -61,54 +61,44 @@ namespace UtaubaseForTuneLab.Utils
             UnlockFiles();
         }
 
-        bool checkIsProcessInnerLocked(bool withLocList = true)
+        bool checkIsProcessInnerLockedWithoutQueueLock()
         {
-            bool innerFunc()
+            bool locing = false;
+            if (fileBeLock.Count == 1)
             {
-                bool locing = false;
-                if (fileBeLock.Count == 1)
-                {
-                    locing = WorkingFile.Contains(fileBeLock[0]);
-                }
-                else
-                {
-                    Parallel.ForEach(fileBeLock, (f) =>
-                    {
-                        locing = locing || WorkingFile.Contains(f);
-                    });
-                }
-                return locing;
+                locing = WorkingFile.Contains(fileBeLock[0]);
             }
-            if (withLocList)
+            else
             {
-                lock (WorkingFile)
+                Parallel.ForEach(fileBeLock, (f) =>
                 {
-                    return innerFunc();
-                }
-            }else
+                    locing = locing || WorkingFile.Contains(f);
+                });
+            }
+            return locing;
+        }
+        bool checkIsProcessInnerLocked()
+        {
+            lock (WorkingFile)
             {
-                return innerFunc();
+                return checkIsProcessInnerLockedWithoutQueueLock();
             }
         }
         bool checkIsProcessOutterLocked()
         {
-            bool innerFunc()
+            bool locing = false;
+            if (fileBeLock.Count == 1)
             {
-                bool locing = false;
-                if (fileBeLock.Count == 1)
-                {
-                    locing = FileLocker.IsLockFile(fileBeLock[0]);
-                }
-                else
-                {
-                    Parallel.ForEach(fileBeLock, (f) =>
-                    {
-                        locing = locing || FileLocker.IsLockFile(f);
-                    });
-                }
-                return locing;
+                locing = FileLocker.IsLockFile(fileBeLock[0]);
             }
-            return innerFunc();
+            else
+            {
+                Parallel.ForEach(fileBeLock, (f) =>
+                {
+                    locing = locing || FileLocker.IsLockFile(f);
+                });
+            }
+            return locing;
         }
         void Delay()
         {
@@ -122,7 +112,7 @@ namespace UtaubaseForTuneLab.Utils
             {
                 lock (WorkingFile)//上锁
                 {
-                    while (checkIsProcessInnerLocked(false)) Delay();//上锁后防止互斥，再查一次锁
+                    while (checkIsProcessInnerLockedWithoutQueueLock()) Delay();//上锁后防止互斥，再查一次锁
                     WorkingFile.AddRange(fileBeLock);//上锁
                 }
             }
