@@ -21,6 +21,8 @@ using UtaubaseForTuneLab.Utils;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.ComponentModel.DataAnnotations;
 using ChoristaUtauApi.Utils;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace UtaubaseForTuneLab
 {
@@ -213,6 +215,19 @@ namespace UtaubaseForTuneLab
                             {
                                 Error?.Invoke("sample wav files in oto.ini was cannot be open");
                                 return;
+                            }
+                        }
+                    }
+
+                    //CheckTheCrossPlatformWine
+                    {
+                        if (renderEngine.WindowsOnly && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            //NeedWine
+                            if (!Path.Exists(WineHelper.winePath)) { Error?.Invoke("WINE is not installed!"); return; }
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (RuntimeInformation.OSArchitecture == Architecture.Arm || RuntimeInformation.OSArchitecture == Architecture.Armv6 || RuntimeInformation.OSArchitecture == Architecture.Arm64))
+                            {
+                                if (!Path.Exists(WineHelper.box86Path)) { Error?.Invoke("BOX86 is not installed!"); return; }
                             }
                         }
                     }
