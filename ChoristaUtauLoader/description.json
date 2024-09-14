@@ -1,6 +1,6 @@
 {
   "name": "ChoristaUtau",
   "assemblies": [ "ChoristaUtauLoader.dll" ],
-  "platforms": [ "win-x64" ],
+  "platforms": [ "win-x64", "linux-x64" ],
   "version": "1.0.3"
 }
