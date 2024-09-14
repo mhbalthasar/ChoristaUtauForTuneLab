@@ -14,6 +14,7 @@ PS: the phonemizer code now is the example
 
 # Resampler Engines (Finished)
  - Moresampler
+ - Doppeltler
  - **
 
 # Releases
