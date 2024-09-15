@@ -23,6 +23,7 @@ namespace UtaubaseForTuneLab.Utils
 
         static string? strWinePath = null;
         static string? strBox86Path = null;
+        static string? strLatxPath = null;
         public static string winePath { get {
                 if (strWinePath != null) return strWinePath;
                 string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -130,22 +131,88 @@ namespace UtaubaseForTuneLab.Utils
             }
         }
 
+        public static string latxPath
+        {
+            get
+            {
+                string latxFile = "latx-i386";//X86 "latx_x86_64 is 64bit
+                if (strLatxPath != null) return strLatxPath;
+                string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string userLatx86 = Path.Combine(UserProfile, "containers", "latx", latxFile);
+                if (Path.Exists(userLatx86))
+                {
+                    strLatxPath = userLatx86;
+                    return strLatxPath;
+                }
+                string localLatx86 = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "linux", "latx", latxFile);
+                if (Path.Exists(localLatx86))
+                {
+                    strLatxPath = localLatx86;
+                    return strLatxPath;
+                }
+                if (Path.Exists("/usr/local/bin/"+ latxFile)) return "/usr/local/bin/"+ latxFile;
+                if (Path.Exists("/usr/bin/"+ latxFile)) return "/usr/bin/"+ latxFile;
+                if(Path.Exists("/usr/gnemul/"+ latxFile)) return "/usr/bin/"+ latxFile;
+                string FindWineByWhichCommand(string fileName)
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    {
+                        FileName = "which", // 使用which命令查找Wine
+                        Arguments = fileName,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (Process process = new Process())
+                    {
+                        process.StartInfo = startInfo;
+                        process.Start();
+
+                        string output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+
+                        return output.Trim(); // 返回找到的Wine路径
+                    }
+                }
+                //If is linux
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    strLatxPath = FindWineByWhichCommand(latxFile);
+                    return strLatxPath;
+                }
+                strLatxPath = "";
+                return "";
+            }
+        }
         public WineProcessInfo GetWineInfo(string exePath,bool b64bit=false)
         {
             string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string PrefixDir = Path.Combine(UserProfile,".TuneLab","WinePrefixs",b64bit?"x64":"x86");
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return new WineProcessInfo() { exePath = exePath };
-            if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (
-                RuntimeInformation.ProcessArchitecture==Architecture.Arm ||
-                RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ||
-                RuntimeInformation.ProcessArchitecture == Architecture.Armv6
-                ))
             {
-                WineProcessInfo ret_arm = new WineProcessInfo();
-                ret_arm.exePath = box86Path;
-                ret_arm.args.Add(winePath);
-                ret_arm.args.Add(exePath);
-                return ret_arm;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (
+                    RuntimeInformation.ProcessArchitecture == Architecture.Arm ||
+                    RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ||
+                    RuntimeInformation.ProcessArchitecture == Architecture.Armv6
+                    ))
+                {
+                    WineProcessInfo ret_arm = new WineProcessInfo();
+                    ret_arm.exePath = box86Path;
+                    ret_arm.args.Add(winePath);
+                    ret_arm.args.Add(exePath);
+                    return ret_arm;
+                }
+            }
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && RuntimeInformation.ProcessArchitecture == Architecture.LoongArch64)
+                {
+                    WineProcessInfo ret_arm = new WineProcessInfo();
+                    ret_arm.exePath = latxPath;
+                    ret_arm.args.Add(winePath);
+                    ret_arm.args.Add(exePath);
+                    return ret_arm;
+                }
             }
             WineProcessInfo ret = new WineProcessInfo();
             ret.exePath = winePath;

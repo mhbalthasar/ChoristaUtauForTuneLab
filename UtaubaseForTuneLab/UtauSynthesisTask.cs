@@ -229,6 +229,10 @@ namespace UtaubaseForTuneLab
                             {
                                 if (!Path.Exists(WineHelper.box86Path)) { Error?.Invoke("BOX86 is not installed!"); return; }
                             }
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (RuntimeInformation.OSArchitecture == Architecture.LoongArch64))
+                            {
+                                if (!Path.Exists(WineHelper.latxPath)) { Error?.Invoke("LATX is not installed!"); return; }
+                            }
                         }
                     }
 
