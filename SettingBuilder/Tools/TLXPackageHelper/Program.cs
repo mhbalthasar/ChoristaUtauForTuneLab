@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -77,7 +78,17 @@ internal class Program
         {
             FilePath.Add("description.json", srcDescriptionPath);
         }
-
+        try
+        {
+            string desFile = FilePath["description.json"];
+            Process p = new Process();
+            p.StartInfo.FileName = "powershell.exe";
+            p.StartInfo.ArgumentList.Add("-Command");
+            p.StartInfo.ArgumentList.Add("$jj=((Get-Content '" + desFile + "' -Raw) | ConvertFrom-Json);$jj.platforms=@('win-x64');$jc=$jj | ConvertTo-Json -Depth 100;Set-Content -Path " + desFile + " -Value $jc");
+            p.Start();
+            p.WaitForExit();
+        }
+        catch {; }
         ZipTo(FilePath, OutputFile);
         Console.WriteLine("Done!Packaged in "+OutputFile);
     }

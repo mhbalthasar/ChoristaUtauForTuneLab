@@ -48,13 +48,19 @@ COPY_EXT libonnxruntime_providers_shared.so
 DEL_EXT ChoristaUtauApi.dll
 DEL_EXT *.pdb
 
+#SET DESCRIPTION
+jq '.platforms = ["linux-x64"]' $TMP_DIR/ExtDir/description.json > $TMP_DIR/AppData/TuneLab/Extensions/ChoristaUtau/description.json
+
 #Package
 cd $TMP_DIR/AppData/TuneLab/Extensions/ChoristaUtau/
 zip -r $TMP_DIR/Output.tlx .
 
+#GETVERSION
+version=$(jq -r ".version" $TMP_DIR/ExtDir/description.json)
+
 #COPYBACK
 mkdir $SOLUTION_DIR/Output
-cp $TMP_DIR/Output.tlx $SOLUTION_DIR/Output/ChoristaUtauForTuneLab_linux64.tlx
+cp $TMP_DIR/Output.tlx $SOLUTION_DIR/Output/ChoristaUtauForTuneLab_$version_linux64.tlx
 
 #CLEAR
 rm -rf $TMP_DIR

@@ -41,13 +41,19 @@ call :COPY_EXT libonnxruntime_providers_shared.so
 call :DEL_EXT ChoristaUtauApi.dll
 call :DEL_EXT *.pdb
 
+@REM SET DESCRIPTION
+set JSON_FILE=%TMP_DIR%\AppData\TuneLab\Extensions\ChoristaUtau\description.json
+set PlatForm=linux-x64
+powershell -Command "$jj=((Get-Content '%JSON_FILE%' -Raw) | ConvertFrom-Json);$jj.platforms=@('%PlatForm%');$jc=$jj | ConvertTo-Json -Depth 100;Set-Content -Path %JSON_FILE% -Value $jc"
+
 @REM package
 del %TMP_DIR\Output.tlx
 powershell Compress-Archive -Path %TMP_DIR%\AppData\TuneLab\Extensions\ChoristaUtau\* -DestinationPath %TMP_DIR%\Output.zip
 
 @REM COPYBACK
+call :READ_VERSION
 mkdir $SOLUTION_DIR\Output
-copy /y %TMP_DIR%\Output.zip %SOLUTION_DIR%\Output\ChoristaUtauForTuneLab_linux64.tlx
+copy /y %TMP_DIR%\Output.zip %SOLUTION_DIR%\Output\ChoristaUtauForTuneLab_%version%_linux64.tlx
 
 @REM CLEAR
 del /s /q %TMP_DIR%
@@ -72,4 +78,12 @@ goto :eof
 
 :DEL_EXT
 del %TMP_DIR%\AppData\TuneLab\Extensions\ChoristaUtau\phonemizers\OpenUtauBuiltinAdapter\%1
+goto :eof
+
+:READ_VERSION
+@powershell -Command (Get-Content %JSON_FILE% -Raw ^| ConvertFrom-Json).version > t.txt
+for /f "delims=" %%a in (t.txt) do (
+	set version=%%a
+	goto :eof
+)
 goto :eof
