@@ -227,11 +227,13 @@ namespace UtaubaseForTuneLab
                             if (!Path.Exists(WineHelper.winePath)) { Error?.Invoke("WINE is not installed!"); return; }
                             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (RuntimeInformation.OSArchitecture == Architecture.Arm || RuntimeInformation.OSArchitecture == Architecture.Armv6 || RuntimeInformation.OSArchitecture == Architecture.Arm64))
                             {
-                                if (!Path.Exists(WineHelper.box86Path)) { Error?.Invoke("BOX86 is not installed!"); return; }
+                                string eng = renderEngine.IsX64bit ? WineHelper.box64Path : (File.Exists(WineHelper.box86Path) ? WineHelper.box86Path : WineHelper.box64Path);
+                                if (!Path.Exists(eng)) { Error?.Invoke("BOX86 is not installed!"); return; }
                             }
                             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (RuntimeInformation.OSArchitecture == Architecture.LoongArch64))
                             {
-                                if (!Path.Exists(WineHelper.latxPath)) { Error?.Invoke("LATX is not installed!"); return; }
+                                string eng =renderEngine.IsX64bit? WineHelper.latx64Path : (File.Exists(WineHelper.latxPath) ? WineHelper.latxPath : WineHelper.latx64Path);
+                                if (!Path.Exists(eng)) { Error?.Invoke("LATX is not installed!"); return; }
                             }
                         }
                     }
