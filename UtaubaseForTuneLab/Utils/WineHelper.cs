@@ -22,6 +22,7 @@ namespace UtaubaseForTuneLab.Utils
         public static bool UnderWine { get => !RuntimeInformation.IsOSPlatform(OSPlatform.Windows); }
 
         static string? strWinePath = null;
+        static string? strWine64Path = null;
         static string? strBox86Path = null;
         static string? strBox64Path = null;
         static string? strLatxPath = null;
@@ -29,14 +30,27 @@ namespace UtaubaseForTuneLab.Utils
         public static string winePath { get {
                 if (strWinePath != null) return strWinePath;
                 string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-                string userWine= Path.Combine(UserProfile, "containers", "wine", "bin", "wine"); 
+                string userWine= Path.Combine(UserProfile, "containers", "wine", "bin", "wine");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    userWine = Path.Combine(UserProfile, "containers", "wine.app", "Contents", "MacOS", "wine");
+                }
                 if (Path.Exists(userWine))
                 {
                     strWinePath = userWine;
                     return strWinePath;
                 }
                 string localWine = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "linux", "wine", "bin", "wine");
-                if(Path.Exists(localWine))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    string localWine64 = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", "osx", "wine.app", "Contents", "Resources", "wine", "bin", "wine");
+                    if (File.Exists(localWine64)) localWine = localWine64;
+                    else
+                    {
+                        localWine = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", "osx", "wine.app", "Contents", "MacOS", "wine");
+                    }
+                }
+                if (Path.Exists(localWine))
                 {
                     strWinePath = localWine;
                     return strWinePath;
@@ -84,6 +98,89 @@ namespace UtaubaseForTuneLab.Utils
                     if (strWinePath.Length == 0 || !File.Exists(strWinePath))
                     {
                         strWinePath = FindWineByWhichCommand("deepin-wine");
+                    }
+                    return strWinePath;
+                }
+                return "";
+            }
+        }
+        public static string winePath64
+        {
+            get
+            {
+                if (strWine64Path != null) return strWine64Path;
+                string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string userWine = Path.Combine(UserProfile, "containers", "wine", "bin", "wine64");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    userWine = Path.Combine(UserProfile, "containers", "wine.app", "Contents", "MacOS", "wine64");
+                }
+                if (Path.Exists(userWine))
+                {
+                    strWinePath = userWine;
+                    return strWinePath;
+                }
+                string localWine = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "osx" : "linux", "wine", "bin", "wine64");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    string localWine64 = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", "osx", "wine.app", "Contents", "Resources", "wine", "bin", "wine");
+                    if (File.Exists(localWine64 + "64")) localWine64 = localWine64 + "64";
+                    if (File.Exists(localWine64)) localWine = localWine64;
+                    else
+                    {
+                        localWine = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "containers", "osx", "wine.app", "Contents", "MacOS", "wine");
+                        if (File.Exists(localWine + "64")) localWine = localWine + "64";
+                    }
+                }
+                if (Path.Exists(localWine))
+                {
+                    strWinePath = localWine;
+                    return strWinePath;
+                }
+                if (Path.Exists("/usr/local/bin/wine32on64")) return "/usr/local/bin/wine32on64";
+                if (Path.Exists("/usr/local/bin/wine64")) return "/usr/local/bin/wine64";
+                if (Path.Exists("/usr/bin/wine64")) return "/usr/bin/wine64";
+                if (Path.Exists("/usr/bin/deepin-wine64")) return "/usr/bin/deepin-wine64";
+                if (Path.Exists("/usr/lib/deepin-wine/wine64")) return "/usr/lib/deepin-wine/wine64";
+                if (Path.Exists("/usr/share/deepin-wine/wine64")) return "/usr/share/deepin-wine/wine64";
+                if (Path.Exists("/usr/lib/i386-linux-gnu/deepin-wine5/wine64")) return "/usr/lib/i386-linux-gnu/deepin-wine5/wine64";
+                if (Path.Exists("/opt/deepin-wine8-stable/bin/wine64")) return "/opt/deepin-wine8-stable/bin/wine64";
+                if (Path.Exists("/opt/deepin-wine6-stable/bin/wine64")) return "/opt/deepin-wine6-stable/bin/wine64";
+                string FindWineByWhichCommand(string fileName)
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    {
+                        FileName = "which", // 使用which命令查找Wine
+                        Arguments = fileName,
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+
+                    using (Process process = new Process())
+                    {
+                        process.StartInfo = startInfo;
+                        process.Start();
+
+                        string output = process.StandardOutput.ReadToEnd();
+                        process.WaitForExit();
+
+                        return output.Trim(); // 返回找到的Wine路径
+                    }
+                }
+                //If is linux
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    strWinePath = FindWineByWhichCommand("wine64");
+                    return strWinePath;
+                }
+                //If is linux
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    strWinePath = FindWineByWhichCommand("wine64");
+                    if (strWinePath.Length == 0 || !File.Exists(strWinePath))
+                    {
+                        strWinePath = FindWineByWhichCommand("deepin-wine64");
                     }
                     return strWinePath;
                 }
@@ -333,6 +430,8 @@ namespace UtaubaseForTuneLab.Utils
         {
             string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string PrefixDir = Path.Combine(UserProfile,".TuneLab","WinePrefixs",b64bit?"x64":"x86");
+            string wPath = winePath;
+            if (b64bit && File.Exists(winePath64)) wPath = winePath64;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return new WineProcessInfo() { exePath = exePath };
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && (
@@ -343,8 +442,10 @@ namespace UtaubaseForTuneLab.Utils
                 {
                     WineProcessInfo ret_arm = new WineProcessInfo();
                     ret_arm.exePath = b64bit ? box64Path : (File.Exists(box86Path)?box86Path:box64Path);
-                    ret_arm.args.Add(winePath);
+                    ret_arm.args.Add(wPath);
                     ret_arm.args.Add(exePath);
+                    ret_arm.envs.Add("BOX64_LD_LIBRARY_PATH",Path.GetDirectoryName(box64Path));
+                    ret_arm.envs.Add("BOX86_LD_LIBRARY_PATH", Path.GetDirectoryName(box86Path));
                     return ret_arm;
                 }
             }
@@ -353,13 +454,13 @@ namespace UtaubaseForTuneLab.Utils
                 {
                     WineProcessInfo ret_arm = new WineProcessInfo();
                     ret_arm.exePath = b64bit ? latx64Path : (File.Exists(latxPath)?latxPath:latx64Path);
-                    ret_arm.args.Add(winePath);
+                    ret_arm.args.Add(wPath);
                     ret_arm.args.Add(exePath);
                     return ret_arm;
                 }
             }
             WineProcessInfo ret = new WineProcessInfo();
-            ret.exePath = winePath;
+            ret.exePath = wPath;
             ret.args.Add(exePath);
 
             try
