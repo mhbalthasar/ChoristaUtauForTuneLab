@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using ChoristaUtau.SettingUI.Kernel.Utils;
 using ImGuiNET;
 using ImGuiNET.SDL2CS;
 using SDL2;
@@ -40,7 +41,7 @@ namespace ChoristaUtau.SettingUI
             BackgroundColor = new Vector4(0, 0, 0, 0);
             Task.Run(() => { Worker.UpdateVoiceDirs(); });
             Task.Run(() => { Worker.UpdateCacheSize(); });
-            SDL2.SDL.SDL_StartTextInput();
+            SwitcherManager.UpdateSwitchers();
             mAction = SubmitUI;
         }
         void InitFont()
@@ -287,6 +288,18 @@ namespace ChoristaUtau.SettingUI
                         Task.Run(() => { Worker.UpdateCacheSize(); });
                     }
 
+                }
+                {
+                    ImGui.SetCursorPos(new Vector2(this.Size.X - 140, 450 + 40));
+                    ImGui.Text("Switchers:");
+
+                    ImGui.SetCursorPos(new Vector2(this.Size.X - 140, 450 + 60));
+                    if (ImGui.Button((SwitcherManager.IsAudioEffectEnable?"Disable":"Enable")+"\nAudioEffect", new Vector2(100, 35)))
+                    {
+                        SwitcherManager.IsAudioEffectEnable = !SwitcherManager.IsAudioEffectEnable;
+                        SwitcherManager.SaveSwitchers();
+                        SwitcherManager.UpdateSwitchers();
+                    }
                 }
             }
             return true;

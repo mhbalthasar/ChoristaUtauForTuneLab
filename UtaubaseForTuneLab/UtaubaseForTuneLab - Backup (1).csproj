@@ -10,13 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MathNet.Numerics" Version="6.0.0-beta1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
     <ProjectReference Include="..\..\..\TuneLab.Base\TuneLab.Base.csproj" />
     <ProjectReference Include="..\..\..\TuneLab.Extensions.Voices\TuneLab.Extensions.Voices.csproj" />
+    <ProjectReference Include="..\ChoristaUtauApi\ChoristaUtauApi.csproj" />
   </ItemGroup>
 
 </Project>

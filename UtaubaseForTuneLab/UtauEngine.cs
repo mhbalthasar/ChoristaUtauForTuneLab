@@ -4,6 +4,7 @@ using TuneLab.Extensions.Voices;
 using UtaubaseForTuneLab.Utils;
 using ChoristaUtauApi.UPhonemizer;
 using ChoristaUtauApi.UVoiceBank;
+using UtaubaseForTuneLab.AudioEffect;
 
 namespace UtaubaseForTuneLab
 {
@@ -131,6 +132,7 @@ namespace UtaubaseForTuneLab
             if (RenderEngine == null) { error = "Utau Render engine not impl!"; return false; }
             error = "";
 
+            SwitcherManager.UpdateSwitchers();
             string UserProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
             //Load Extended Phonemizer
