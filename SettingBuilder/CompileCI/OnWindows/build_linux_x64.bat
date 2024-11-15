@@ -19,6 +19,7 @@ dotnet publish -r linux-x64 -o %TMP_DIR%\ExtDir .\UtauForTuneLab.sln
 call :COPY_BASE Ude.dll
 call :COPY_BASE protobuf-net.Core.dll
 call :COPY_BASE protobuf-net.dll
+call :COPY_BASE MathNet.Numerics.dll
 call :DEL_BASE TuneLab.Base.dll
 call :DEL_BASE TuneLab.Extensions.Voices.dll
 call :DEL_BASE *.pdb

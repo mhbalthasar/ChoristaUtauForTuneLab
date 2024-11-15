@@ -21,6 +21,7 @@ function DEL_BASE() {
 COPY_BASE Ude.dll
 COPY_BASE protobuf-net.Core.dll
 COPY_BASE protobuf-net.dll
+COPY_BASE MathNet.Numerics.dll
 DEL_BASE TuneLab.Base.dll
 DEL_BASE TuneLab.Extensions.Voices.dll
 DEL_BASE *.pdb
