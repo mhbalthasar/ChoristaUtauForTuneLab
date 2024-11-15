@@ -51,6 +51,11 @@ DEL_EXT *.pdb
 #SET DESCRIPTION
 jq '.platforms = ["win-x64"]' $TMP_DIR/ExtDir/description.json > $TMP_DIR/AppData/TuneLab/Extensions/ChoristaUtau/description.json
 
+#BUILD SETTING UI
+chmod a+x "$SOLUTION_DIR/SettingBuilder/SettingUI/CompileCI/anycpu.sh"
+"$SOLUTION_DIR/SettingBuilder/SettingUI/CompileCI/anycpu.sh"
+cp -r "$SOLUTION_DIR/SettingBuilder/SettingUI/Output" $TMP_DIR/AppData/TuneLab/Extensions/ChoristaUtau/setting_ui
+
 #Package
 cd $TMP_DIR/AppData/TuneLab/Extensions/ChoristaUtau/
 zip -r $TMP_DIR/Output.tlx .

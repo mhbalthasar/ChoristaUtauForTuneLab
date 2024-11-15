@@ -39,3 +39,11 @@
 /RenderEngines/UMoresamplerForTuneLab/bin
 /RenderEngines/UMoresamplerForTuneLab/obj
 t.txt
+/SettingBuilder/SettingUI/.vs
+/SettingBuilder/SettingUI/Kernel/obj
+/SettingBuilder/SettingUI/Loader/bin
+/SettingBuilder/SettingUI/Loader/obj
+/SettingBuilder/SettingUI/Output
+/SettingBuilder/SettingUI/Kernel/bin
+/SettingBuilder/SettingUI/zpixFont/obj
+/SettingBuilder/SettingUI/zpixFont/bin

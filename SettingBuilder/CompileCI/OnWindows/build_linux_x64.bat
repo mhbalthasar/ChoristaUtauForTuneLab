@@ -6,14 +6,14 @@ set WORK_DIR=%~dp0
 set SOLUTION_DIR=%WORK_DIR%\..\..\..\
 
 @REM PREPARE_TEMP_DIR
-set TMP_DIR=%TEMP%\ChoristaUtau_WinCI
+set TMP_DIR=%TEMP%\ChoristaUtau_LinuxCI
 del /s /q %TMP_DIR%
 
 @REM COMPILE
 %~d0
 cd %SOLUTION_DIR%
 set AppData=%TMP_DIR%\AppData
-dotnet publish -r win-x64 -o %TMP_DIR%\ExtDir .\UtauForTuneLab.sln
+dotnet publish -r linux-x64 -o %TMP_DIR%\ExtDir .\UtauForTuneLab.sln
 
 @REM CopyDepends For BaseEngines
 call :COPY_BASE Ude.dll
@@ -43,8 +43,12 @@ call :DEL_EXT *.pdb
 
 @REM SET DESCRIPTION
 set JSON_FILE=%TMP_DIR%\AppData\TuneLab\Extensions\ChoristaUtau\description.json
-set PlatForm=win-x64
+set PlatForm=linux-x64
 powershell -Command "$jj=((Get-Content '%JSON_FILE%' -Raw) | ConvertFrom-Json);$jj.platforms=@('%PlatForm%');$jc=$jj | ConvertTo-Json -Depth 100;Set-Content -Path %JSON_FILE% -Value $jc"
+
+@REM BUILD SETTING UI
+cmd /c "%SOLUTION_DIR%\SettingBuilder\SettingUI\CompileCI\anycpu.bat"
+xcopy "%SOLUTION_DIR%\SettingBuilder\SettingUI\Output" %TMP_DIR%\AppData\TuneLab\Extensions\ChoristaUtau\setting_ui /E /I /Y
 
 @REM package
 del %TMP_DIR\Output.tlx
@@ -53,7 +57,7 @@ powershell Compress-Archive -Path %TMP_DIR%\AppData\TuneLab\Extensions\ChoristaU
 @REM COPYBACK
 call :READ_VERSION
 mkdir $SOLUTION_DIR\Output
-copy /y %TMP_DIR%\Output.zip %SOLUTION_DIR%\Output\ChoristaUtauForTuneLab_%version%_win64.tlx
+copy /y %TMP_DIR%\Output.zip %SOLUTION_DIR%\Output\ChoristaUtauForTuneLab_%version%_linux64.tlx
 
 @REM CLEAR
 del /s /q %TMP_DIR%
