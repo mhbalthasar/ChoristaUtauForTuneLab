@@ -20,6 +20,7 @@ call :COPY_BASE Ude.dll
 call :COPY_BASE protobuf-net.Core.dll
 call :COPY_BASE protobuf-net.dll
 call :COPY_BASE MathNet.Numerics.dll
+call :COPY_BASE YamlDotNet.dll
 call :DEL_BASE TuneLab.Base.dll
 call :DEL_BASE TuneLab.Extensions.Voices.dll
 call :DEL_BASE *.pdb
